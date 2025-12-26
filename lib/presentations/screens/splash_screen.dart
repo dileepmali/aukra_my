@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../app/constants/app_icons.dart';
 import '../../app/constants/app_images.dart';
 import '../../app/themes/app_colors.dart';
@@ -46,14 +47,19 @@ class _SplashScreenState extends State<SplashScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
+          gradient: SweepGradient(
             colors: [
+              AppColors.splaceSecondary1,
               AppColors.splaceSecondary2,
               AppColors.splaceSecondary1,
               AppColors.splaceSecondary2,
+              AppColors.splaceSecondary1,
+              AppColors.splaceSecondary2,
+              AppColors.splaceSecondary1,
             ],
+            startAngle: 0.0,
+            endAngle: 3.14 * 2,
+            transform: GradientRotation(2.7)
           ),
         ),
         child: Stack(
@@ -86,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
                   Text(
-                    'Infinite income, Advanced accounts',
+                    'Your data, your space',
                     textAlign: TextAlign.center,
                     style: AppFonts.headlineMedium(
                       color: AppColors.anantSpaceColor,
@@ -156,37 +162,45 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  // 🎨 Floating SVG Icons on Ring Boundaries
+  // 🎨 Floating SVG Icons on Rings
   Widget _buildFloatingIcons(AdvancedResponsiveHelper responsive) {
     final size = MediaQuery.of(context).size;
+    final center = Offset(size.width / 2, size.height / 2);
 
-    // 🎯 Center point - EXACT screen center to match logo position
-    final center = Offset(size.width / 2, size.height * 0.5);
-
-    // 🎨 Ring radius (using outer ring for icon placement)
-    final iconRingRadius = responsive.orientation == Orientation.portrait
-        ? size.height * 0.42
-        : size.width * 0.55;
+    // Responsive radius calculations
+    final outerRadius = responsive.orientation == Orientation.portrait
+        ? size.width * 0.75
+        : size.width * 0.45;
+    final middleRadius = responsive.orientation == Orientation.portrait
+        ? size.width * 0.55
+        : size.width * 0.35;
 
     return Stack(
       children: [
-        // 🎨 Icons placed around the ring boundary - equally spaced
+        // Outer Ring Icons
         ..._buildIconsForRing(
           center: center,
-          radius: iconRingRadius,
+          radius: outerRadius,
+          icons: [AppIcons.folderIc],
+          angles: [7 * pi / 2],
+          responsive: responsive,
+        ),
+
+        // Middle Ring Icons
+        ..._buildIconsForRing(
+          center: center,
+          radius: middleRadius,
           icons: [
-            AppIcons.folderIc,     // Top-left (calculator in design)
-            AppIcons.galleryIc,    // Top-right (notebook in design)
-            AppIcons.videoIc,      // Right (briefcase in design)
-            AppIcons.folderIc,     // Bottom-right (gift box in design)
-            AppIcons.galleryIc,    // Bottom-left (shopping cart in design)
+            AppIcons.galleryIc,
+            AppIcons.galleryIc,
+            AppIcons.folderIc,
+            AppIcons.videoIc,
           ],
           angles: [
-            pi * 0.25,   // Top-left (~45°)
-            pi * 0.05,   // Top-right (~10°)
-            pi * 0.5,    // Right side (90°)
-            pi * 1.75,   // Bottom-right (~315°)
-            pi * 1.25,   // Bottom-left (~225°)
+            4.1,           // Gallery 1 - top-right
+            pi / 3.3,      // Gallery 2 - right
+            pi * 0.7,      // Folder - left side (more left)
+            2.5 * pi / 1.5 // Video - bottom
           ],
           responsive: responsive,
         ),
@@ -243,65 +257,57 @@ class ResponsiveRoundedLinesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 🎯 Center point - EXACT screen center to match logo position
-    final center = Offset(size.width / 2, size.height * 0.5);
+    final center = Offset(size.width / 2, size.height / 2);
 
-    // 🎨 VERY LARGE CONCENTRIC RINGS with MORE SPACING between them
+    // Responsive radius calculations
     final outerRadius = responsive.orientation == Orientation.portrait
-        ? size.height * 0.42  // Very large - almost full screen height
-        : size.width * 0.55;
+        ? size.width * 0.75
+        : size.width * 0.45;
     final middleRadius = responsive.orientation == Orientation.portrait
-        ? size.height * 0.32  // Increased spacing from outer ring
-        : size.width * 0.42;
+        ? size.width * 0.55
+        : size.width * 0.35;
     final innerRadius = responsive.orientation == Orientation.portrait
-        ? size.height * 0.22  // Increased spacing from middle ring
-        : size.width * 0.30;
+        ? size.width * 0.30
+        : size.width * 0.22;
 
-    // Draw FULL CIRCULAR RINGS (not partial arcs)
-    _drawFullRing(
+    // Outer ring
+    _drawRing(
       canvas,
       center,
       outerRadius,
-      Color(0xFFFFFFFF).withOpacity(0.12),
+      Color(0xFFFFFFFC).withOpacity(0.1),
       responsive.wp(0.5),
     );
 
-    _drawFullRing(
+    // Middle ring
+    _drawRing(
       canvas,
       center,
       middleRadius,
-      Color(0xFFFFFFFF).withOpacity(0.10),
+      Color(0xFFFFFFFC).withOpacity(0.1),
       responsive.wp(0.5),
     );
 
-    _drawFullRing(
+    // Inner ring
+    _drawRing(
       canvas,
       center,
       innerRadius,
-      Color(0xFFFFFFFF).withOpacity(0.08),
+      Color(0xFFFFFFFC).withOpacity(0.1),
       responsive.wp(0.5),
     );
-
-    // 🎨 HORIZONTAL LINE passing through logo center
-    _drawHorizontalLine(canvas, center, size.width, responsive.wp(0.5));
   }
 
-  void _drawFullRing(
-    Canvas canvas,
-    Offset center,
-    double radius,
-    Color color,
-    double strokeWidth,
-  ) {
-    // Draw FULL circular ring with subtle glow
+  void _drawRing(Canvas canvas, Offset center, double radius, Color color, double strokeWidth) {
+    // Draw ring with glow effect
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
-    // Add subtle glow effect
+    // Add glow/shadow effect to rings
     final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = Colors.white.withOpacity(0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 2
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8);
@@ -310,35 +316,6 @@ class ResponsiveRoundedLinesPainter extends CustomPainter {
     canvas.drawCircle(center, radius, glowPaint);
     // Draw ring on top
     canvas.drawCircle(center, radius, paint);
-  }
-
-  void _drawHorizontalLine(
-    Canvas canvas,
-    Offset center,
-    double screenWidth,
-    double strokeWidth,
-  ) {
-    // Draw horizontal line passing through logo center (left to right)
-    final paint = Paint()
-      ..color = Color(0xFFFFFFFF).withOpacity(0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    // Add subtle glow effect
-    final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth + 2
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8);
-
-    // Start point (left edge) and end point (right edge) at logo center height
-    final startPoint = Offset(0, center.dy);
-    final endPoint = Offset(screenWidth, center.dy);
-
-    // Draw glow first
-    canvas.drawLine(startPoint, endPoint, glowPaint);
-    // Draw line on top
-    canvas.drawLine(startPoint, endPoint, paint);
   }
 
   @override
