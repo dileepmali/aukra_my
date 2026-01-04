@@ -6,6 +6,7 @@
   "termsConditions": "નિયમો અને શરતો",
   "sendOtp": "OTP મોકલો",
   "enterPhoneNumber": "નંબર",
+  "mobileNumber": "મોબાઇલ નંબર",
   "continueText": "ચાલુ રાખો",
   "selectLanguage": "ભાષા પસંદ કરો",
   "noLanguagesFound": "કોઈ ભાષા મળી નથી",
@@ -511,5 +512,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "તમારો વ્યવસાય/દુકાન અને\nવ્યક્તિગત વિગતો ઉમેરો",
+  "businessShopName": "વ્યવસાય / દુકાનનું નામ",
+  "locationAddress": "સ્થાન / સરનામું",
+  "registeredMobileNumber": "નોંધાયેલ મોબાઇલ નંબર",
+  "ownerMasterMobileNumber": "માલિક (માસ્ટર મોબાઇલ નંબર)",
+  "confirmFinish": "પુષ્ટિ કરો અને સમાપ્ત કરો",
+  "pleaseEnterValidMobileNumber": "કૃપા કરીને માન્ય 10-અંકનો મોબાઇલ નંબર દાખલ કરો",
+  "pleaseEnterYourName": "કૃપા કરીને તમારું નામ દાખલ કરો",
+  "pleaseEnterBusinessShopName": "કૃપા કરીને વ્યવસાય/દુકાનનું નામ દાખલ કરો",
+  "pleaseEnterLocationAddress": "કૃપા કરીને સ્થાન/સરનામું દાખલ કરો",
+  "pleaseVerifyOwnerMobileNumber": "કૃપા કરીને માલિકનો મોબાઇલ નંબર ચકાસો",
+  "detailsSavedSuccessfully": "વિગતો સફળતાપૂર્વક સાચવાઈ ગઈ",
+  "failedToSaveDetails": "વિગતો સાચવવામાં નિષ્ફળ",
+  "inSeconds": " {seconds} સેકંડમાં"
 }

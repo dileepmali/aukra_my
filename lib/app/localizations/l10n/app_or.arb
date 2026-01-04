@@ -6,6 +6,7 @@
   "termsConditions": "ନିୟମ ଏବଂ ସର୍ତ୍ତାବଳୀ",
   "sendOtp": "OTP ପଠାନ୍ତୁ",
   "enterPhoneNumber": "ନମ୍ବର",
+  "mobileNumber": "ମୋବାଇଲ୍ ନମ୍ବର",
   "continueText": "ଆଗକୁ ବଢନ୍ତୁ",
   "selectLanguage": "ଭାଷା ବାଛନ୍ତୁ",
   "noLanguagesFound": "କୌଣସି ଭାଷା ମିଳିଲା ନାହିଁ",
@@ -514,5 +515,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "ଆପଣଙ୍କର ବ୍ୟବସାୟ/ଦୋକାନ ଏବଂ\nବ୍ୟକ୍ତିଗତ ବିବରଣୀ ଯୋଗ କରନ୍ତୁ",
+  "businessShopName": "ବ୍ୟବସାୟ / ଦୋକାନ ନାମ",
+  "locationAddress": "ସ୍ଥାନ / ଠିକଣା",
+  "registeredMobileNumber": "ପଞ୍ଜୀକୃତ ମୋବାଇଲ୍ ନମ୍ବର",
+  "ownerMasterMobileNumber": "ମାଲିକ (ମାଷ୍ଟର ମୋବାଇଲ୍ ନମ୍ବର)",
+  "confirmFinish": "ନିଶ୍ଚିତ କରନ୍ତୁ ଏବଂ ସମାପ୍ତ କରନ୍ତୁ",
+  "pleaseEnterValidMobileNumber": "ଦୟାକରି ବୈଧ 10-ଅଙ୍କର ମୋବାଇଲ୍ ନମ୍ବର ପ୍ରବେଶ କରନ୍ତୁ",
+  "pleaseEnterYourName": "ଦୟାକରି ଆପଣଙ୍କର ନାମ ପ୍ରବେଶ କରନ୍ତୁ",
+  "pleaseEnterBusinessShopName": "ଦୟାକରି ବ୍ୟବସାୟ/ଦୋକାନ ନାମ ପ୍ରବେଶ କରନ୍ତୁ",
+  "pleaseEnterLocationAddress": "ଦୟାକରି ସ୍ଥାନ/ଠିକଣା ପ୍ରବେଶ କରନ୍ତୁ",
+  "pleaseVerifyOwnerMobileNumber": "ଦୟାକରି ମାଲିକଙ୍କ ମୋବାଇଲ୍ ନମ୍ବର ଯାଞ୍ଚ କରନ୍ତୁ",
+  "detailsSavedSuccessfully": "ବିବରଣୀ ସଫଳତାର ସହିତ ସଂରକ୍ଷଣ ହୋଇଛି",
+  "failedToSaveDetails": "ବିବରଣୀ ସଂରକ୍ଷଣ କରିବାରେ ବିଫଳ",
+  "inSeconds": " {seconds} ସେକେଣ୍ଡରେ"
 }

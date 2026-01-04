@@ -6,6 +6,7 @@
   "termsConditions": "ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು",
   "sendOtp": "OTP ಕಳುಹಿಸಿ",
   "enterPhoneNumber": "ಸಂಖ್ಯೆ",
+  "mobileNumber": "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
   "continueText": "ಮುಂದುವರೆಸಿ",
   "selectLanguage": "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ",
   "noLanguagesFound": "ಯಾವುದೇ ಭಾಷೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
@@ -476,5 +477,19 @@
   "selectAll": "ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ",
   "deselectAll": "ಎಲ್ಲವನ್ನೂ ತೆಗೆದುಹಾಕಿ",
   "recent": "ಇತ್ತೀಚಿನ",
-  "selectAudio": "ಆಡಿಯೊ ಆಯ್ಕೆಮಾಡಿ"
+  "selectAudio": "ಆಡಿಯೊ ಆಯ್ಕೆಮಾಡಿ",
+  "addBusinessShopDetails": "ನಿಮ್ಮ ವ್ಯಾಪಾರ/ಅಂಗಡಿ ಮತ್ತು\nವೈಯಕ್ತಿಕ ವಿವರಗಳನ್ನು ಸೇರಿಸಿ",
+  "businessShopName": "ವ್ಯಾಪಾರ / ಅಂಗಡಿ ಹೆಸರು",
+  "locationAddress": "ಸ್ಥಳ / ವಿಳಾಸ",
+  "registeredMobileNumber": "ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+  "ownerMasterMobileNumber": "ಮಾಲೀಕ (ಮಾಸ್ಟರ್ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ)",
+  "confirmFinish": "ಖಚಿತಪಡಿಸಿ ಮತ್ತು ಮುಗಿಸಿ",
+  "pleaseEnterValidMobileNumber": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ 10-ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ",
+  "pleaseEnterYourName": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+  "pleaseEnterBusinessShopName": "ದಯವಿಟ್ಟು ವ್ಯಾಪಾರ/ಅಂಗಡಿ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+  "pleaseEnterLocationAddress": "ದಯವಿಟ್ಟು ಸ್ಥಳ/ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
+  "pleaseVerifyOwnerMobileNumber": "ದಯವಿಟ್ಟು ಮಾಲೀಕರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ",
+  "detailsSavedSuccessfully": "ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ",
+  "failedToSaveDetails": "ವಿವರಗಳನ್ನು ಉಳಿಸುವುದರಲ್ಲಿ ವಿಫಲವಾಗಿದೆ",
+  "inSeconds": " {seconds} ಸೆಕೆಂಡುಗಳಲ್ಲಿ"
 }

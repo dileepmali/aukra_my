@@ -27,6 +27,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get enterPhoneNumber => 'नंबर';
 
   @override
+  String get mobileNumber => 'मोबाइल नंबर';
+
+  @override
   String get continueText => 'जारी रखें';
 
   @override
@@ -1544,4 +1547,51 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get selectAudio => 'ऑडियो चुनें';
+
+  @override
+  String get addBusinessShopDetails =>
+      'अपना व्यवसाय/दुकान और\nव्यक्तिगत विवरण जोड़ें';
+
+  @override
+  String get businessShopName => 'व्यवसाय / दुकान का नाम';
+
+  @override
+  String get locationAddress => 'स्थान / पता';
+
+  @override
+  String get registeredMobileNumber => 'पंजीकृत मोबाइल नंबर';
+
+  @override
+  String get ownerMasterMobileNumber => 'मालिक (मास्टर मोबाइल नंबर)';
+
+  @override
+  String get confirmFinish => 'पुष्टि करें और समाप्त करें';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'कृपया मान्य 10-अंकीय मोबाइल नंबर दर्ज करें';
+
+  @override
+  String get pleaseEnterYourName => 'कृपया अपना नाम दर्ज करें';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'कृपया व्यवसाय/दुकान का नाम दर्ज करें';
+
+  @override
+  String get pleaseEnterLocationAddress => 'कृपया स्थान/पता दर्ज करें';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'कृपया मालिक का मोबाइल नंबर सत्यापित करें';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'विवरण सफलतापूर्वक सहेजे गए';
+
+  @override
+  String get failedToSaveDetails => 'विवरण सहेजने में विफल';
+
+  @override
+  String get inSeconds => ' {seconds} सेकंड में';
 }

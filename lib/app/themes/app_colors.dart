@@ -8,6 +8,11 @@ class AppColors {
   static const Color splaceSecondary1 = Color(0xFF1d4ed8);
   static const Color freeCardWhite1 = Color(0xFFbdbdbd);
   static const Color freeCardWhite2 = Color(0xFFffffff);
+  static const Color primeryamount = Color(0xFF22C55E); // rgba(34, 197, 94, 1)
+  static const Color red500 = Color(0xFFEF4444); // Red gradient start
+  static const Color red800 = Color(0xFF991B1B); // Red gradient end
+  static const Color green400 = Color(0xFF4ADE80); // Green gradient start
+  static const Color green800 = Color(0xFF166534); // Green gradient end
 
 
   static const Color containerColor = Color(0x0FFFFFFF);
@@ -67,7 +72,7 @@ class AppColors {
   static const Color dialogBariary = Color(0xFF302525); // black40
 
   // 🌫️ Overlay
-  static const Color overlay = Color(0xFF161616); // 50% Black
+  static const Color overlay = Color(0xFF171515); // 50% Black
   static const Color black = Color(0xFF000000); // 50% Black
 
   // ⛔ Alert/Dialog
@@ -111,6 +116,7 @@ class AppColors {
 
   // 🚫 Transparent
   static const Color transparent = Colors.transparent;
+  static const Color transparentWhite70 = Color(0xB3FFFFFF); // rgba(255, 255, 255, 0.7)
 
 
 

@@ -154,6 +154,12 @@ abstract class AppLocalizations {
   /// **'Number'**
   String get enterPhoneNumber;
 
+  /// No description provided for @mobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Number'**
+  String get mobileNumber;
+
   /// No description provided for @continueText.
   ///
   /// In en, this message translates to:
@@ -2819,6 +2825,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Audio'**
   String get selectAudio;
+
+  /// No description provided for @addBusinessShopDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your business/shop &\npersonal details'**
+  String get addBusinessShopDetails;
+
+  /// No description provided for @businessShopName.
+  ///
+  /// In en, this message translates to:
+  /// **'Business / Shop name'**
+  String get businessShopName;
+
+  /// No description provided for @locationAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Location / Address'**
+  String get locationAddress;
+
+  /// No description provided for @registeredMobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered mobile number'**
+  String get registeredMobileNumber;
+
+  /// No description provided for @ownerMasterMobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner (Master mobile number)'**
+  String get ownerMasterMobileNumber;
+
+  /// No description provided for @confirmFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & finish'**
+  String get confirmFinish;
+
+  /// No description provided for @pleaseEnterValidMobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid 10-digit mobile number'**
+  String get pleaseEnterValidMobileNumber;
+
+  /// No description provided for @pleaseEnterYourName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get pleaseEnterYourName;
+
+  /// No description provided for @pleaseEnterBusinessShopName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter business/shop name'**
+  String get pleaseEnterBusinessShopName;
+
+  /// No description provided for @pleaseEnterLocationAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter location/address'**
+  String get pleaseEnterLocationAddress;
+
+  /// No description provided for @pleaseVerifyOwnerMobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify owner mobile number'**
+  String get pleaseVerifyOwnerMobileNumber;
+
+  /// No description provided for @detailsSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Details saved successfully'**
+  String get detailsSavedSuccessfully;
+
+  /// No description provided for @failedToSaveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save details'**
+  String get failedToSaveDetails;
+
+  /// No description provided for @inSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **' in {seconds} seconds'**
+  String get inSeconds;
 }
 
 class _AppLocalizationsDelegate

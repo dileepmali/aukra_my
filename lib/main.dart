@@ -4,17 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'app/localizations/l10n/app_localizations.dart';
 import 'app/themes/app_themes.dart';
 import 'controllers/localization_controller.dart';
 import 'controllers/theme_controller.dart';
+import 'core/services/contact_cache_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize dotenv (load .env file)
+  await dotenv.load(fileName: ".env");
+
   // Initialize GetStorage
   await GetStorage.init();
+
+  // ✅ Initialize Hive for contact caching (ULTRA FAST subsequent loads)
+  await ContactCacheService.init();
 
   // Initialize controllers
   Get.put(LocalizationController(), permanent: true);

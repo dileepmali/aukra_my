@@ -21,6 +21,7 @@ class BottomActionBar extends StatelessWidget {
   final double? buttonSpacing;
   final EdgeInsets? containerPadding;
   final bool isSecondaryLoading; // ✅ NEW: Loading state for secondary button
+  final List<Color>? secondaryButtonGradientColors; // Custom gradient for secondary button
 
   const BottomActionBar({
     Key? key,
@@ -33,6 +34,7 @@ class BottomActionBar extends StatelessWidget {
     this.buttonSpacing,
     this.containerPadding,
     this.isSecondaryLoading = false, // ✅ NEW: Default to false
+    this.secondaryButtonGradientColors, // Optional custom gradient for secondary button
   }) : super(key: key);
 
   @override
@@ -105,7 +107,7 @@ class BottomActionBar extends StatelessWidget {
                   text: secondaryButtonText,
                   onPressed: onSecondaryPressed,
                   borderColor: isDark ? AppColors.driver : AppColorsLight.splaceSecondary1,
-                  gradientColors: isDark
+                  gradientColors: secondaryButtonGradientColors ?? (isDark
                       ? [
                           AppColors.splaceSecondary1,
                           AppColors.splaceSecondary2,
@@ -113,7 +115,7 @@ class BottomActionBar extends StatelessWidget {
                       : [
                           AppColorsLight.splaceSecondary1,
                           AppColorsLight.splaceSecondary2,
-                        ],
+                        ]),
                   enableSweepGradient: true,
                   textColor: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
                   fontSize: responsive.fontSize(18),
@@ -178,7 +180,7 @@ class BottomActionBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                 text: secondaryButtonText,
                 onPressed: onSecondaryPressed,
-                gradientColors: isDark
+                gradientColors: secondaryButtonGradientColors ?? (isDark
                     ? [
                         AppColors.splaceSecondary1,
                         AppColors.splaceSecondary2,
@@ -186,7 +188,7 @@ class BottomActionBar extends StatelessWidget {
                     : [
                         AppColorsLight.splaceSecondary1,
                         AppColorsLight.splaceSecondary2,
-                      ],
+                      ]),
                 textColor: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
                 fontSize: responsive.fontSize(14),
                 maxLines: 2, // ✅ Allow text to wrap to 2 lines for long text

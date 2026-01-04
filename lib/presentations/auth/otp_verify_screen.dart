@@ -24,6 +24,7 @@ import '../../core/untils/error_types.dart';
 import '../../../core/api/auth_storage.dart';
 import '../../../core/services/back_button_service.dart';
 import '../widgets/custom_border_widget.dart';
+import '../routes/app_routes.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
   final String? phoneNumber;
@@ -480,80 +481,86 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
       ),
     );
 
-    return Pinput(
-      controller: _pinController,
-      focusNode: _pinFocusNode, // 🔥 FIX: Add explicit FocusNode
-      length: 4,
-      defaultPinTheme: defaultPinTheme,
-      focusedPinTheme: defaultPinTheme.copyWith(
-        decoration: defaultPinTheme.decoration!.copyWith(
-          borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-          border: Border.all(
-            color: isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary2,
-            width: 2,
+    return Obx(() => Opacity(
+      opacity: controller.isOtpExpired.value ? 0.5 : 1.0, // ✅ Dim when expired
+      child: AbsorbPointer(
+        absorbing: controller.isOtpExpired.value, // ✅ Disable input when expired
+        child: Pinput(
+          controller: _pinController,
+          focusNode: _pinFocusNode, // 🔥 FIX: Add explicit FocusNode
+          length: 4,
+          defaultPinTheme: defaultPinTheme,
+          focusedPinTheme: defaultPinTheme.copyWith(
+            decoration: defaultPinTheme.decoration!.copyWith(
+              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+              border: Border.all(
+                color: isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary2,
+                width: 2,
+              ),
+            ),
           ),
+          submittedPinTheme: defaultPinTheme,
+          showCursor: !controller.isOtpExpired.value, // ✅ Hide cursor when expired
+          // autofocus: true,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done, // 🔥 NEW: Show Done button on keyboard
+          onChanged: (code) {
+            debugPrint('🔄 Pinput onChanged: $code (length: ${code.length})');
+
+            // 🔥 NEW APPROACH: Do NOTHING in onChanged to prevent keyboard close
+            // Only store the value locally in _pinController
+            // Controller update will happen ONLY in onCompleted
+          },
+          onCompleted: (code) {
+            debugPrint('🚀 Pinput onCompleted: $code');
+
+            // 🔥 FIX: Mark this as manual entry, NOT clipboard
+            controller.isClipboardOtp.value = false;
+
+            for (int i = 0; i < 4; i++) {
+              controller.otp[i] = code[i];
+            }
+            controller.otp.refresh();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              FocusScope.of(context).unfocus();
+              await Future.delayed(Duration(milliseconds: 500));
+              _handleVerifyOtp();
+            });
+          },
+          // 🔥 NEW: Handle keyboard Done/Submit button
+          onSubmitted: (code) {
+            debugPrint('✅ Pinput onSubmitted (Done button pressed): $code');
+
+            // Update controller if OTP is complete
+            if (code.length == 4) {
+              // 🔥 FIX: Mark this as manual entry, NOT clipboard
+              controller.isClipboardOtp.value = false;
+
+              for (int i = 0; i < 4; i++) {
+                controller.otp[i] = code[i];
+              }
+              controller.otp.refresh();
+
+              // Close keyboard and verify OTP
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                FocusScope.of(context).unfocus();
+                await Future.delayed(Duration(milliseconds: 300));
+                _handleVerifyOtp();
+              });
+            } else {
+              // If incomplete OTP, show error
+              debugPrint('⚠️ Incomplete OTP on Submit: $code (length: ${code.length})');
+              AdvancedErrorService.showError(
+                AppStrings.getLocalizedString(context, (localizations) => localizations.pleaseEnterComplete4DigitOtp),
+                severity: ErrorSeverity.medium,
+                category: ErrorCategory.validation,
+              );
+            }
+          },
         ),
       ),
-      submittedPinTheme: defaultPinTheme,
-      showCursor: true,
-      // autofocus: true,
-      keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.done, // 🔥 NEW: Show Done button on keyboard
-      onChanged: (code) {
-        debugPrint('🔄 Pinput onChanged: $code (length: ${code.length})');
-
-        // 🔥 NEW APPROACH: Do NOTHING in onChanged to prevent keyboard close
-        // Only store the value locally in _pinController
-        // Controller update will happen ONLY in onCompleted
-      },
-      onCompleted: (code) {
-        debugPrint('🚀 Pinput onCompleted: $code');
-
-        // 🔥 FIX: Mark this as manual entry, NOT clipboard
-        controller.isClipboardOtp.value = false;
-
-        for (int i = 0; i < 4; i++) {
-          controller.otp[i] = code[i];
-        }
-        controller.otp.refresh();
-
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          FocusScope.of(context).unfocus();
-          await Future.delayed(Duration(milliseconds: 500));
-          _handleVerifyOtp();
-        });
-      },
-      // 🔥 NEW: Handle keyboard Done/Submit button
-      onSubmitted: (code) {
-        debugPrint('✅ Pinput onSubmitted (Done button pressed): $code');
-
-        // Update controller if OTP is complete
-        if (code.length == 4) {
-          // 🔥 FIX: Mark this as manual entry, NOT clipboard
-          controller.isClipboardOtp.value = false;
-
-          for (int i = 0; i < 4; i++) {
-            controller.otp[i] = code[i];
-          }
-          controller.otp.refresh();
-
-          // Close keyboard and verify OTP
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            FocusScope.of(context).unfocus();
-            await Future.delayed(Duration(milliseconds: 300));
-            _handleVerifyOtp();
-          });
-        } else {
-          // If incomplete OTP, show error
-          debugPrint('⚠️ Incomplete OTP on Submit: $code (length: ${code.length})');
-          AdvancedErrorService.showError(
-            AppStrings.getLocalizedString(context, (localizations) => localizations.pleaseEnterComplete4DigitOtp),
-            severity: ErrorSeverity.medium,
-            category: ErrorCategory.validation,
-          );
-        }
-      },
-    );
+    ));
   }
 
 
@@ -700,35 +707,78 @@ Future<void> _handleVerifyOtp() async {
       return;
     }
 
-    // 🔥 NEW: Check if OTP has expired
+    // ✅ Check if OTP has expired
     if (controller.isOtpExpired.value) {
+      debugPrint('⏰ OTP verification failed - OTP has expired');
+
+      // ✅ Clear PIN boxes
+      _pinController.clear();
+      controller.clearOtp();
+
       AdvancedErrorService.showError(
-        AppStrings.getLocalizedString(context, (localizations) => localizations.invalidOrExpiredOtp),
+        'OTP has expired. Please request a new OTP.',
         severity: ErrorSeverity.medium,
         category: ErrorCategory.validation,
       );
+      controller.isLoading.value = false;
       return;
     }
 
+    // 🔥 DEVELOPMENT: Log if dummy OTP is being used
+    final isDummyOtp = (otpString == '8888');
+    if (isDummyOtp) {
+      debugPrint('🔥 Dummy OTP detected (8888) - Will still call API for real token');
+    }
+
+    // 🔥 ALWAYS CALL API - Whether OTP is dummy or real
     final payload = {
-      'phone': phone,
+      'mobileNumber': phone,  // ✅ Fixed: Changed from 'phone' to 'mobileNumber'
       'otp': otpString,
     };
 
-    debugPrint('📡 Making API call with payload: $payload');
+    debugPrint('📡 Making verify-otp API call with payload: $payload');
+    debugPrint('📍 URL: api/auth/verify-otp');
 
     await apiFetcher.request(
-      url: 'auth/verify-otp',
+      url: 'api/auth/verify-otp',  // ✅ Fixed: Added 'api/' prefix
       method: 'POST',
       body: payload,
       requireAuth: false,
     );
 
-    // ✅ Success case
-    if (apiFetcher.errorMessage == null &&
-        apiFetcher.data != null &&
-        apiFetcher.data["success"] == true) {
-      debugPrint('OTP verification successful: ${apiFetcher.data}');
+    debugPrint('📥 API Response: ${apiFetcher.data}');
+    debugPrint('❌ API Error: ${apiFetcher.errorMessage}');
+
+    // ✅ Success case - Check for token in response
+    if (apiFetcher.errorMessage == null && apiFetcher.data != null) {
+      debugPrint('✅ OTP verification successful: ${apiFetcher.data}');
+
+      // ✅ CRITICAL FIX: Extract and save token FIRST before anything else
+      final token = apiFetcher.data is Map ? apiFetcher.data['token'] : null;
+      final userId = apiFetcher.data['userId'];
+      final isNewUser = apiFetcher.data['isNewUser'] ?? false;
+      final merchantId = apiFetcher.data['merchantId'];
+
+      debugPrint('🔑 Token: ${token != null ? "${token.toString().substring(0, 20)}..." : "null"}');
+      debugPrint('👤 User ID: $userId');
+      debugPrint('🆕 Is New User: $isNewUser');
+      debugPrint('🏢 Merchant ID: $merchantId');
+
+      // ✅ CRITICAL: Save token to secure storage IMMEDIATELY
+      if (token != null) {
+        await AuthStorage.saveToken(token);
+        debugPrint('✅ Token manually saved to storage');
+
+        // Verify token was saved
+        final savedToken = await AuthStorage.getToken();
+        if (savedToken != null) {
+          debugPrint('✅ Token verified in storage: ${savedToken.substring(0, 20)}...');
+        } else {
+          debugPrint('❌ WARNING: Token save failed!');
+        }
+      } else {
+        debugPrint('⚠️ No token in OTP response - check API response format');
+      }
 
       // Mark OTP as verified
       isOtpVerified = true;
@@ -736,6 +786,28 @@ Future<void> _handleVerifyOtp() async {
       // Save phone number to secure storage
       await AuthStorage.savePhoneNumber(controller.phoneNumber);
       debugPrint('📱 Phone number saved: ${controller.phoneNumber}');
+
+      // Save userId to secure storage (needed for creating merchant)
+      if (userId != null) {
+        await AuthStorage.saveUserId(userId.toString());
+        debugPrint('👤 User ID saved: $userId');
+      } else {
+        debugPrint('⚠️ No user ID in OTP response');
+      }
+
+      // Clear old merchant ID if user is new (to prevent conflicts with old data)
+      if (isNewUser) {
+        await AuthStorage.clearMerchantId();
+        debugPrint('🧹 Cleared old merchant ID for new user');
+      }
+
+      // Save merchant ID to secure storage if available
+      if (merchantId != null) {
+        await AuthStorage.saveMerchantId(merchantId);
+        debugPrint('🏢 Merchant ID saved: $merchantId');
+      } else {
+        debugPrint('⚠️ No merchant ID in OTP response - will be set after shop details');
+      }
 
       // Show success message
       AdvancedErrorService.showSuccess(
@@ -746,15 +818,46 @@ Future<void> _handleVerifyOtp() async {
       // Wait for keyboard to close before navigation
       await Future.delayed(const Duration(milliseconds: 300));
 
-      // 1 सेकंड बाद navigate - Only navigate if still mounted and verified
-      Future.delayed(const Duration(seconds: 1), () {
+      // ✅ SMART NAVIGATION: Check if merchant already exists
+      debugPrint('');
+      debugPrint('🔍 ========== NAVIGATION DECISION ==========');
+
+      Future.delayed(const Duration(seconds: 1), () async {
         if (mounted && isOtpVerified) {
-          // Get.offAll(() => MainScreen());
+          // ✅ Check if merchant already exists in storage
+          final merchantId = await AuthStorage.getMerchantId();
+          final hasShopDetails = await AuthStorage.hasShopDetails();
+
+          debugPrint('📊 Merchant ID: $merchantId');
+          debugPrint('📊 Shop Details Complete: $hasShopDetails');
+
+          if (merchantId != null && hasShopDetails) {
+            // ✅ Merchant exists → Navigate to Main Screen
+            debugPrint('✅ DECISION: Merchant exists (ID: $merchantId)');
+            debugPrint('   → Navigate to Main Screen');
+            debugPrint('   → SKIP Shop Detail Screen');
+            debugPrint('==========================================');
+            debugPrint('');
+            Get.offAllNamed(AppRoutes.main);
+          } else {
+            // ❌ No merchant → Navigate to Shop Detail Screen
+            debugPrint('⚠️ DECISION: Merchant does not exist');
+            debugPrint('   → Navigate to Shop Detail Screen');
+            debugPrint('   → User will fill merchant details');
+            debugPrint('==========================================');
+            debugPrint('');
+            Get.offAllNamed(AppRoutes.shopDetail);
+          }
         }
       });
     } else {
       // ❌ Fake/Invalid OTP case - Only show error if OTP is not already verified
       debugPrint('❌ OTP verification failed. Response: ${apiFetcher.data}');
+
+      // ✅ Clear PIN boxes on wrong OTP
+      _pinController.clear();
+      controller.clearOtp();
+
       if (mounted && !isOtpVerified) {
         // 🔥 Always show same localized message as countdown expired case
         AdvancedErrorService.showError(
@@ -767,6 +870,11 @@ Future<void> _handleVerifyOtp() async {
     }
   } catch (e) {
     debugPrint('💥 Exception in _handleVerifyOtp: $e');
+
+    // ✅ Clear PIN boxes on exception
+    _pinController.clear();
+    controller.clearOtp();
+
     if (mounted && !isOtpVerified) {
       AdvancedErrorService.showError(
         AppStrings.getLocalizedString(context, (localizations) => localizations.verificationFailed),

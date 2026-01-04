@@ -27,6 +27,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPhoneNumber => 'Number';
 
   @override
+  String get mobileNumber => 'Mobile Number';
+
+  @override
   String get continueText => 'Continue';
 
   @override
@@ -1542,4 +1545,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectAudio => 'Select Audio';
+
+  @override
+  String get addBusinessShopDetails =>
+      'Add your business/shop details and\npersonal details';
+
+  @override
+  String get businessShopName => 'Business / Shop Name';
+
+  @override
+  String get locationAddress => 'Location / Address';
+
+  @override
+  String get registeredMobileNumber => 'Registered Mobile Number';
+
+  @override
+  String get ownerMasterMobileNumber => 'Owner (Master Mobile Number)';
+
+  @override
+  String get confirmFinish => 'Confirm & Finish';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'Please enter a valid 10-digit mobile number';
+
+  @override
+  String get pleaseEnterYourName => 'Please enter your name';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'Please enter business/shop name';
+
+  @override
+  String get pleaseEnterLocationAddress => 'Please enter location/address';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'Please verify owner mobile number';
+
+  @override
+  String get detailsSavedSuccessfully => 'Details saved successfully';
+
+  @override
+  String get failedToSaveDetails => 'Failed to save details';
+
+  @override
+  String get inSeconds => ' in {seconds} seconds';
 }

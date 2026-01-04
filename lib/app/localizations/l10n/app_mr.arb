@@ -6,6 +6,7 @@
   "termsConditions": "नियम आणि अटी",
   "sendOtp": "OTP पाठवा",
   "enterPhoneNumber": "नंबर",
+  "mobileNumber": "मोबाइल नंबर",
   "continueText": "पुढे चालू ठेवा",
   "selectLanguage": "भाषा निवडा",
   "noLanguagesFound": "कोणत्याही भाषा सापडल्या नाहीत",
@@ -515,5 +516,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "तुमचा व्यवसाय/दुकान आणि\nवैयक्तिक तपशील जोडा",
+  "businessShopName": "व्यवसाय / दुकानाचे नाव",
+  "locationAddress": "स्थान / पत्ता",
+  "registeredMobileNumber": "नोंदणीकृत मोबाइल नंबर",
+  "ownerMasterMobileNumber": "मालक (मास्टर मोबाइल नंबर)",
+  "confirmFinish": "पुष्टी करा आणि समाप्त करा",
+  "pleaseEnterValidMobileNumber": "कृपया वैध 10-अंकी मोबाइल नंबर प्रविष्ट करा",
+  "pleaseEnterYourName": "कृपया तुमचे नाव प्रविष्ट करा",
+  "pleaseEnterBusinessShopName": "कृपया व्यवसाय/दुकानाचे नाव प्रविष्ट करा",
+  "pleaseEnterLocationAddress": "कृपया स्थान/पत्ता प्रविष्ट करा",
+  "pleaseVerifyOwnerMobileNumber": "कृपया मालकाचा मोबाइल नंबर सत्यापित करा",
+  "detailsSavedSuccessfully": "तपशील यशस्वीरित्या जतन केले",
+  "failedToSaveDetails": "तपशील जतन करण्यात अयशस्वी",
+  "inSeconds": " {seconds} सेकंदांमध्ये"
 }

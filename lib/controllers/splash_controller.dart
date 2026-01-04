@@ -19,13 +19,17 @@ class SplashController extends GetxController {
     if (Get.arguments is Map<String, dynamic>) {
       skipDelay = (Get.arguments as Map<String, dynamic>)['skipDelay'] ?? false;
     }
-    
+
     // Force skipDelay in test mode
     if (Get.testMode) {
       skipDelay = true;
     }
-    
-    initializeApp();
+
+    // Only initialize app if we're actually on the splash screen
+    // This prevents auto-navigation when controller is created elsewhere
+    if (Get.currentRoute == AppRoutes.splash || Get.currentRoute == '/') {
+      initializeApp();
+    }
   }
 
   Future<void> initializeApp() async {
@@ -40,7 +44,7 @@ class SplashController extends GetxController {
       }
 
       // Check token validity and navigate accordingly
-      // await _checkAuthenticationAndNavigate();
+      await _checkAuthenticationAndNavigate();
     } catch (e) {
       isLoading.value = false;
       errorMessage.value = e.toString();
@@ -57,41 +61,99 @@ class SplashController extends GetxController {
         return;
       }
 
-      // Normal authentication flow
-      // Check if user is already logged in
-      final bool isLoggedIn = await AuthStorage.isTokenValid();
-      print('Splash: Login status - ${isLoggedIn ? "Logged in" : "Not logged in"}');
+      print('');
+      print('🚀 ========== APP STARTUP - ROUTE DECISION ==========');
 
-      if (isLoggedIn) {
-        // User is logged in - navigate to AppEntryWrapper for authentication
-        print('Splash: User logged in - going to AppEntryWrapper for authentication');
-        _navigateToAppEntryWrapper();
-      } else {
-        // User is not logged in - skip authentication, go to language selection
-        print('Splash: User not logged in - going to language selection');
+      // ✅ Step 1: Check if user is already logged in (token exists and valid)
+      final bool isLoggedIn = await AuthStorage.isTokenValid();
+      final String? token = await AuthStorage.getToken();
+      print('📱 Step 1: Token Check');
+      print('   Token exists: ${token != null}');
+      print('   Token valid: $isLoggedIn');
+
+      if (!isLoggedIn) {
+        // ❌ User is NOT logged in - Navigate to Language/Number Verify Screen
+        print('');
+        print('❌ DECISION: User not logged in');
+        print('   → Navigate to Language Screen');
+        print('====================================================');
+        print('');
         _navigateToLanguageScreen();
+        return;
+      }
+
+      // ✅ User IS logged in - Check merchant status
+      print('');
+      print('✅ User logged in - Checking merchant details...');
+
+      // ✅ Step 2: Check if merchant ID exists (primary check)
+      final int? merchantId = await AuthStorage.getMerchantId();
+      print('📱 Step 2: Merchant ID Check');
+      print('   Merchant ID: $merchantId');
+
+      // ✅ Step 3: Check shop details flag (backup check)
+      final bool hasShopDetails = await AuthStorage.hasShopDetails();
+      print('📱 Step 3: Shop Details Flag Check');
+      print('   Has Shop Details: $hasShopDetails');
+      print('');
+
+      // ✅ DECISION LOGIC:
+      // If BOTH merchantId exists AND shop details flag is true → Main Screen
+      // If token exists BUT merchantId is null → Shop Detail Screen
+      // Otherwise → Language Screen (safety fallback)
+
+      if (merchantId != null && hasShopDetails) {
+        // ✅ Merchant already created - Navigate to Main Screen
+        print('✅ DECISION: Merchant exists (ID: $merchantId)');
+        print('   → Navigate to Main Screen');
+        print('   → SKIP Shop Detail Screen');
+        print('====================================================');
+        print('');
+        _navigateToMainScreen();
+      } else if (merchantId == null && !hasShopDetails) {
+        // ❌ Merchant NOT created - Navigate to Shop Detail Screen
+        print('⚠️ DECISION: Merchant does not exist');
+        print('   → Navigate to Shop Detail Screen');
+        print('   → User will fill merchant details');
+        print('====================================================');
+        print('');
+        _navigateToShopDetailScreen();
+      } else {
+        // ⚠️ Edge case: Data inconsistency
+        print('⚠️ WARNING: Data inconsistency detected!');
+        print('   Shop Details Flag: $hasShopDetails');
+        print('   Merchant ID: $merchantId');
+        print('   → Navigate to Shop Detail Screen (safe fallback)');
+        print('====================================================');
+        print('');
+        _navigateToShopDetailScreen();
       }
 
     } catch (e) {
       isLoading.value = false;
       errorMessage.value = 'Navigation failed: $e';
+      print('');
+      print('❌ ERROR during navigation: $e');
+      print('   → Fallback to Language Screen');
+      print('====================================================');
+      print('');
       // Navigate to language screen on error
       _navigateToLanguageScreen();
     }
   }
 
-  void _navigateToAppEntryWrapper() {
+  void _navigateToShopDetailScreen() {
     if (isNavigating.value) return;
 
     isNavigating.value = true;
 
     try {
-      // Navigate to AppEntryWrapper for device authentication
-      Get.offAllNamed(AppRoutes.appEntryWrapper);
+      // Navigate to Shop Detail Screen to complete merchant details
+      Get.offAllNamed(AppRoutes.shopDetail);
     } catch (_) {
       isNavigating.value = false;
-      // Fallback to main screen
-      _navigateToMainScreen();
+      // Fallback to language screen
+      _navigateToLanguageScreen();
     }
   }
 

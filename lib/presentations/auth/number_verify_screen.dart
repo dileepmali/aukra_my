@@ -173,11 +173,20 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Mobile Number Label
+                          AppText.displayMedium3(
+                            AppStrings.getLocalizedString(context, (localizations) => localizations.mobileNumber),
+                            color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                            maxLines: 1,
+                            minFontSize: 14,
+                            textAlign: TextAlign.left,
+                          ),
+                          SizedBox(height: responsive.spaceXSS),
                           TextField(
                             controller: phoneNumber,
                             keyboardType: TextInputType.phone,
                             textInputAction: TextInputAction.done, // 🔥 NEW: Show Done button on keyboard
-                            style: AppFonts.displaySmall(
+                            style: AppFonts.displayMedium3(
                               color: isDark ? Colors.white : AppColorsLight.textPrimary,
                             ),
                             cursorColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
@@ -225,10 +234,10 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                               ),
 
                               prefixText: ' ',
-                              prefixStyle: AppFonts.searchbar(
+                              prefixStyle: AppFonts.displayMedium3(
                                 color: isDark ? Colors.white : AppColorsLight.textPrimary,
                               ),
-                              hintStyle: AppFonts.searchbar(
+                              hintStyle: AppFonts.displayMedium3(
                                 color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
                               ),
                               filled: true,
@@ -308,7 +317,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                       padding: EdgeInsets.symmetric(horizontal: responsive.spacing(20)),
                                       child: Text(
                                         selectedCountryCode, // Will always be +91
-                                        style: AppFonts.searchbar(
+                                        style: AppFonts.displayMedium3(
                                           color: isDark ? Colors.white : AppColorsLight.textPrimary,
                                           fontWeight: AppFonts.semiBold,
                                         ),
@@ -677,37 +686,48 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
         apiPhoneNumber = fullPhoneNumber.length > 1 ? fullPhoneNumber.substring(1) : fullPhoneNumber;
       }
 
+      debugPrint('🔥 About to call API with phone: $apiPhoneNumber');
+      debugPrint('🔥 Full phone number: $fullPhoneNumber');
+
       await apiFetcher.request(
-        url: 'auth/register',
+        url: 'api/auth/send-otp',
         method: 'POST',
-        body: {'phone': apiPhoneNumber},
+        body: {'mobileNumber': apiPhoneNumber},
         requireAuth: false,
       );
 
+      debugPrint('🔥 API call completed!');
+      debugPrint('🔥 Error message: ${apiFetcher.errorMessage}');
+      debugPrint('🔥 Response data: ${apiFetcher.data}');
+      debugPrint('🔥 Response data type: ${apiFetcher.data.runtimeType}');
+
       if (apiFetcher.errorMessage == null && apiFetcher.data != null) {
-        // Check if the response indicates success
-        bool isSuccess = false;
-        String? serverMessage;
+        // ✅ If no error and we have data, consider it success
+        debugPrint('✅ OTP sent successfully! Navigating to OTP screen...');
 
-        if (apiFetcher.data is Map) {
-          isSuccess = apiFetcher.data['success'] == true;
-          serverMessage = apiFetcher.data['message']?.toString();
-        }
-
-        if (!isSuccess) {
-          // Show error message from server or generic message
-          AdvancedErrorService.showError(
-            serverMessage ?? AppStrings.getLocalizedString(context, (localizations) => localizations.failedToSendOtp),
-            category: ErrorCategory.network,
-            severity: ErrorSeverity.high,
-          );
-          return;
-        }
-
-        // Extract OTP from response
+        // Extract OTP from response (if provided)
         String? receivedOtp;
-        if (apiFetcher.data is Map && apiFetcher.data.containsKey('otp')) {
-          receivedOtp = apiFetcher.data['otp'].toString();
+
+        // 🔥 FIX: Check both direct and nested 'otp' field
+        if (apiFetcher.data is Map) {
+          // Try direct access first
+          if (apiFetcher.data.containsKey('otp')) {
+            receivedOtp = apiFetcher.data['otp'].toString();
+            debugPrint('🔑 OTP received from server (direct): $receivedOtp');
+          }
+          // Try nested access in 'data' object
+          else if (apiFetcher.data.containsKey('data') &&
+                   apiFetcher.data['data'] is Map &&
+                   apiFetcher.data['data'].containsKey('otp')) {
+            receivedOtp = apiFetcher.data['data']['otp'].toString();
+            debugPrint('🔑 OTP received from server (nested): $receivedOtp');
+          }
+          else {
+            // 🔥 DEVELOPMENT ONLY: Use dummy OTP when server doesn't send OTP
+            receivedOtp = '8888';
+            debugPrint('⚠️ OTP not found in response. Using DUMMY OTP for testing: $receivedOtp');
+            debugPrint('📋 Available keys in response: ${apiFetcher.data.keys}');
+          }
         }
 
         // Navigate to OTP screen
@@ -725,6 +745,9 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
         );
       }
     } catch (e) {
+      debugPrint('🚨 EXCEPTION in _handleSendOtp: $e');
+      debugPrint('🚨 Stack trace: ${StackTrace.current}');
+
       AdvancedErrorService.showError(
         AppStrings.getLocalizedString(context, (localizations) => localizations.networkError),
         category: ErrorCategory.network,

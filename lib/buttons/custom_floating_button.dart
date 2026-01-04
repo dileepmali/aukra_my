@@ -1,8 +1,12 @@
+import 'package:aukra_anantkaya_space/core/responsive_layout/helper_class_2.dart';
+import 'package:aukra_anantkaya_space/presentations/widgets/custom_border_widget.dart';
 import 'package:flutter/material.dart';
 
 import '../app/themes/app_colors.dart';
+import '../app/themes/app_text.dart';
 import '../core/haptic_service.dart';
 import '../core/responsive_layout/device_category.dart';
+import '../core/responsive_layout/font_size_hepler_class.dart';
 import '../core/responsive_layout/padding_navigation.dart';
 
 
@@ -25,6 +29,20 @@ class CustomFloatingActionButton extends StatefulWidget {
 class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton> {
   bool _isProcessing = false;
   DateTime? _lastTapTime;
+
+  /// Get button text based on screen type
+  String _getButtonText() {
+    switch (widget.screenType.toLowerCase()) {
+      case 'customers':
+        return 'Add Customer';
+      case 'suppliers':
+        return 'Add Supplier';
+      case 'employers':
+        return 'Add Employer';
+      default:
+        return 'Add Customer';
+    }
+  }
 
   /// ✅ Handle tap with debounce and haptic feedback
   void _handleTap() {
@@ -66,49 +84,54 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
     final responsive = AdvancedResponsiveHelper(context);
 
     // ✅ FIX: Pre-calculate size to avoid layout shifts
-    final buttonSize = 68.0;
+    final buttonSize = 62.0;
 
-    final iconSize = responsive.iconSizeLarge + 8;
+    final iconSize = responsive.iconSizeLarge;
 
     return RepaintBoundary(
       // ✅ FIX: RepaintBoundary prevents unnecessary repaints during navigation
-      child: Container(
-        width: buttonSize,
-        height: buttonSize,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-          gradient: SweepGradient(
-            center: Alignment.center,
-            colors: const [
-              Color(0xFFca9b2b),
-              Color(0xFFe3bc5f),
-              Color(0xFFca9b2b),
-              Color(0xFFe3bc5f),
-              Color(0xFFca9b2b),
-              Color(0xFFe3bc5f),
-              Color(0xFFca9b2b),
-
-            ],
-            startAngle: 0.8,
-            endAngle: 3.14 * 2,
-          ),
-        ),
-        child: Material(
-          // ✅ FIX: Use Material widget for better rendering
-          color: Colors.transparent,
-          shape: RoundedRectangleBorder(
+      child: BorderColor(
+        isSelected: true,
+        child: Container(
+          width: responsive.wp(50),
+          height: buttonSize,
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+            gradient: LinearGradient(
+                colors: [
+                  AppColors.splaceSecondary1,
+                  AppColors.splaceSecondary2,
+                ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+            )
           ),
-          child: InkWell(
-            // ✅ FIX: InkWell for instant touch feedback
-            borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-            onTap: _handleTap,
-            child: Center(
-              // ✅ FIX: Center ensures icon is always centered
-              child: Icon(
-                widget.icon,
-                size: iconSize,
-                color: AppColors.buttonTextColor,
+          child: Material(
+            // ✅ FIX: Use Material widget for better rendering
+            color: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+            ),
+            child: InkWell(
+              // ✅ FIX: InkWell for instant touch feedback
+              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+              onTap: _handleTap,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    widget.icon,
+                    size: iconSize,
+                    color: AppColors.white,
+                  ),
+                  SizedBox(width: responsive.spacing(4)),
+                  AppText.headlineLarge(
+                    _getButtonText(),
+                    color:  AppColors.white,
+                    maxLines: 1,
+                    minFontSize: 15,
+                  ),
+                ],
               ),
             ),
           ),

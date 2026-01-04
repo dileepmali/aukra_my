@@ -6,6 +6,7 @@
   "termsConditions": "ਨਿਯਮ ਅਤੇ ਸ਼ਰਤਾਂ",
   "sendOtp": "OTP ਭੇਜੋ",
   "enterPhoneNumber": "ਨੰਬਰ",
+  "mobileNumber": "ਮੋਬਾਈਲ ਨੰਬਰ",
   "continueText": "ਜਾਰੀ ਰੱਖੋ",
   "selectLanguage": "ਭਾਸ਼ਾ ਚੁਣੋ",
   "noLanguagesFound": "ਕੋਈ ਭਾਸ਼ਾਵਾਂ ਨਹੀਂ ਮਿਲੀਆਂ",
@@ -513,5 +514,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "ਆਪਣਾ ਕਾਰੋਬਾਰ/ਦੁਕਾਨ ਅਤੇ\nਨਿੱਜੀ ਵੇਰਵੇ ਸ਼ਾਮਲ ਕਰੋ",
+  "businessShopName": "ਕਾਰੋਬਾਰ / ਦੁਕਾਨ ਦਾ ਨਾਮ",
+  "locationAddress": "ਸਥਾਨ / ਪਤਾ",
+  "registeredMobileNumber": "ਰਜਿਸਟਰਡ ਮੋਬਾਈਲ ਨੰਬਰ",
+  "ownerMasterMobileNumber": "ਮਾਲਕ (ਮਾਸਟਰ ਮੋਬਾਈਲ ਨੰਬਰ)",
+  "confirmFinish": "ਪੁਸ਼ਟੀ ਕਰੋ ਅਤੇ ਖਤਮ ਕਰੋ",
+  "pleaseEnterValidMobileNumber": "ਕਿਰਪਾ ਕਰਕੇ ਵੈਧ 10-ਅੰਕਾਂ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਦਰਜ ਕਰੋ",
+  "pleaseEnterYourName": "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਨਾਮ ਦਰਜ ਕਰੋ",
+  "pleaseEnterBusinessShopName": "ਕਿਰਪਾ ਕਰਕੇ ਕਾਰੋਬਾਰ/ਦੁਕਾਨ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ",
+  "pleaseEnterLocationAddress": "ਕਿਰਪਾ ਕਰਕੇ ਸਥਾਨ/ਪਤਾ ਦਰਜ ਕਰੋ",
+  "pleaseVerifyOwnerMobileNumber": "ਕਿਰਪਾ ਕਰਕੇ ਮਾਲਕ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਤਸਦੀਕ ਕਰੋ",
+  "detailsSavedSuccessfully": "ਵੇਰਵੇ ਸਫਲਤਾਪੂਰਵਕ ਸੁਰੱਖਿਅਤ ਕੀਤੇ ਗਏ",
+  "failedToSaveDetails": "ਵੇਰਵੇ ਸੁਰੱਖਿਅਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+  "inSeconds": " {seconds} ਸਕਿੰਟਾਂ ਵਿੱਚ"
 }

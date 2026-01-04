@@ -5,6 +5,7 @@ class AppRoutes {
   static const String selectLanguage = '/select-language';
   static const String numberVerify = '/number-verify';
   static const String otpVerify = '/otp-verify';
+  static const String shopDetail = '/shop-detail';
 
   // Main App Routes
   static const String main = '/main';
@@ -24,4 +25,9 @@ class AppRoutes {
   static const String shareDemo = '/share-demo/:shareId';
   static const String fileSharePreview = '/file-share-preview';
   static const String searchScreen = '/search-screen'; // 🔍 NEW: Dedicated search screen
+  static const String addCustomer = '/add-customer';
+  static const String customerForm = '/customer-form';
+  static const String ledgerDetail = '/ledger-detail';
+  static const String addTransaction = '/add-transaction';
+  static const String ledgerDashboard = '/ledger-dashboard';
 }

@@ -27,6 +27,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get enterPhoneNumber => 'ਨੰਬਰ';
 
   @override
+  String get mobileNumber => 'ਮੋਬਾਈਲ ਨੰਬਰ';
+
+  @override
   String get continueText => 'ਜਾਰੀ ਰੱਖੋ';
 
   @override
@@ -1540,4 +1543,55 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get selectAudio => 'ਆਡੀਓ ਚੁਣੋ';
+
+  @override
+  String get addBusinessShopDetails =>
+      'ਆਪਣਾ ਕਾਰੋਬਾਰ/ਦੁਕਾਨ ਅਤੇ\nਨਿੱਜੀ ਵੇਰਵੇ ਸ਼ਾਮਲ ਕਰੋ';
+
+  @override
+  String get businessShopName => 'ਕਾਰੋਬਾਰ / ਦੁਕਾਨ ਦਾ ਨਾਮ';
+
+  @override
+  String get locationAddress => 'ਸਥਾਨ / ਪਤਾ';
+
+  @override
+  String get registeredMobileNumber => 'ਰਜਿਸਟਰਡ ਮੋਬਾਈਲ ਨੰਬਰ';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'ਮਾਲਕ (ਮਾਸਟਰ ਮੋਬਾਈਲ ਨੰਬਰ)';
+
+  @override
+  String get confirmFinish => 'ਪੁਸ਼ਟੀ ਕਰੋ ਅਤੇ ਖਤਮ ਕਰੋ';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'ਕਿਰਪਾ ਕਰਕੇ ਵੈਧ 10-ਅੰਕਾਂ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਦਰਜ ਕਰੋ';
+
+  @override
+  String get pleaseEnterYourName =>
+      'ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਨਾਮ ਦਰਜ ਕਰੋ';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'ਕਿਰਪਾ ਕਰਕੇ ਕਾਰੋਬਾਰ/ਦੁਕਾਨ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'ਕਿਰਪਾ ਕਰਕੇ ਸਥਾਨ/ਪਤਾ ਦਰਜ ਕਰੋ';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'ਕਿਰਪਾ ਕਰਕੇ ਮਾਲਕ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਤਸਦੀਕ ਕਰੋ';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'ਵੇਰਵੇ ਸਫਲਤਾਪੂਰਵਕ ਸੁਰੱਖਿਅਤ ਕੀਤੇ ਗਏ';
+
+  @override
+  String get failedToSaveDetails =>
+      'ਵੇਰਵੇ ਸੁਰੱਖਿਅਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ';
+
+  @override
+  String get inSeconds => ' {seconds} ਸਕਿੰਟਾਂ ਵਿੱਚ';
 }

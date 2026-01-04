@@ -253,6 +253,9 @@ class _AppButtonState extends State<AppButton>
       return;
     }
 
+    // ✅ Set processing flag BEFORE haptic and callback to prevent multiple calls
+    _isProcessing = true;
+
     // ✅ Haptic feedback on button press (medium impact for all buttons)
     HapticService.mediumImpact();
 
@@ -301,30 +304,12 @@ class _AppButtonState extends State<AppButton>
     if (widget.gradient != null) return widget.gradient;
 
     if (widget.gradientColors != null) {
-      // Use SweepGradient only if enableSweepGradient is true
-      if (widget.enableSweepGradient == true) {
-        return SweepGradient(
-          center: Alignment.center,
-          colors: [
-            AppColors.splaceSecondary2,
-            AppColors.splaceSecondary1,
-            AppColors.splaceSecondary2,
-            AppColors.splaceSecondary1,
-            AppColors.splaceSecondary2,
-            AppColors.splaceSecondary1,
-            AppColors.splaceSecondary2,
-          ],
-          startAngle: 0.8,
-          endAngle: 3.14 * 2,
-        );
-      } else {
-        // Use normal LinearGradient with provided colors
-        return LinearGradient(
-          colors: widget.gradientColors!,
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        );
-      }
+      // Always use normal LinearGradient (SweepGradient removed)
+      return LinearGradient(
+        colors: widget.gradientColors!,
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+      );
     }
 
     return null;
@@ -436,6 +421,7 @@ class _AppButtonState extends State<AppButton>
               maxLines: widget.maxLines ?? 2, // ✅ Changed default to 2 lines for loading text
               minFontSize: 12, // ✅ Increased minFontSize for better readability
               overflow: widget.textOverflow ?? TextOverflow.ellipsis,
+              letterSpacing: 1.1
             ),
           ),
         ],
@@ -529,7 +515,8 @@ class _AppButtonState extends State<AppButton>
         TextStyle(
           fontSize: widget.fontSize ?? 16,
           fontWeight: widget.fontWeight ?? FontWeight.w600,
-          color: widget.textColor ?? Colors.white,
+          color: Colors.white,
+          letterSpacing: 1.2,
         );
   }
 

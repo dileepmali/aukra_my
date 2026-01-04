@@ -28,6 +28,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get enterPhoneNumber => 'നമ്പർ';
 
   @override
+  String get mobileNumber => 'മൊബൈൽ നമ്പർ';
+
+  @override
   String get continueText => 'തുടരുക';
 
   @override
@@ -1551,4 +1554,54 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get selectAudio => 'ഓഡിയോ തിരഞ്ഞെടുക്കുക';
+
+  @override
+  String get addBusinessShopDetails =>
+      'നിങ്ങളുടെ ബിസിനസ്/കട, വ്യക്തിഗത\nവിവരങ്ങൾ ചേർക്കുക';
+
+  @override
+  String get businessShopName => 'ബിസിനസ് / കടയുടെ പേര്';
+
+  @override
+  String get locationAddress => 'സ്ഥലം / വിലാസം';
+
+  @override
+  String get registeredMobileNumber => 'രജിസ്റ്റർ ചെയ്ത മൊബൈൽ നമ്പർ';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'ഉടമ (മാസ്റ്റർ മൊബൈൽ നമ്പർ)';
+
+  @override
+  String get confirmFinish => 'സ്ഥിരീകരിച്ച് പൂർത്തിയാക്കുക';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'സാധുവായ 10-അക്ക മൊബൈൽ നമ്പർ നൽകുക';
+
+  @override
+  String get pleaseEnterYourName => 'നിങ്ങളുടെ പേര് നൽകുക';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'ബിസിനസ്/കടയുടെ പേര് നൽകുക';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'സ്ഥലം/വിലാസം നൽകുക';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'ഉടമയുടെ മൊബൈൽ നമ്പർ പരിശോധിക്കുക';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'വിവരങ്ങൾ വിജയകരമായി സേവ് ചെയ്തു';
+
+  @override
+  String get failedToSaveDetails =>
+      'വിവരങ്ങൾ സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു';
+
+  @override
+  String get inSeconds => ' {seconds} സെക്കൻഡിൽ';
 }

@@ -31,10 +31,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.displayLarge(color: color),
+      style: letterSpacing != null
+          ? AppFonts.displayLarge(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayLarge(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -53,10 +56,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.displayMedium(color: color),
+      style: letterSpacing != null
+          ? AppFonts.displayMedium(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -74,10 +80,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.displayMedium1(color: color),
+      style: letterSpacing != null
+          ? AppFonts.displayMedium1(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium1(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -95,10 +104,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.displayMedium2(color: color),
+      style: letterSpacing != null
+          ? AppFonts.displayMedium2(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium2(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -116,10 +128,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.displayMedium3(color: color),
+      style: letterSpacing != null
+          ? AppFonts.displayMedium3(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium3(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -138,10 +153,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.displaySmall(color: color),
+      style: letterSpacing != null
+          ? AppFonts.displaySmall(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displaySmall(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -160,10 +178,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.searchbar(color: color),
+      style: letterSpacing != null
+          ? AppFonts.searchbar(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.searchbar(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -181,10 +202,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.searchbar1(color: color),
+      style: letterSpacing != null
+          ? AppFonts.searchbar1(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.searchbar1(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -202,10 +226,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.searchbar2(color: color),
+      style: letterSpacing != null
+          ? AppFonts.searchbar2(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.searchbar2(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -228,10 +255,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.headlineLarge(color: color),
+      style: letterSpacing != null
+          ? AppFonts.headlineLarge(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineLarge(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -249,10 +279,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.headlineLarge1(color: color),
+      style: letterSpacing != null
+          ? AppFonts.headlineLarge1(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineLarge1(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -271,10 +304,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.headlineMedium(color: color),
+      style: letterSpacing != null
+          ? AppFonts.headlineMedium(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineMedium(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -293,10 +329,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.headlineSmall(color: color),
+      style: letterSpacing != null
+          ? AppFonts.headlineSmall(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineSmall(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -314,10 +353,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.headlineSmall1(color: color),
+      style: letterSpacing != null
+          ? AppFonts.headlineSmall1(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineSmall1(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -340,10 +382,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.bodyLarge(color: color),
+      style: letterSpacing != null
+          ? AppFonts.bodyLarge(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodyLarge(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -361,10 +406,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.bodyLarge1(color: color),
+      style: letterSpacing != null
+          ? AppFonts.bodyLarge1(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodyLarge1(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -383,10 +431,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.bodyMedium(color: color),
+      style: letterSpacing != null
+          ? AppFonts.bodyMedium(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodyMedium(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -405,10 +456,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.bodySmall(color: color),
+      style: letterSpacing != null
+          ? AppFonts.bodySmall(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodySmall(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -431,10 +485,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.labelLarge(color: color),
+      style: letterSpacing != null
+          ? AppFonts.labelLarge(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.labelLarge(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -453,10 +510,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.labelMedium(color: color),
+      style: letterSpacing != null
+          ? AppFonts.labelMedium(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.labelMedium(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -475,10 +535,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.labelSmall(color: color),
+      style: letterSpacing != null
+          ? AppFonts.labelSmall(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.labelSmall(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -497,10 +560,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.caption(color: color),
+      style: letterSpacing != null
+          ? AppFonts.caption(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.caption(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -519,10 +585,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.overline(color: color),
+      style: letterSpacing != null
+          ? AppFonts.overline(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.overline(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -546,10 +615,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.button(color: color, fontSize: fontSize),
+      style: letterSpacing != null
+          ? AppFonts.button(color: color, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.button(color: color, fontSize: fontSize),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -569,10 +641,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.dialogButton(color: color, fontSize: fontSize),
+      style: letterSpacing != null
+          ? AppFonts.dialogButton(color: color, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.dialogButton(color: color, fontSize: fontSize),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -591,10 +666,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.appBarTitleLarge(color: color),
+      style: letterSpacing != null
+          ? AppFonts.appBarTitleLarge(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.appBarTitleLarge(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -613,10 +691,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.appBarTitle(color: color),
+      style: letterSpacing != null
+          ? AppFonts.appBarTitle(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.appBarTitle(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -634,10 +715,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.appBarTitleMedium(color: color),
+      style: letterSpacing != null
+          ? AppFonts.appBarTitleMedium(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.appBarTitleMedium(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -656,10 +740,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.tabBar(color: color),
+      style: letterSpacing != null
+          ? AppFonts.tabBar(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.tabBar(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -678,10 +765,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.navigation(color: color),
+      style: letterSpacing != null
+          ? AppFonts.navigation(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.navigation(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -701,10 +791,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.code(color: color, fontSize: fontSize),
+      style: letterSpacing != null
+          ? AppFonts.code(color: color, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.code(color: color, fontSize: fontSize),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -729,10 +822,13 @@ class AppText {
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
     List<double>? presetFontSizes,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: style,
+      style: letterSpacing != null
+          ? style.copyWith(letterSpacing: letterSpacing)
+          : style,
       maxLines: maxLines,
       minFontSize: minFontSize,
       maxFontSize: maxFontSize ?? double.infinity,
@@ -757,10 +853,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.extraLargeDisplay(color: color),
+      style: letterSpacing != null
+          ? AppFonts.extraLargeDisplay(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.extraLargeDisplay(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -779,10 +878,13 @@ class AppText {
     TextAlign? textAlign,
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText(
       text,
-      style: AppFonts.tinyText(color: color),
+      style: letterSpacing != null
+          ? AppFonts.tinyText(color: color).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.tinyText(color: color),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -806,10 +908,13 @@ class AppText {
     TextOverflow overflow = TextOverflow.ellipsis,
     TextStyle? style,
     AutoSizeGroup? group,
+    double? letterSpacing,
   }) {
     return AutoSizeText.rich(
       TextSpan(children: children),
-      style: style,
+      style: letterSpacing != null && style != null
+          ? style.copyWith(letterSpacing: letterSpacing)
+          : style,
       maxLines: maxLines,
       minFontSize: minFontSize,
       maxFontSize: maxFontSize ?? double.infinity,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
@@ -7,6 +8,7 @@ import '../../../core/responsive_layout/padding_navigation.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_colors_light.dart';
 import '../../../app/localizations/l10n/app_strings.dart';
+import '../../../app/constants/app_icons.dart';
 
 class CustomSearchBar extends StatefulWidget {
   final TextEditingController? controller; // ✅ FIX: Made nullable for safety
@@ -151,17 +153,21 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
             fontSize: responsive.fontSize(16),
             fontWeight: FontWeight.w300,
           ),
-          prefixIcon: Icon(
-            Icons.search,
-            color: isDark ? Colors.white : AppColorsLight.iconPrimary,
-            size: _getPrefixIconSize(responsive),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: SvgPicture.asset(
+              AppIcons.searchIIc,
+              color: isDark ? Colors.white : AppColorsLight.iconPrimary,
+              width: _getPrefixIconSize(responsive),
+              height: _getPrefixIconSize(responsive),
+            ),
           ),
           suffixIcon: widget.enableInput && (widget.controller?.text.isNotEmpty ?? false)
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
                     color: isDark ? Colors.white.withOpacity(0.6) : AppColorsLight.black,
-                    size: _getPrefixIconSize(responsive) * 0.8,
+                    size: _getPrefixIconSize(responsive) * 2.5,
                   ),
                   onPressed: () {
                     widget.controller?.clear();
@@ -194,7 +200,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   }
   // Responsive prefix icon size
   double _getPrefixIconSize(AdvancedResponsiveHelper responsive) {
-    return responsive.iconSizeMedium;
+    return responsive.iconSizeSmall;
   }
 
   // Responsive content padding for proper hint alignment

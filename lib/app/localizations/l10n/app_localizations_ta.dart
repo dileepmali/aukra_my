@@ -28,6 +28,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get enterPhoneNumber => 'எண்';
 
   @override
+  String get mobileNumber => 'மொபைல் எண்';
+
+  @override
   String get continueText => 'தொடரவும்';
 
   @override
@@ -1558,4 +1561,54 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get selectAudio => 'ஆடியோவைத் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get addBusinessShopDetails =>
+      'உங்கள் வணிகம்/கடை மற்றும்\nதனிப்பட்ட விவரங்களைச் சேர்க்கவும்';
+
+  @override
+  String get businessShopName => 'வணிகம் / கடை பெயர்';
+
+  @override
+  String get locationAddress => 'இடம் / முகவரி';
+
+  @override
+  String get registeredMobileNumber => 'பதிவு செய்யப்பட்ட மொபைல் எண்';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'உரிமையாளர் (மாஸ்டர் மொபைல் எண்)';
+
+  @override
+  String get confirmFinish => 'உறுதிப்படுத்தி முடிக்கவும்';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'தயவுசெய்து சரியான 10-இலக்க மொபைல் எண்ணை உள்ளிடவும்';
+
+  @override
+  String get pleaseEnterYourName => 'தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'தயவுசெய்து வணிகம்/கடை பெயரை உள்ளிடவும்';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'தயவுசெய்து இடம்/முகவரியை உள்ளிடவும்';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'தயவுசெய்து உரிமையாளரின் மொபைல் எண்ணை சரிபார்க்கவும்';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன';
+
+  @override
+  String get failedToSaveDetails =>
+      'விவரங்களைச் சேமிக்க தோல்வி';
+
+  @override
+  String get inSeconds => ' {seconds} வினாடிகளில்';
 }

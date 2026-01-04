@@ -27,6 +27,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get enterPhoneNumber => 'নম্বর';
 
   @override
+  String get mobileNumber => 'মোবাইল নম্বর';
+
+  @override
   String get continueText => 'চালিয়ে যান';
 
   @override
@@ -1540,4 +1543,54 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get selectAudio => 'অডিও নির্বাচন করুন';
+
+  @override
+  String get addBusinessShopDetails =>
+      'আপনার ব্যবসা/দোকান এবং\nব্যক্তিগত বিবরণ যোগ করুন';
+
+  @override
+  String get businessShopName => 'ব্যবসা / দোকানের নাম';
+
+  @override
+  String get locationAddress => 'অবস্থান / ঠিকানা';
+
+  @override
+  String get registeredMobileNumber => 'নিবন্ধিত মোবাইল নম্বর';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'মালিক (মাস্টার মোবাইল নম্বর)';
+
+  @override
+  String get confirmFinish => 'নিশ্চিত করুন এবং শেষ করুন';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'দয়া করে বৈধ 10-সংখ্যার মোবাইল নম্বর লিখুন';
+
+  @override
+  String get pleaseEnterYourName => 'দয়া করে আপনার নাম লিখুন';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'দয়া করে ব্যবসা/দোকানের নাম লিখুন';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'দয়া করে অবস্থান/ঠিকানা লিখুন';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'দয়া করে মালিকের মোবাইল নম্বর যাচাই করুন';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'বিবরণ সফলভাবে সংরক্ষিত হয়েছে';
+
+  @override
+  String get failedToSaveDetails =>
+      'বিবরণ সংরক্ষণ করতে ব্যর্থ';
+
+  @override
+  String get inSeconds => ' {seconds} সেকেন্ডে';
 }

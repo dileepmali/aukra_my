@@ -6,6 +6,7 @@
   "termsConditions": "నిబంధనలు మరియు షరతులు",
   "sendOtp": "OTP పంపండి",
   "enterPhoneNumber": "సంఖ్య",
+  "mobileNumber": "మొబైల్ నంబర్",
   "continueText": "కొనసాగించండి",
   "selectLanguage": "భాషను ఎంచుకోండి",
   "noLanguagesFound": "భాషలు ఏవీ కనుగొనబడలేదు",
@@ -503,5 +504,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "మీ వ్యాపారం/దుకాణం & వ్యక్తిగత\nవివరాలను జోడించండి",
+  "businessShopName": "వ్యాపారం / దుకాణం పేరు",
+  "locationAddress": "స్థలం / చిరునామా",
+  "registeredMobileNumber": "నమోదు చేసిన మొబైల్ నంబర్",
+  "ownerMasterMobileNumber": "యజమాని (మాస్టర్ మొబైల్ నంబర్)",
+  "confirmFinish": "నిర్ధారించి ముగించండి",
+  "pleaseEnterValidMobileNumber": "దయచేసి చెల్లుబాటు అయ్యే 10-అంకెల మొబైల్ నంబర్‌ను నమోదు చేయండి",
+  "pleaseEnterYourName": "దయచేసి మీ పేరును నమోదు చేయండి",
+  "pleaseEnterBusinessShopName": "దయచేసి వ్యాపారం/దుకాణం పేరును నమోదు చేయండి",
+  "pleaseEnterLocationAddress": "దయచేసి స్థలం/చిరునామాను నమోదు చేయండి",
+  "pleaseVerifyOwnerMobileNumber": "దయచేసి యజమాని మొబైల్ నంబర్‌ను ధృవీకరించండి",
+  "detailsSavedSuccessfully": "వివరాలు విజయవంతంగా సేవ్ చేయబడ్డాయి",
+  "failedToSaveDetails": "వివరాలను సేవ్ చేయడంలో విఫలమైంది",
+  "inSeconds": " {seconds} సెకన్లలో"
 }

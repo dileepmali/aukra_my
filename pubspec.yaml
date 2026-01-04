@@ -55,6 +55,20 @@ dependencies:
   url_launcher: ^6.3.1
   pinput: ^6.0.1
   shimmer: ^3.0.0
+  # Contact management
+  flutter_contacts: ^1.1.9
+  permission_handler: ^11.3.1
+  azlistview: ^2.0.0
+
+  # Caching for fast contact loading
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Image picker for gallery and camera
+  image_picker: ^1.1.2
+
+  # Charts for data visualization
+  fl_chart: ^0.69.0
 
 dev_dependencies:
   flutter_test:
@@ -80,7 +94,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-#    - .env
+    - .env
     - assets/icons/
     - assets/logo/
     - assets/images/
@@ -99,7 +113,13 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    # Primary font family - BricolageGrotesque (Currently Available)
+    # Primary font family - Tahoma
+    - family: Tahoma
+      fonts:
+        - asset: assets/fonts/tahoma/tahoma.ttf
+          weight: 400
+
+    # Secondary font family - BricolageGrotesque (Fallback)
     - family: BricolageGrotesque
       fonts:
         - asset: assets/fonts/BricolageGrotesque-ExtraLight.ttf

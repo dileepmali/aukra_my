@@ -28,6 +28,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get enterPhoneNumber => 'సంఖ్య';
 
   @override
+  String get mobileNumber => 'మొబైల్ నంబర్';
+
+  @override
   String get continueText => 'కొనసాగించండి';
 
   @override
@@ -1544,4 +1547,54 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get selectAudio => 'ఆడియో ఎంచుకోండి';
+
+  @override
+  String get addBusinessShopDetails =>
+      'మీ వ్యాపారం/దుకాణం & వ్యక్తిగత\nవివరాలను జోడించండి';
+
+  @override
+  String get businessShopName => 'వ్యాపారం / దుకాణం పేరు';
+
+  @override
+  String get locationAddress => 'స్థలం / చిరునామా';
+
+  @override
+  String get registeredMobileNumber => 'నమోదు చేసిన మొబైల్ నంబర్';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'యజమాని (మాస్టర్ మొబైల్ నంబర్)';
+
+  @override
+  String get confirmFinish => 'నిర్ధారించి ముగించండి';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'దయచేసి చెల్లుబాటు అయ్యే 10-అంకెల మొబైల్ నంబర్‌ను నమోదు చేయండి';
+
+  @override
+  String get pleaseEnterYourName => 'దయచేసి మీ పేరును నమోదు చేయండి';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'దయచేసి వ్యాపారం/దుకాణం పేరును నమోదు చేయండి';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'దయచేసి స్థలం/చిరునామాను నమోదు చేయండి';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'దయచేసి యజమాని మొబైల్ నంబర్‌ను ధృవీకరించండి';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'వివరాలు విజయవంతంగా సేవ్ చేయబడ్డాయి';
+
+  @override
+  String get failedToSaveDetails =>
+      'వివరాలను సేవ్ చేయడంలో విఫలమైంది';
+
+  @override
+  String get inSeconds => ' {seconds} సెకన్లలో';
 }

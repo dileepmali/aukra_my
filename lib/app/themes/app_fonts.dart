@@ -5,19 +5,19 @@ class AppFonts {
   // ============================================================================
   // 🔤 FONT FAMILY DEFINITIONS
   // ============================================================================
-  
-  /// Primary font family (BricolageGrotesque - currently available)
-  static const String primary = 'BricolageGrotesque';
-  
-  /// Secondary font family (Future font - to be added)
-  static const String secondary = 'Roboto'; // Fallback to system font
-  
+
+  /// Primary font family (Tahoma - main app font)
+  static const String primary = 'Tahoma';
+
+  /// Secondary font family (BricolageGrotesque - fallback)
+  static const String secondary = 'BricolageGrotesque';
+
   /// Accent font family (Future font - to be added)
   static const String accent = 'Poppins'; // Fallback to system font
-  
+
   /// Monospace font family (For code/data display)
   static const String monospace = 'Courier New';
-  
+
   /// Default system font fallback
   static const String systemDefault = 'System';
 
@@ -62,10 +62,10 @@ class AppFonts {
       fontWeight: fontWeight ?? bold,
       height: 1.2,
       color: color,
-      letterSpacing: -0.5,
+      letterSpacing: 1.0,
     );
   }
-  
+
   /// Display Medium - For section headings
   static TextStyle displayMedium({
     Color? color,
@@ -78,7 +78,7 @@ class AppFonts {
       fontWeight: fontWeight ?? bold,
       height: 1.3,
       color: color,
-      letterSpacing: -0.3,
+      letterSpacing: 1.0,
     );
   }
 
@@ -93,7 +93,7 @@ class AppFonts {
       fontWeight: fontWeight ?? bold,
       height: 1.3,
       color: color,
-      letterSpacing: -0.3,
+      letterSpacing: 1.0,
     );
   }
 
@@ -108,7 +108,7 @@ class AppFonts {
       fontWeight: fontWeight ?? bold,
       height: 1.3,
       color: color,
-      letterSpacing: -0.3,
+      letterSpacing: 1.0,
     );
   }
 
@@ -123,10 +123,10 @@ class AppFonts {
       fontWeight: fontWeight ?? bold,
       height: 1.3,
       color: color,
-      letterSpacing: -0.3,
+      letterSpacing: 1.0,
     );
   }
-  
+
   /// Display Small - For sub-section headings
   static TextStyle displaySmall({
     Color? color,
@@ -139,7 +139,7 @@ class AppFonts {
       fontWeight: fontWeight ?? semiBold,
       height: 1.3,
       color: color,
-      letterSpacing: -0.2,
+      letterSpacing: 1.0,
     );
   }
 
@@ -154,7 +154,7 @@ class AppFonts {
       fontWeight: fontWeight ?? semiBold,
       height: 1.3,
       color: color,
-      letterSpacing: -0.2,
+      letterSpacing: 1.0,
     );
   }
 
@@ -169,7 +169,7 @@ class AppFonts {
       fontWeight: fontWeight ?? extraLight,
       height: 1.3,
       color: color,
-      letterSpacing: -0.2,
+      letterSpacing: 0.5,
     );
   }
 
@@ -184,7 +184,7 @@ class AppFonts {
       fontWeight: fontWeight ?? semiBold,
       height: 1.2,
       color: color,
-      letterSpacing: -0.2,
+      letterSpacing: 0.5,
     );
   }
 
@@ -204,7 +204,7 @@ class AppFonts {
       fontWeight: fontWeight ?? semiBold,
       height: 1.4,
       color: color,
-      letterSpacing: 0.0,
+      letterSpacing: 0.5,
     );
   }
 
@@ -219,7 +219,7 @@ class AppFonts {
       fontWeight: fontWeight ?? semiBold,
       height: 1.4,
       color: color,
-      letterSpacing: 0.0,
+      letterSpacing: 0.5,
     );
   }
   
@@ -235,7 +235,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.4,
       color: color,
-      letterSpacing: 0.0,
+      letterSpacing: 0.5,
     );
   }
   static TextStyle headlineSmall1({
@@ -249,7 +249,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.4,
       color: color,
-      letterSpacing: 0.1,
+      letterSpacing: 0.5,
     );
   }
   /// Headline Small - For small headings
@@ -264,7 +264,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.4,
       color: color,
-      letterSpacing: 0.1,
+      letterSpacing: 0.5,
     );
   }
 
@@ -284,7 +284,7 @@ class AppFonts {
       fontWeight: fontWeight ?? regular,
       height: 1.5,
       color: color,
-      letterSpacing: 0.1,
+      letterSpacing: 0.5,
     );
   }
 
@@ -299,7 +299,7 @@ class AppFonts {
       fontWeight: fontWeight ?? regular,
       height: 1.5,
       color: color,
-      letterSpacing: 0.1,
+      letterSpacing: 0.5,
     );
   }
   
@@ -315,7 +315,7 @@ class AppFonts {
       fontWeight: fontWeight ?? regular,
       height: 1.5,
       color: color,
-      letterSpacing: 0.1,
+      letterSpacing: 0.5,
     );
   }
   
@@ -331,7 +331,7 @@ class AppFonts {
       fontWeight: fontWeight ?? regular,
       height: 1.4,
       color: color,
-      letterSpacing: 0.2,
+      letterSpacing: 1.2,
     );
   }
 
@@ -351,7 +351,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.3,
       color: color,
-      letterSpacing: 0.1,
+      letterSpacing: 1.1,
     );
   }
   
@@ -415,7 +415,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.2,
       color: color,
-      letterSpacing: 1.0,
+      letterSpacing: 0.3,
     );
   }
 
@@ -436,7 +436,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.2,
       color: color,
-      letterSpacing: 0.5,
+      letterSpacing: 0.0,
     );
   }
 
@@ -452,7 +452,7 @@ class AppFonts {
       fontWeight: fontWeight ?? medium,
       height: 1.2,
       color: color,
-      letterSpacing: 0.5,
+      letterSpacing: 0.0,
     );
   }
 

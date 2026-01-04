@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -36,102 +37,58 @@ class FiltersBottomSheet extends StatefulWidget {
 
 class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
   String selectedFilter = 'Sort by';
-  String selectedSortOption = 'time'; // ✅ Default: Newest first (Activity Desc)
-  String selectedFilterOption = '';
+  String selectedSortOption = 'default'; // ✅ Default: Default option
+  String selectedDateOption = 'today'; // ✅ Default: Today
+  String selectedTransactionOption = 'all_transaction'; // ✅ Default: All transaction
+  List<String> selectedReminderOptions = ['all']; // ✅ Default: All (checkbox - single selection)
+  List<String> selectedPlaceholderOptions = ['all']; // ✅ Default: All (checkbox - single selection)
   bool isLoadingState = false;
-
-  late Map<String, String> filterOptions;
 
   @override
   void initState() {
     super.initState();
-    // Use provided filter options or default ones matching filter_bottom_sheet.dart
-    filterOptions = widget.filterOptions ?? {
-      'Everything': '',  // No icon for Everything
-      'Folders': AppIcons.folderIc,
-      'Images': AppIcons.galleryIc,
-      'Videos': AppIcons.videoIc,
-      'Documents': AppIcons.documentTextIc,
-      'Audio & sound': AppIcons.musicIc,
-      'Other files': AppIcons.outhetFileIc,
-    };
 
-    // Restore previous selections if provided
-    if (widget.initialFilter != null) {
-      selectedFilterOption = _getFilterKeyFromValue(widget.initialFilter!);
-    } else if (selectedFilterOption.isEmpty && filterOptions.isNotEmpty) {
-      selectedFilterOption = filterOptions.keys.first;
-    }
-
-    // ✅ FIX: Always restore sort option from initial values OR use default 'activity_desc'
+    // ✅ Restore sort option from initial values OR use default
     if (widget.initialSortBy != null && widget.initialSortOrder != null) {
       selectedSortOption = _getSortKeyFromValues(widget.initialSortBy!, widget.initialSortOrder!);
-    }
-    // If no initial values provided, ensure default 'activity_desc' is used (already set on line 40)
-  }
-
-  // Convert API filter value to UI key
-  String _getFilterKeyFromValue(String apiValue) {
-    switch (apiValue) {
-      case 'all': return 'Everything';
-      case 'folders': return 'Folders';
-      case 'images': return 'Images';
-      case 'videos': return 'Videos';
-      case 'documents': return 'Documents';
-      case 'audio': return 'Audio & sound';
-      case 'other': return 'Other files';
-      default: return 'Everything';
     }
   }
 
   // Convert API sortBy/sortOrder to UI key
   String _getSortKeyFromValues(String sortBy, String sortOrder) {
+    if (sortBy == 'default') return 'default';
+    if (sortBy == 'transaction_date' && sortOrder == 'desc') return 'transaction_date_desc';
     if (sortBy == 'name' && sortOrder == 'asc') return 'name_az';
     if (sortBy == 'name' && sortOrder == 'desc') return 'name_za';
-    if (sortBy == 'time' && sortOrder == 'asc') return 'activity_asc';
-    if (sortBy == 'time' && sortOrder == 'desc') return 'activity_desc';
-    // ✅ FIX: Default fallback to match filters_bottom_sheet line 40 (activity_desc)
-    return 'activity_desc';
-  }
-
-  // Get localized filter title
-  String _getLocalizedFilterTitle(BuildContext context, String filterKey) {
-    switch (filterKey) {
-      case 'Everything':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.everything);
-      case 'Folders':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.folders);
-      case 'Images':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.image);
-      case 'Videos':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.videos);
-      case 'Documents':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.documents);
-      case 'Audio & sound':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.audioSound);
-      case 'Other files':
-        return AppStrings.getLocalizedString(context, (localizations) => localizations.otherFiles);
-      default:
-        return filterKey;
-    }
+    if (sortBy == 'amount' && sortOrder == 'asc') return 'amount_asc';
+    if (sortBy == 'amount' && sortOrder == 'desc') return 'amount_desc';
+    return 'default';
   }
 
   List<SortOption> get sortOptions => [
     SortOption(
+      key: 'default',
+      title: 'Default',
+    ),
+    SortOption(
       key: 'name_az',
-      title: AppStrings.getLocalizedString(context, (localizations) => localizations.nameAZ),
+      title: 'Name A-Z\n(Ascending)',
     ),
     SortOption(
       key: 'name_za',
-      title: AppStrings.getLocalizedString(context, (localizations) => localizations.nameZA),
+      title: 'Name Z-A\n(Descending)',
     ),
     SortOption(
-      key: 'activity_asc',
-      title: AppStrings.getLocalizedString(context, (localizations) => localizations.activityAsc),
+      key: 'amount_asc',
+      title: 'Amount\n(Ascending)',
     ),
     SortOption(
-      key: 'activity_desc',
-      title: AppStrings.getLocalizedString(context, (localizations) => localizations.activityDesc),
+      key: 'amount_desc',
+      title: 'Amount\n(Descending)',
+    ),
+    SortOption(
+      key: 'transaction_date_desc',
+      title: 'Transaction Date\n(Descending)',
     ),
   ];
 
@@ -207,10 +164,34 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => setState(() => selectedFilter = 'Group by'),
+                          onTap: () => setState(() => selectedFilter = 'Date'),
                           child: _buildSidebarItem(
-                            AppStrings.getLocalizedString(context, (localizations) => localizations.filter),
-                            selectedFilter == 'Group by',
+                            'Date',
+                            selectedFilter == 'Date',
+                            responsive
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => selectedFilter = 'Transaction'),
+                          child: _buildSidebarItem(
+                            'Transaction',
+                            selectedFilter == 'Transaction',
+                            responsive
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => selectedFilter = 'Reminder'),
+                          child: _buildSidebarItem(
+                            'Reminder',
+                            selectedFilter == 'Reminder',
+                            responsive
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => selectedFilter = 'User'),
+                          child: _buildSidebarItem(
+                            'User',
+                            selectedFilter == 'User',
                             responsive
                           ),
                         ),
@@ -220,10 +201,19 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
 
                   // Main Content
                   Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(responsive.spacing(20)),
-                      child: _buildMainContent(responsive),
-                    ),
+                    child: SingleChildScrollView(
+                      dragStartBehavior: DragStartBehavior.start,
+                      physics: BouncingScrollPhysics(),
+                      padding: EdgeInsets.all(responsive.spaceMD),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          _buildMainContent(responsive),
+                        ],
+                      ),
+
+    ),
                   ),
                 ],
               ),
@@ -252,39 +242,19 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                 setState(() => isLoadingState = true);
 
                 try {
-                  // Map filter options to API values
-                  String filterValue = 'all';
-                  switch (selectedFilterOption) {
-                    case 'Everything':
-                      filterValue = 'all';
-                      break;
-                    case 'Folders':
-                      filterValue = 'folders';
-                      break;
-                    case 'Images':
-                      filterValue = 'images';
-                      break;
-                    case 'Videos':
-                      filterValue = 'videos';
-                      break;
-                    case 'Documents':
-                      filterValue = 'documents';
-                      break;
-                    case 'Audio & sound':
-                      filterValue = 'audio';
-                      break;
-                    case 'Other files':
-                      filterValue = 'other';
-                      break;
-                    default:
-                      filterValue = 'all';
-                  }
-
                   // Map sort options to API values
-                  String sortBy = 'time';
+                  String sortBy = 'default';
                   String sortOrder = 'desc';
 
                   switch (selectedSortOption) {
+                    case 'default':
+                      sortBy = 'default';
+                      sortOrder = 'desc';
+                      break;
+                    case 'transaction_date_desc':
+                      sortBy = 'transaction_date';
+                      sortOrder = 'desc';
+                      break;
                     case 'name_az':
                       sortBy = 'name';
                       sortOrder = 'asc';
@@ -293,23 +263,26 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                       sortBy = 'name';
                       sortOrder = 'desc';
                       break;
-                    case 'activity_asc':
-                      sortBy = 'time';
+                    case 'amount_asc':
+                      sortBy = 'amount';
                       sortOrder = 'asc';
                       break;
-                    case 'activity_desc':
-                      sortBy = 'time';
+                    case 'amount_desc':
+                      sortBy = 'amount';
                       sortOrder = 'desc';
                       break;
                     default:
-                      sortBy = 'time';
+                      sortBy = 'default';
                       sortOrder = 'desc';
                   }
 
                   final result = {
-                    'filter': filterValue,
                     'sortBy': sortBy,
                     'sortOrder': sortOrder,
+                    'dateFilter': selectedDateOption,
+                    'transactionFilter': selectedTransactionOption,
+                    'reminderFilter': selectedReminderOptions.isNotEmpty ? selectedReminderOptions.first : 'all',
+                    'userFilter': selectedPlaceholderOptions.isNotEmpty ? selectedPlaceholderOptions.first : 'all',
                   };
 
                   widget.onFiltersApplied?.call(result);
@@ -392,10 +365,186 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
     switch (selectedFilter) {
       case 'Sort by':
         return _buildSortOptions(responsive);
-      case 'Filter':
+      case 'Date':
+        return _buildDateOptions(responsive);
+      case 'Transaction':
+        return _buildTransactionOptions(responsive);
+      case 'Reminder':
+        return _buildReminderOptions(responsive);
+      case 'User':
+        return _buildPlaceholderOptions(responsive);
       default:
-        return _buildFilterOptions(responsive);
+        return _buildSortOptions(responsive);
     }
+  }
+
+  Widget _buildDateOptions(AdvancedResponsiveHelper responsive) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final dateOptions = [
+      {'key': 'today', 'title': 'Today'},
+      {'key': 'yesterday', 'title': 'Yesterday'},
+      {'key': 'older_week', 'title': 'Older than a week'},
+      {'key': 'older_month', 'title': 'Older than a month'},
+      {'key': 'all_time', 'title': 'All time'},
+      {'key': 'custom', 'title': 'Custom'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        for (int index = 0; index < dateOptions.length; index++) ...[
+          _buildDateOption(dateOptions[index], responsive),
+          if (index < dateOptions.length - 1)
+            Divider(
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              height: 1,
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDateOption(Map<String, String> option, AdvancedResponsiveHelper responsive) {
+    return _buildCommonFilterOption(
+      option: option,
+      responsive: responsive,
+      isSelected: selectedDateOption == option['key'],
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          selectedDateOption = option['key']!;
+        });
+      },
+      isCheckboxStyle: false, // Radio button style
+    );
+  }
+
+  Widget _buildTransactionOptions(AdvancedResponsiveHelper responsive) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final transactionOptions = [
+      {'key': 'all_transaction', 'title': 'All transaction'},
+      {'key': 'in_transaction', 'title': 'In transaction'},
+      {'key': 'old_transaction', 'title': 'Old transaction'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        for (int index = 0; index < transactionOptions.length; index++) ...[
+          _buildTransactionOption(transactionOptions[index], responsive),
+          if (index < transactionOptions.length - 1)
+            Divider(
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              height: 1,
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTransactionOption(Map<String, String> option, AdvancedResponsiveHelper responsive) {
+    return _buildCommonFilterOption(
+      option: option,
+      responsive: responsive,
+      isSelected: selectedTransactionOption == option['key'],
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          selectedTransactionOption = option['key']!;
+        });
+      },
+      isCheckboxStyle: false, // Radio button style
+    );
+  }
+
+  Widget _buildReminderOptions(AdvancedResponsiveHelper responsive) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final reminderOptions = [
+      {'key': 'all', 'title': 'All'},
+      {'key': 'overdue', 'title': 'Overdue'},
+      {'key': 'today', 'title': 'Today'},
+      {'key': 'upcoming', 'title': 'Upcoming'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        for (int index = 0; index < reminderOptions.length; index++) ...[
+          _buildReminderOption(reminderOptions[index], responsive),
+          if (index < reminderOptions.length - 1)
+            Divider(
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              height: 1,
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildReminderOption(Map<String, String> option, AdvancedResponsiveHelper responsive) {
+    return _buildCommonFilterOption(
+      option: option,
+      responsive: responsive,
+      isSelected: selectedReminderOptions.contains(option['key']),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          // Clear all selections and select only this one
+          selectedReminderOptions.clear();
+          selectedReminderOptions.add(option['key']!);
+        });
+      },
+      isCheckboxStyle: true, // Checkbox style
+    );
+  }
+
+  Widget _buildPlaceholderOptions(AdvancedResponsiveHelper responsive) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final placeholderOptions = [
+      {'key': 'all', 'title': 'All'},
+      {'key': 'customer', 'title': 'Customer'},
+      {'key': 'supplier', 'title': 'Supplier'},
+      {'key': 'employee', 'title': 'Employee'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        for (int index = 0; index < placeholderOptions.length; index++) ...[
+          _buildPlaceholderOptionItem(placeholderOptions[index], responsive),
+          if (index < placeholderOptions.length - 1)
+            Divider(
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              height: 1,
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPlaceholderOptionItem(Map<String, String> option, AdvancedResponsiveHelper responsive) {
+    return _buildCommonFilterOption(
+      option: option,
+      responsive: responsive,
+      isSelected: selectedPlaceholderOptions.contains(option['key']),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          // Clear all selections and select only this one
+          selectedPlaceholderOptions.clear();
+          selectedPlaceholderOptions.add(option['key']!);
+        });
+      },
+      isCheckboxStyle: true, // Checkbox style
+    );
   }
 
   Widget _buildSortOptions(AdvancedResponsiveHelper responsive) {
@@ -403,6 +552,7 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         for (int index = 0; index < sortOptions.length; index++) ...[
           _buildSortOption(sortOptions[index], responsive),
@@ -416,19 +566,20 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
     );
   }
 
-  Widget _buildSortOption(SortOption option, AdvancedResponsiveHelper responsive) {
-    final isSelected = selectedSortOption == option.key;
+  // ✅ Common method for all filter option items
+  Widget _buildCommonFilterOption({
+    required Map<String, String> option,
+    required AdvancedResponsiveHelper responsive,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isCheckboxStyle, // true = checkbox (square), false = radio (circle)
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          setState(() {
-            selectedSortOption = option.key;
-          });
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(responsive.borderRadiusMedium),
         child: Container(
           margin: EdgeInsets.only(bottom: responsive.spacing(10)),
@@ -444,7 +595,7 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
             children: [
               Expanded(
                 child: AppText.custom(
-                  option.title,
+                  option['title']!,
                   style: AppFonts.appBarTitleMedium(
                     color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -454,156 +605,87 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                 ),
               ),
               SizedBox(width: responsive.spacing(5)),
-              Container(
-                width: responsive.fontSize(20),
-                height: responsive.fontSize(20),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected
-                      ? (isDark ? AppColors.containerDark : AppColorsLight.textPrimary.withOpacity(0.2))
-                      : AppColors.transparent,
-                  border: Border.all(
+              // ✅ Conditional rendering: Checkbox vs Radio button
+              if (isCheckboxStyle)
+                // Checkbox style (square with checkmark)
+                Container(
+                  width: responsive.fontSize(25),
+                  height: responsive.fontSize(25),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                     color: isSelected
-                        ? (isDark ? AppColors.white : AppColorsLight.textPrimary.withOpacity(0.3))
-                        : (isDark ? AppColors.white.withOpacity(0.2) : AppColorsLight.textPrimary.withOpacity(0.4)),
-                    width: isSelected ? 4.5 : 2.0,
+                        ? (isDark ? AppColors.containerDark : AppColorsLight.textPrimary.withOpacity(0.2))
+                        : AppColors.transparent,
+                    border: Border.all(
+                      color: isSelected
+                          ? (isDark ? AppColors.transparent : AppColorsLight.textPrimary.withOpacity(0.0))
+                          : (isDark ? AppColors.white.withOpacity(0.2) : AppColorsLight.textPrimary.withOpacity(0.5)),
+                      width: 2,
+                    ),
                   ),
-                ),
-                child: isSelected
-                    ? Center(
-                        child: Container(
-                          width: responsive.fontSize(8),
-                          height: responsive.fontSize(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isDark ? AppColors.backgroundDark : AppColorsLight.black,
+                  child: isSelected
+                      ? Center(
+                          child: Icon(
+                            Icons.check,
+                            color: isDark ? AppColors.white : AppColorsLight.black,
+                            size: responsive.fontSize(20),
                           ),
-                        ),
-                      )
-                    : null,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterOptions(AdvancedResponsiveHelper responsive) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final entries = filterOptions.entries.toList();
-
-    return SingleChildScrollView(
-      physics: BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          for (int index = 0; index < entries.length; index++) ...[
-            _buildFilterOption(
-              entries[index].key,
-              entries[index].value,
-              responsive,
-            ),
-            if (index < entries.length - 1)
-              Divider(
-                color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
-                thickness: 1.0,
-                height: 1,
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterOption(String title, String iconPath, AdvancedResponsiveHelper responsive) {
-    final isSelected = selectedFilterOption == title;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          setState(() {
-            selectedFilterOption = title;
-          });
-        },
-        borderRadius: BorderRadius.circular(responsive.borderRadiusMedium),
-        child: Container(
-          margin: EdgeInsets.only(bottom: responsive.spacing(10)),
-          padding: EdgeInsets.symmetric(
-            horizontal: responsive.spacing(16),
-            vertical: responsive.spacing(16),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(responsive.borderRadiusMedium),
-          ),
-          child: Row(
-            children: [
-              // Icon (if path is not empty)
-              if (iconPath.isNotEmpty) ...[
-                SvgPicture.asset(
-                  iconPath,
-                  width: responsive.fontSize(24),
-                  height: responsive.fontSize(24),
-                  colorFilter: ColorFilter.mode(
-                    isDark ? AppColors.textGrey : AppColorsLight.textSecondary,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                SizedBox(width: responsive.spacing(15)),
-              ],
-
-              // Title
-              Expanded(
-                child: AppText.custom(
-                  _getLocalizedFilterTitle(context, title),
-                  style: AppFonts.appBarTitleMedium(
-                    color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  maxLines: 2,
-                  minFontSize: 10,
-                ),
-              ),
-
-              // Checkbox
-              SizedBox(width: responsive.spacing(12)),
-              Container(
-                width: responsive.fontSize(25),
-                height: responsive.fontSize(25),
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-                  color: isSelected
-                      ? (isDark ? AppColors.containerDark : AppColorsLight.textPrimary.withOpacity(0.2))
-                      : AppColors.transparent,
-                  border: Border.all(
+                        )
+                      : null,
+                )
+              else
+                // Radio button style (circle with dot)
+                Container(
+                  width: responsive.fontSize(20),
+                  height: responsive.fontSize(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
                     color: isSelected
-                        ? (isDark ? AppColors.transparent : AppColorsLight.textPrimary.withOpacity(0.0))
-                        : (isDark ? AppColors.white.withOpacity(0.2) : AppColorsLight.textPrimary.withOpacity(0.5)),
-                    width: 2,
+                        ? (isDark ? AppColors.containerDark : AppColorsLight.textPrimary.withOpacity(0.2))
+                        : AppColors.transparent,
+                    border: Border.all(
+                      color: isSelected
+                          ? (isDark ? AppColors.white : AppColorsLight.textPrimary.withOpacity(0.3))
+                          : (isDark ? AppColors.white.withOpacity(0.2) : AppColorsLight.textPrimary.withOpacity(0.4)),
+                      width: isSelected ? 4.5 : 2.0,
+                    ),
                   ),
+                  child: isSelected
+                      ? Center(
+                          child: Container(
+                            width: responsive.fontSize(8),
+                            height: responsive.fontSize(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark ? AppColors.backgroundDark : AppColorsLight.black,
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
-                child: isSelected
-                    ? Center(
-                        child: Icon(
-                          Icons.check,
-                          color: isDark ? AppColors.white : AppColorsLight.black,
-                          size: responsive.fontSize(20),
-                        ),
-                      )
-                    : null,
-              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildSortOption(SortOption option, AdvancedResponsiveHelper responsive) {
+    return _buildCommonFilterOption(
+      option: {'key': option.key, 'title': option.title},
+      responsive: responsive,
+      isSelected: selectedSortOption == option.key,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          selectedSortOption = option.key;
+        });
+      },
+      isCheckboxStyle: false, // Radio button style
+    );
+  }
+
 }
 
 class SortOption {

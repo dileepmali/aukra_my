@@ -6,6 +6,7 @@
   "termsConditions": "নিয়ম আৰু চৰ্তসমূহ",
   "sendOtp": "OTP পঠিয়াওক",
   "enterPhoneNumber": "নম্বৰ",
+  "mobileNumber": "ম'বাইল নম্বৰ",
   "continueText": "আগবাঢ়ক",
   "selectLanguage": "ভাষা বাছনি কৰক",
   "noLanguagesFound": "কোনো ভাষা পোৱা নগ'ল",
@@ -494,5 +495,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "আপোনাৰ ব্যৱসায়/দোকান আৰু\nব্যক্তিগত বিৱৰণ যোগ কৰক",
+  "businessShopName": "ব্যৱসায় / দোকানৰ নাম",
+  "locationAddress": "স্থান / ঠিকনা",
+  "registeredMobileNumber": "পঞ্জীকৃত ম'বাইল নম্বৰ",
+  "ownerMasterMobileNumber": "মালিক (মাষ্টাৰ ম'বাইল নম্বৰ)",
+  "confirmFinish": "নিশ্চিত কৰক আৰু সম্পূৰ্ণ কৰক",
+  "pleaseEnterValidMobileNumber": "অনুগ্ৰহ কৰি মান্য 10-সংখ্যাৰ ম'বাইল নম্বৰ দিয়ক",
+  "pleaseEnterYourName": "অনুগ্ৰহ কৰি আপোনাৰ নাম দিয়ক",
+  "pleaseEnterBusinessShopName": "অনুগ্ৰহ কৰি ব্যৱসায়/দোকানৰ নাম দিয়ক",
+  "pleaseEnterLocationAddress": "অনুগ্ৰহ কৰি স্থান/ঠিকনা দিয়ক",
+  "pleaseVerifyOwnerMobileNumber": "অনুগ্ৰহ কৰি মালিকৰ ম'বাইল নম্বৰ সত্যাপন কৰক",
+  "detailsSavedSuccessfully": "বিৱৰণসমূহ সফলতাৰে সংৰক্ষণ কৰা হৈছে",
+  "failedToSaveDetails": "বিৱৰণসমূহ সংৰক্ষণ কৰিবলৈ বিফল",
+  "inSeconds": " {seconds} ছেকেণ্ডত"
 }

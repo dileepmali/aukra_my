@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'auth_storage.dart';
 
 class ApiFetcher extends ChangeNotifier {
@@ -11,7 +11,7 @@ class ApiFetcher extends ChangeNotifier {
   String? errorMessage;
   dynamic data;
 
-  String get baseUri => '${dotenv.env['API_BASE_URL'] ?? "http://13.235.116.28:5000/v1/api"}/';
+  String get baseUri => '${dotenv.env['API_BASE_URL'] ?? "https://api.anantkhata.com"}/';
 
   ApiFetcher();
 
@@ -53,9 +53,14 @@ class ApiFetcher extends ChangeNotifier {
         print('🔑 Auth Token: ${token.substring(0, 20)}...');
       }
 
-      // Merge headers safely
+      // Merge headers safely with device info
       final requestHeaders = {
         "Content-Type": "application/json",
+        "deviceName": "Flutter",  // You can get real device name using device_info_plus package
+        "deviceType": "ANDROID",  // Can be dynamic: Platform.isAndroid ? "ANDROID" : "IOS"
+        "deviceId": "flutter_dev_001",  // Generate unique device ID
+        "deviceVersion": "1.0.5",  // Your app version
+        "appVersion": "ASAWA",  // Your app name/version
         if (token != null) "Authorization": "Bearer $token",
         ...?headers,
       };

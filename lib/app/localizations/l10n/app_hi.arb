@@ -6,6 +6,7 @@
   "termsConditions": "नियम और शर्तें",
   "sendOtp": "OTP भेजें",
   "enterPhoneNumber": "नंबर",
+  "mobileNumber": "मोबाइल नंबर",
   "continueText": "जारी रखें",
   "selectLanguage": "भाषा चुनें",
   "noLanguagesFound": "कोई भाषा नहीं मिली",
@@ -501,5 +502,19 @@
   "selectAll": "सभी चुनें",
   "deselectAll": "सभी हटाएं",
   "recent": "हाल ही के",
-  "selectAudio": "ऑडियो चुनें"
+  "selectAudio": "ऑडियो चुनें",
+  "addBusinessShopDetails": "अपना व्यवसाय/दुकान और\nव्यक्तिगत विवरण जोड़ें",
+  "businessShopName": "व्यवसाय / दुकान का नाम",
+  "locationAddress": "स्थान / पता",
+  "registeredMobileNumber": "पंजीकृत मोबाइल नंबर",
+  "ownerMasterMobileNumber": "मालिक (मास्टर मोबाइल नंबर)",
+  "confirmFinish": "पुष्टि करें और समाप्त करें",
+  "pleaseEnterValidMobileNumber": "कृपया मान्य 10-अंकीय मोबाइल नंबर दर्ज करें",
+  "pleaseEnterYourName": "कृपया अपना नाम दर्ज करें",
+  "pleaseEnterBusinessShopName": "कृपया व्यवसाय/दुकान का नाम दर्ज करें",
+  "pleaseEnterLocationAddress": "कृपया स्थान/पता दर्ज करें",
+  "pleaseVerifyOwnerMobileNumber": "कृपया मालिक का मोबाइल नंबर सत्यापित करें",
+  "detailsSाvedSuccessfully": "विवरण सफलतापूर्वक सहेजे गए",
+  "failedToSaveDetails": "विवरण सहेजने में विफल",
+  "inSeconds": " {seconds} सेकंड में"
 }

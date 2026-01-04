@@ -64,33 +64,39 @@ class OtpVerifyController extends GetxController {
 
   String getOtpString() => otp.join('');
 
+  /// ✅ Resend OTP API call - Same as number_verify_screen.dart send-otp
   Future<void> sendOtp() async {
     try {
       isLoading.value = true;
-      debugPrint('📤 Sending OTP to: $phoneNumber');
+      debugPrint('📤 Resending OTP to: $phoneNumber');
 
+      // Format phone number (remove +91 if present)
       String phone = phoneNumber.trim();
       if (phone.startsWith("+91")) {
         phone = phone.substring(3);
       }
 
-      final payload = {'phone': phone};
+      // ✅ Use 'mobileNumber' key to match send-otp API
+      final payload = {'mobileNumber': phone};
 
-      debugPrint('📡 Making resend OTP API call with payload: $payload');
+      debugPrint('📡 Calling send-otp API with payload: $payload');
 
+      // ✅ Call send-otp endpoint (same as number_verify_screen.dart)
       await apiFetcher.request(
-        url: 'auth/register',
+        url: 'api/auth/send-otp',
         method: 'POST',
         body: payload,
         requireAuth: false,
       );
 
-      if (apiFetcher.errorMessage == null) {
-        debugPrint('✅ OTP sent successfully: ${apiFetcher.data}');
+      if (apiFetcher.errorMessage == null && apiFetcher.data != null) {
+        debugPrint('✅ OTP resent successfully: ${apiFetcher.data}');
+
+        // Reset timer and clear old OTP
         startResendCooldown();
       } else {
         debugPrint('❌ API Error: ${apiFetcher.errorMessage}');
-        throw Exception(apiFetcher.errorMessage);
+        throw Exception(apiFetcher.errorMessage ?? 'Failed to resend OTP');
       }
     } catch (e) {
       debugPrint('💥 Exception in sendOtp: $e');
@@ -114,6 +120,7 @@ class OtpVerifyController extends GetxController {
         isResendAvailable.value = true;
         isOtpExpired.value = true;
         isLoading.value = false;
+        debugPrint('⏰ OTP EXPIRED after 30 seconds');
         timer.cancel();
         _resendCooldownTimer = null;
       } else {

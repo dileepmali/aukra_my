@@ -3,7 +3,7 @@ class AppIcons {
 
   // Existing assets (confirmed available)
   static const String splashIc = 'assets/icons/splash_logo.svg';
-  static const String folderIc = 'assets/icons/folder.svg';
+  static const String folderIc = 'assets/icons/lager_desAc.svg';
   static const String cloudFolderIc = 'assets/icons/cloud_folder.svg';
   static const String clockIc = 'assets/icons/clock.svg';
   static const String settingIc = 'assets/icons/setting.svg';
@@ -17,12 +17,19 @@ class AppIcons {
   static const String musicIc = 'assets/icons/music.svg';
   static const String moreVertIc = 'assets/icons/more_vert.svg';
   static const String homeActivie = 'assets/icons/home_home_active.svg';
-  static const String floderActivie = 'assets/icons/folder_folder_active.svg';
+  static const String floderActivie = 'assets/icons/leager_ac.svg';
   static const String favoriteIc = 'assets/icons/favorite.svg';
   static const String activitiesActiveIc = 'assets/icons/activities_active.svg';
   static const String checkmarkIc = 'assets/icons/checkmark.svg';
   static const String outhetFileIc = 'assets/icons/other_files.svg';
   static const String crossIc = 'assets/icons/cross.svg';
+  static const String accountAcIc = 'assets/icons/account_ac.svg';
+  static const String accountDecIc = 'assets/icons/account_des.svg';
+  static const String profileAcIc = 'assets/icons/profile_ac.svg';
+  static const String profileDesIc = 'assets/icons/profile_des.svg';
+  static const String plusIc = 'assets/icons/Plus.svg';
+  static const String dropdownIc = 'assets/icons/Dropdown button.svg';
+  static const String searchIIc = 'assets/icons/search.svg';
 
   // Additional available assets
   static const String arrowSquareRightIc = 'assets/icons/arrow_square_right.svg';
@@ -57,6 +64,22 @@ class AppIcons {
   static const String starIc = 'assets/icons/star.svg';
   static const String privacyIc = 'assets/icons/privacy_Ic.svg';
   static const String themeIc = 'assets/icons/theme.svg';
+  static const String whatsappIc = 'assets/icons/Whatsapp.svg';
+  static const String reminderIc = 'assets/icons/Reminder.svg';
+  static const String notificationIc = 'assets/icons/Notification.svg';
+  static const String callIc = 'assets/icons/Call.svg';
+  static const String vectoeIc1 = 'assets/icons/Vector.svg';
+  static const String vectoeIc2 = 'assets/icons/Vector (1).svg';
+  static const String vectoeIc3 = 'assets/icons/₹.svg';
+  static const String vectoeIc4 = 'assets/icons/Vector4.svg';
+  static const String vectoeIc5 = 'assets/icons/Vector5.svg';
+  static const String arrowInIc = 'assets/icons/Arrow_in.svg';
+  static const String arrowOutIc = 'assets/icons/Arrow_out.svg';
+  static const String calendarIc = 'assets/icons/Calendar.svg';
+  static const String calendarMonthIc = 'assets/icons/calendar_month.svg';
+  static const String clockLoaderIc = 'assets/icons/clock_loader_20.svg';
+  static const String CircleIc = 'assets/icons/Circle.svg';
+  static const String percentIc = 'assets/icons/percent.svg';
 
   // Placeholder constants for backward compatibility (using similar existing assets)
   static const String homeBottom = 'assets/icons/home_home_active.svg'; // Using home active as fallback
@@ -92,7 +115,6 @@ class AppIcons {
   static const String backIc = 'assets/icons/arrow_square_right.svg';
   static const String menuIc = 'assets/icons/more_vert.svg';
   static const String profileIc = 'assets/icons/setting.svg';
-  static const String notificationIc = 'assets/icons/mouse_square.svg';
   static const String chatIc = 'assets/icons/share.svg';
   static const String phoneIc = 'assets/icons/mouse_square.svg';
   static const String emailIc = 'assets/icons/share.svg';

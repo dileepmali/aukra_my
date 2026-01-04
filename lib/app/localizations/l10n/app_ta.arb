@@ -6,6 +6,7 @@
   "termsConditions": "விதிமுறைகள் மற்றும் நிபந்தனைகள்",
   "sendOtp": "OTP அனுப்பவும்",
   "enterPhoneNumber": "எண்",
+  "mobileNumber": "மொபைல் எண்",
   "continueText": "தொடரவும்",
   "selectLanguage": "மொழியைத் தேர்ந்தெடுக்கவும்",
   "noLanguagesFound": "மொழிகள் எதுவும் கிடைக்கவில்லை",
@@ -502,5 +503,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "உங்கள் வணிகம்/கடை மற்றும்\nதனிப்பட்ட விவரங்களைச் சேர்க்கவும்",
+  "businessShopName": "வணிகம் / கடை பெயர்",
+  "locationAddress": "இடம் / முகவரி",
+  "registeredMobileNumber": "பதிவு செய்யப்பட்ட மொபைல் எண்",
+  "ownerMasterMobileNumber": "உரிமையாளர் (மாஸ்டர் மொபைல் எண்)",
+  "confirmFinish": "உறுதிப்படுத்தி முடிக்கவும்",
+  "pleaseEnterValidMobileNumber": "தயவுசெய்து சரியான 10-இலக்க மொபைல் எண்ணை உள்ளிடவும்",
+  "pleaseEnterYourName": "தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்",
+  "pleaseEnterBusinessShopName": "தயவுசெய்து வணிகம்/கடை பெயரை உள்ளிடவும்",
+  "pleaseEnterLocationAddress": "தயவுசெய்து இடம்/முகவரியை உள்ளிடவும்",
+  "pleaseVerifyOwnerMobileNumber": "தயவுசெய்து உரிமையாளரின் மொபைல் எண்ணை சரிபார்க்கவும்",
+  "detailsSavedSuccessfully": "விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன",
+  "failedToSaveDetails": "விவரங்களைச் சேமிக்க தோல்வி",
+  "inSeconds": " {seconds} வினாடிகளில்"
 }

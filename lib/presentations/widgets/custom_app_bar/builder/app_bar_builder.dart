@@ -95,23 +95,24 @@ class AppBarBuilder {
               minFontSize: 12,
             ),
           ),
-          SizedBox(height: responsive.hp(0.8)),
+          SizedBox(height: responsive.hp(1)),
         ],
 
         if (config.leadingWidget != null) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(child: config.leadingWidget!),
+              config.leadingWidget!,
               if (config.trailingWidget != null) config.trailingWidget!,
             ],
           ),
-          SizedBox(height: responsive.hp(0.8)),
+          SizedBox(height: responsive.hp(2)),
         ],
 
         if (config.customContent != null) ...[
           config.customContent!,
-          SizedBox(height: responsive.hp(0.8)),
+          SizedBox(height: responsive.hp(1)),
         ],
 
         SearchSection(
@@ -218,13 +219,15 @@ class AppBarBuilder {
                         isSelected: isFilterActive, // ✅ Only show border if filter is active
                         child: Container(
                           height: responsive.hp(6.5),
+                          width: responsive.wp(15),
                           padding: EdgeInsets.symmetric(horizontal: responsive.spacing(15)),
                           decoration: BoxDecoration(
                             color: isDark ? AppColors.containerDark : AppColorsLight.scaffoldBackground,
                             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                           ),
                           child: SvgPicture.asset(
-                            AppIcons.filtersIc,
+                            // Show plus icon when no filter is active, filter icon when active
+                            isFilterActive ? AppIcons.filtersIc : AppIcons.plusIc,
                             color: isDark ? Colors.white : AppColorsLight.iconPrimary,
                           ),
                         ),

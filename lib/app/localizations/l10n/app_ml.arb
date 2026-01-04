@@ -6,6 +6,7 @@
   "termsConditions": "നിബന്ധനകളും വ്യവസ്ഥകളും",
   "sendOtp": "OTP അയയ്ക്കുക",
   "enterPhoneNumber": "നമ്പർ",
+  "mobileNumber": "മൊബൈൽ നമ്പർ",
   "continueText": "തുടരുക",
   "selectLanguage": "ഭാഷ തിരഞ്ഞെടുക്കുക",
   "noLanguagesFound": "ഭാഷകളൊന്നും കണ്ടെത്തിയില്ല",
@@ -499,5 +500,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "addBusinessShopDetails": "നിങ്ങളുടെ ബിസിനസ്/കട, വ്യക്തിഗത\nവിവരങ്ങൾ ചേർക്കുക",
+  "businessShopName": "ബിസിനസ് / കടയുടെ പേര്",
+  "locationAddress": "സ്ഥലം / വിലാസം",
+  "registeredMobileNumber": "രജിസ്റ്റർ ചെയ്ത മൊബൈൽ നമ്പർ",
+  "ownerMasterMobileNumber": "ഉടമ (മാസ്റ്റർ മൊബൈൽ നമ്പർ)",
+  "confirmFinish": "സ്ഥിരീകരിച്ച് പൂർത്തിയാക്കുക",
+  "pleaseEnterValidMobileNumber": "സാധുവായ 10-അക്ക മൊബൈൽ നമ്പർ നൽകുക",
+  "pleaseEnterYourName": "നിങ്ങളുടെ പേര് നൽകുക",
+  "pleaseEnterBusinessShopName": "ബിസിനസ്/കടയുടെ പേര് നൽകുക",
+  "pleaseEnterLocationAddress": "സ്ഥലം/വിലാസം നൽകുക",
+  "pleaseVerifyOwnerMobileNumber": "ഉടമയുടെ മൊബൈൽ നമ്പർ പരിശോധിക്കുക",
+  "detailsSavedSuccessfully": "വിവരങ്ങൾ വിജയകരമായി സേവ് ചെയ്തു",
+  "failedToSaveDetails": "വിവരങ്ങൾ സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു",
+  "inSeconds": " {seconds} സെക്കൻഡിൽ"
 }

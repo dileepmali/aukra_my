@@ -27,6 +27,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get enterPhoneNumber => 'ಸಂಖ್ಯೆ';
 
   @override
+  String get mobileNumber => 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ';
+
+  @override
   String get continueText => 'ಮುಂದುವರೆಸಿ';
 
   @override
@@ -1547,4 +1550,54 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get selectAudio => 'ಆಡಿಯೊ ಆಯ್ಕೆಮಾಡಿ';
+
+  @override
+  String get addBusinessShopDetails =>
+      'ನಿಮ್ಮ ವ್ಯಾಪಾರ/ಅಂಗಡಿ ಮತ್ತು\nವೈಯಕ್ತಿಕ ವಿವರಗಳನ್ನು ಸೇರಿಸಿ';
+
+  @override
+  String get businessShopName => 'ವ್ಯಾಪಾರ / ಅಂಗಡಿ ಹೆಸರು';
+
+  @override
+  String get locationAddress => 'ಸ್ಥಳ / ವಿಳಾಸ';
+
+  @override
+  String get registeredMobileNumber => 'ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'ಮಾಲೀಕ (ಮಾಸ್ಟರ್ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ)';
+
+  @override
+  String get confirmFinish => 'ಖಚಿತಪಡಿಸಿ ಮತ್ತು ಮುಗಿಸಿ';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ 10-ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ';
+
+  @override
+  String get pleaseEnterYourName => 'ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'ದಯವಿಟ್ಟು ವ್ಯಾಪಾರ/ಅಂಗಡಿ ಹೆಸರನ್ನು ನಮೂದಿಸಿ';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'ದಯವಿಟ್ಟು ಸ್ಥಳ/ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'ದಯವಿಟ್ಟು ಮಾಲೀಕರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ';
+
+  @override
+  String get failedToSaveDetails =>
+      'ವಿವರಗಳನ್ನು ಉಳಿಸುವುದರಲ್ಲಿ ವಿಫಲವಾಗಿದೆ';
+
+  @override
+  String get inSeconds => ' {seconds} ಸೆಕೆಂಡುಗಳಲ್ಲಿ';
 }

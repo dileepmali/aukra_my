@@ -27,6 +27,9 @@ class AppLocalizationsAs extends AppLocalizations {
   String get enterPhoneNumber => 'নম্বৰ';
 
   @override
+  String get mobileNumber => 'ম\'বাইল নম্বৰ';
+
+  @override
   String get continueText => 'আগবাঢ়ক';
 
   @override
@@ -1543,4 +1546,54 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get selectAudio => 'অডিঅ\' বাছনি কৰক';
+
+  @override
+  String get addBusinessShopDetails =>
+      'আপোনাৰ ব্যৱসায়/দোকান আৰু\nব্যক্তিগত বিৱৰণ যোগ কৰক';
+
+  @override
+  String get businessShopName => 'ব্যৱসায় / দোকানৰ নাম';
+
+  @override
+  String get locationAddress => 'স্থান / ঠিকনা';
+
+  @override
+  String get registeredMobileNumber => 'পঞ্জীকৃত ম\'বাইল নম্বৰ';
+
+  @override
+  String get ownerMasterMobileNumber =>
+      'মালিক (মাষ্টাৰ ম\'বাইল নম্বৰ)';
+
+  @override
+  String get confirmFinish => 'নিশ্চিত কৰক আৰু সম্পূৰ্ণ কৰক';
+
+  @override
+  String get pleaseEnterValidMobileNumber =>
+      'অনুগ্ৰহ কৰি মান্য 10-সংখ্যাৰ ম\'বাইল নম্বৰ দিয়ক';
+
+  @override
+  String get pleaseEnterYourName => 'অনুগ্ৰহ কৰি আপোনাৰ নাম দিয়ক';
+
+  @override
+  String get pleaseEnterBusinessShopName =>
+      'অনুগ্ৰহ কৰি ব্যৱসায়/দোকানৰ নাম দিয়ক';
+
+  @override
+  String get pleaseEnterLocationAddress =>
+      'অনুগ্ৰহ কৰি স্থান/ঠিকনা দিয়ক';
+
+  @override
+  String get pleaseVerifyOwnerMobileNumber =>
+      'অনুগ্ৰহ কৰি মালিকৰ ম\'বাইল নম্বৰ সত্যাপন কৰক';
+
+  @override
+  String get detailsSavedSuccessfully =>
+      'বিৱৰণসমূহ সফলতাৰে সংৰক্ষণ কৰা হৈছে';
+
+  @override
+  String get failedToSaveDetails =>
+      'বিৱৰণসমূহ সংৰক্ষণ কৰিবলৈ বিফল';
+
+  @override
+  String get inSeconds => ' {seconds} ছেকেণ্ডত';
 }
