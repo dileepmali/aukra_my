@@ -37,7 +37,7 @@ class LedgerTransactionApi {
         "transactionAmount": transactionAmount,
         "transactionType": transactionType,
         "transactionDate": transactionDate,
-        if (comments != null && comments.isNotEmpty) "comments": comments,
+        "comments": comments ?? "", // Always send as string (empty or with value)
         "partyMerchantAction": partyMerchantAction,
         if (uploadedKeys != null && uploadedKeys.isNotEmpty)
           "uploadedKeys": uploadedKeys,
@@ -190,7 +190,7 @@ class LedgerTransactionApi {
       final body = {
         "transactionAmount": transactionAmount,
         "transactionDate": transactionDate,
-        if (comments != null && comments.isNotEmpty) "comments": comments,
+        "comments": comments ?? "", // Always send as string (empty or with value)
         if (uploadedKeys != null && uploadedKeys.isNotEmpty)
           "uploadedKeys": uploadedKeys,
         "securityKey": securityKey,

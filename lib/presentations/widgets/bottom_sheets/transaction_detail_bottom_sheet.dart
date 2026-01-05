@@ -246,14 +246,34 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                         ),
                         SizedBox(height: responsive.hp(2)),
 
-                        // Amount
-                        AppText.custom(
-                          '₹ ${NumberFormat('#,##,##0.00', 'en_IN').format(amount)}',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                            fontSize: responsive.fontSize(45),
-                            fontWeight: FontWeight.bold,
-                          ),
+                        // Amount with Currency Icon
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(top: responsive.hp(1.5)),
+                              child: SvgPicture.asset(
+                                AppIcons.vectoeIc3,
+                                width: responsive.iconSizeLarge,
+                                height: responsive.iconSizeLarge,
+                                colorFilter: ColorFilter.mode(
+                                  isDark ? AppColors.white : AppColorsLight.textPrimary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: responsive.wp(1)),
+                            AppText.custom(
+                              NumberFormat('#,##,##0.00', 'en_IN').format(amount),
+                              style: TextStyle(
+                                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                                fontSize: responsive.fontSize(45),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(height: responsive.hp(0.5)),
 
@@ -316,7 +336,7 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                   isDark ? AppColors.containerLight : AppColorsLight.white,
                 ],
                 showBorder: true,
-                primaryButtonText: 'Exit',
+                primaryButtonText: 'Edit',
                 onPrimaryPressed: () async {
                   // Show PIN verification dialog for Exit/Edit
                   final pin = await PinVerificationDialog.show(

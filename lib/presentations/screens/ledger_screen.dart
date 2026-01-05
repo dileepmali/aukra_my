@@ -44,6 +44,14 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
     // Add lifecycle observer to detect when screen becomes visible
     WidgetsBinding.instance.addObserver(this);
 
+    // Get initial tab from navigation arguments
+    final args = Get.arguments as Map<String, dynamic>?;
+    final initialTab = args?['initialTab'] as int?;
+    if (initialTab != null && initialTab >= 0 && initialTab <= 2) {
+      _selectedTabIndex = initialTab;
+      debugPrint('📍 Opening ledger screen with tab: $initialTab');
+    }
+
     // Controller is initialized by MainBinding, just ensure it's available
     try {
       final controller = Get.find<LedgerController>();
@@ -62,7 +70,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
         _ledgerController.refreshAll();
       }
 
-      // Notify parent about initial tab (default is 0 - Customers)
+      // Notify parent about initial tab
       widget.onTabChanged?.call(_selectedTabIndex);
     });
   }
@@ -320,25 +328,34 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   itemBuilder: (context, index) {
                     final customer = _ledgerController.customers[index];
 
-                    // Format creation date and time
+                    // Format last update date, time and address
                     String subtitle = '';
-                    if (customer.createdAt != null) {
+                    final displayDate = customer.updatedAt ?? customer.createdAt;
+                    if (displayDate != null) {
                       // Convert UTC to local time
-                      final localTime = customer.createdAt!.toLocal();
-                      final timeFormat = DateFormat('hh:mm a');
+                      final localTime = displayDate.toLocal();
                       final dateFormat = DateFormat('d MMM yyyy');
-                      final formattedTime = timeFormat.format(localTime);
+                      final timeFormat = DateFormat('hh:mm a');
                       final formattedDate = dateFormat.format(localTime);
-                      subtitle = '$formattedTime, $formattedDate';
+                      final formattedTime = timeFormat.format(localTime);
+                      subtitle = '$formattedDate, $formattedTime';
                     } else {
                       subtitle = 'No date available';
                     }
 
-                    // Debug: Print balance and transaction type
-                    debugPrint('💰 ${customer.name}: Balance=${customer.openingBalance}, Type=${customer.transactionType}');
+                    // Add address if available
+                    debugPrint('📍 ${customer.name} - Address: "${customer.address}", Area: "${customer.area}"');
+                    if (customer.address.isNotEmpty) {
+                      subtitle += ' • ${customer.address}';
+                    } else if (customer.area.isNotEmpty) {
+                      subtitle += ' • ${customer.area}';
+                    }
 
-                    // Format amount
-                    final amount = '₹${customer.openingBalance.abs().toStringAsFixed(2)}';
+                    // Debug: Print balance and transaction type
+                    debugPrint('💰 ${customer.name}: CurrentBalance=${customer.currentBalance}, Type=${customer.transactionType}');
+
+                    // Format amount - use currentBalance instead of openingBalance
+                    final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
                     // For customers:
                     // OUT = You gave them goods/money, they owe you = Blue (Receivable)
                     // IN = They gave you money/returned goods, you owe them = Red (Payable/Credit)
@@ -365,11 +382,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                               end: Alignment.bottomRight,
                             ),
                       avatarTextColor: AppColors.white,
-                      onTap: () {
+                      onTap: () async {
                         debugPrint('Customer tapped: ${customer.name}');
-                        Get.toNamed('/ledger-detail', arguments: {
+                        await Get.toNamed('/ledger-detail', arguments: {
                           'ledgerId': customer.id,
                         });
+                        // Refresh data when returning from detail screen
+                        _ledgerController.refreshAll();
                       },
                     );
                   },
@@ -427,22 +446,30 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   itemBuilder: (context, index) {
                     final supplier = _ledgerController.suppliers[index];
 
-                    // Format creation date and time
+                    // Format last update date, time and address
                     String subtitle = '';
-                    if (supplier.createdAt != null) {
+                    final displayDate = supplier.updatedAt ?? supplier.createdAt;
+                    if (displayDate != null) {
                       // Convert UTC to local time
-                      final localTime = supplier.createdAt!.toLocal();
-                      final timeFormat = DateFormat('hh:mm a');
+                      final localTime = displayDate.toLocal();
                       final dateFormat = DateFormat('d MMM yyyy');
-                      final formattedTime = timeFormat.format(localTime);
+                      final timeFormat = DateFormat('hh:mm a');
                       final formattedDate = dateFormat.format(localTime);
-                      subtitle = '$formattedTime, $formattedDate';
+                      final formattedTime = timeFormat.format(localTime);
+                      subtitle = '$formattedDate, $formattedTime';
                     } else {
                       subtitle = 'No date available';
                     }
 
-                    // Format amount
-                    final amount = '₹${supplier.openingBalance.abs().toStringAsFixed(2)}';
+                    // Add address if available
+                    if (supplier.address.isNotEmpty) {
+                      subtitle += ' • ${supplier.address}';
+                    } else if (supplier.area.isNotEmpty) {
+                      subtitle += ' • ${supplier.area}';
+                    }
+
+                    // Format amount - use currentBalance instead of openingBalance
+                    final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
                     // For suppliers:
                     // OUT = You gave them money, they owe you = Blue (Receivable)
                     // IN = They gave you goods, you owe them = Red (Payable)
@@ -469,11 +496,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                         end: Alignment.bottomRight,
                       ),
                       avatarTextColor: AppColors.white,
-                      onTap: () {
+                      onTap: () async {
                         debugPrint('Supplier tapped: ${supplier.name}');
-                        Get.toNamed('/ledger-detail', arguments: {
+                        await Get.toNamed('/ledger-detail', arguments: {
                           'ledgerId': supplier.id,
                         });
+                        // Refresh data when returning from detail screen
+                        _ledgerController.refreshAll();
                       },
                     );
                   },
@@ -532,22 +561,30 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   itemBuilder: (context, index) {
                     final employer = _ledgerController.employers[index];
 
-                    // Format creation date and time
+                    // Format last update date, time and address
                     String subtitle = '';
-                    if (employer.createdAt != null) {
+                    final displayDate = employer.updatedAt ?? employer.createdAt;
+                    if (displayDate != null) {
                       // Convert UTC to local time
-                      final localTime = employer.createdAt!.toLocal();
-                      final timeFormat = DateFormat('hh:mm a');
+                      final localTime = displayDate.toLocal();
                       final dateFormat = DateFormat('d MMM yyyy');
-                      final formattedTime = timeFormat.format(localTime);
+                      final timeFormat = DateFormat('hh:mm a');
                       final formattedDate = dateFormat.format(localTime);
-                      subtitle = '$formattedTime, $formattedDate';
+                      final formattedTime = timeFormat.format(localTime);
+                      subtitle = '$formattedDate, $formattedTime';
                     } else {
                       subtitle = 'No date available';
                     }
 
-                    // Format amount
-                    final amount = '₹${employer.openingBalance.abs().toStringAsFixed(2)}';
+                    // Add address if available
+                    if (employer.address.isNotEmpty) {
+                      subtitle += ' • ${employer.address}';
+                    } else if (employer.area.isNotEmpty) {
+                      subtitle += ' • ${employer.area}';
+                    }
+
+                    // Format amount - use currentBalance instead of openingBalance
+                    final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
                     // For employers:
                     // OUT = You gave them salary/advance, they owe you work = Blue (Receivable)
                     // IN = They worked, you owe them salary = Red (Payable)
@@ -574,11 +611,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                         end: Alignment.bottomRight,
                       ),
                       avatarTextColor: AppColors.white,
-                      onTap: () {
+                      onTap: () async {
                         debugPrint('Employer tapped: ${employer.name}');
-                        Get.toNamed('/ledger-detail', arguments: {
+                        await Get.toNamed('/ledger-detail', arguments: {
                           'ledgerId': employer.id,
                         });
+                        // Refresh data when returning from detail screen
+                        _ledgerController.refreshAll();
                       },
                     );
                   },

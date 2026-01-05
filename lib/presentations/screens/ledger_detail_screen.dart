@@ -362,13 +362,30 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                   ),
                 ),
                 SizedBox(height: responsive.hp(1)),
-                AppText.custom(
-                  '₹${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: responsive.fontSize(28),
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
+                      child: SvgPicture.asset(
+                        AppIcons.vectoeIc3,
+                        width: responsive.iconSizeSmall + 5 ,
+                        height: responsive.iconSizeSmall + 5,
+                        colorFilter: ColorFilter.mode(
+                          isDark ? AppColors.white : AppColorsLight.textPrimary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: responsive.wp(1),),
+                    AppText.custom(
+                          '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
+                          style: TextStyle(
+                            color: AppColors.white,
+                            fontSize: responsive.fontSize(28),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                  ],
                 ),
               ],
             ),

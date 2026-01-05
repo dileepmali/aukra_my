@@ -120,11 +120,11 @@ class Formatters {
     return dateFormat.format(localTime);
   }
 
-  /// Formats DateTime to combined time and date string (hh:mm a, d MMM yyyy)
+  /// Formats DateTime to combined date and time string (d MMM yyyy, hh:mm a)
   ///
   /// Examples:
-  /// - DateTime(2026, 1, 4, 14, 30) → "02:30 PM, 4 Jan 2026"
-  /// - DateTime(2025, 12, 25, 9, 15) → "09:15 AM, 25 Dec 2025"
+  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026, 02:30 PM"
+  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025, 09:15 AM"
   /// - null → "No date available"
   static String formatTimeAndDate(DateTime? dateTime) {
     if (dateTime == null) {
@@ -132,9 +132,9 @@ class Formatters {
     }
 
     final localTime = dateTime.toLocal();
-    final formattedTime = formatTime(localTime);
     final formattedDate = formatDate(localTime);
-    return '$formattedTime, $formattedDate';
+    final formattedTime = formatTime(localTime);
+    return '$formattedDate, $formattedTime';
   }
 
   /// Formats DateTime to date and time string (d MMM yyyy, hh:mm a)
@@ -154,10 +154,10 @@ class Formatters {
     return '$formattedDate, $formattedTime';
   }
 
-  /// Formats string to DateTime and then to time and date
+  /// Formats string to DateTime and then to date and time
   ///
   /// Examples:
-  /// - "2026-01-04T14:30:00.000Z" → "02:30 PM, 4 Jan 2026"
+  /// - "2026-01-04T14:30:00.000Z" → "4 Jan 2026, 02:30 PM"
   /// - "invalid" → "No date available"
   /// - null → "No date available"
   static String formatStringToTimeAndDate(String? dateTimeString) {

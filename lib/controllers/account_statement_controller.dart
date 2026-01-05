@@ -3,6 +3,21 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction_list_model.dart';
 
+/// Grouped daily transaction data
+class DailyTransactionGroup {
+  final String date; // Date string (dd/MM/yyyy)
+  final double totalIn; // Sum of all IN transactions
+  final double totalOut; // Sum of all OUT transactions
+  final double finalBalance; // Final balance at end of day
+
+  DailyTransactionGroup({
+    required this.date,
+    required this.totalIn,
+    required this.totalOut,
+    required this.finalBalance,
+  });
+}
+
 /// Controller for Account Statement Logic
 class AccountStatementController extends GetxController {
   // Selected month (observable)
@@ -11,8 +26,8 @@ class AccountStatementController extends GetxController {
   // All transactions list (passed from parent)
   final allTransactions = <TransactionItemModel>[].obs;
 
-  // Filtered transactions for selected month
-  final monthTransactions = <TransactionItemModel>[].obs;
+  // Grouped daily transactions for selected month
+  final groupedDailyTransactions = <DailyTransactionGroup>[].obs;
 
   @override
   void onInit() {
@@ -23,6 +38,23 @@ class AccountStatementController extends GetxController {
 
   /// Set all transactions from parent
   void setTransactions(List<TransactionItemModel> transactions) {
+    debugPrint('🔄 Setting ${transactions.length} transactions to AccountStatementController');
+
+    // Debug: Print ALL transaction details
+    debugPrint('   📋 All Transactions Details:');
+    for (var i = 0; i < transactions.length; i++) {
+      final t = transactions[i];
+      debugPrint('      ${i + 1}. Date: ${formatDate(t.transactionDate)} | Type: ${t.transactionType} | Amount: ₹${t.amount} | Deleted: ${t.isDelete}');
+    }
+
+    // Debug: Print unique dates in transactions
+    final uniqueDates = transactions
+        .map((t) => formatDate(t.transactionDate))
+        .toSet()
+        .toList()
+      ..sort();
+    debugPrint('   Unique dates in all transactions: $uniqueDates');
+
     allTransactions.value = transactions;
     _filterTransactions();
   }
@@ -59,7 +91,7 @@ class AccountStatementController extends GetxController {
     return '${firstDay.day} ${DateFormat('MMM yyyy').format(firstDay)} - ${lastDay.day} ${DateFormat('MMM yyyy').format(lastDay)}';
   }
 
-  /// Filter transactions by selected month
+  /// Filter transactions by selected month and group by date
   void _filterTransactions() {
     final firstDay = selectedMonth.value;
     final lastDay = DateTime(
@@ -72,7 +104,7 @@ class AccountStatementController extends GetxController {
     );
 
     debugPrint('📊 Filtering transactions for month: ${getMonthRangeText()}');
-    debugPrint('   Total transactions: ${allTransactions.length}');
+    debugPrint('   Total transactions in allTransactions: ${allTransactions.length}');
 
     // Filter by month and exclude deleted
     final filtered = allTransactions.where((transaction) {
@@ -89,6 +121,8 @@ class AccountStatementController extends GetxController {
       }
     }).toList();
 
+    debugPrint('   Filtered transactions (in selected month): ${filtered.length}');
+
     // Sort by date (oldest first)
     filtered.sort((a, b) {
       try {
@@ -99,8 +133,58 @@ class AccountStatementController extends GetxController {
       }
     });
 
-    monthTransactions.value = filtered;
-    debugPrint('   Filtered transactions: ${monthTransactions.length}');
+    // Group transactions by date
+    final Map<String, List<TransactionItemModel>> groupedByDate = {};
+
+    for (var transaction in filtered) {
+      final dateKey = formatDate(transaction.transactionDate);
+      if (!groupedByDate.containsKey(dateKey)) {
+        groupedByDate[dateKey] = [];
+      }
+      groupedByDate[dateKey]!.add(transaction);
+    }
+
+    // Create daily transaction groups
+    final dailyGroups = <DailyTransactionGroup>[];
+
+    groupedByDate.forEach((date, transactions) {
+      double totalIn = 0.0;
+      double totalOut = 0.0;
+      double finalBalance = 0.0;
+
+      // Sort transactions within the day by time to get the correct final balance
+      final sortedTransactions = transactions.toList();
+      sortedTransactions.sort((a, b) {
+        try {
+          return DateTime.parse(a.transactionDate)
+              .compareTo(DateTime.parse(b.transactionDate));
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      for (var transaction in sortedTransactions) {
+        if (transaction.transactionType == 'IN') {
+          totalIn += transaction.amount;
+        } else if (transaction.transactionType == 'OUT') {
+          totalOut += transaction.amount;
+        }
+        // Update balance with each transaction (last one will be the final balance)
+        finalBalance = transaction.lastBalance;
+      }
+
+      debugPrint('📅 Date: $date | IN: ₹$totalIn | OUT: ₹$totalOut | Balance: ₹$finalBalance');
+
+      dailyGroups.add(DailyTransactionGroup(
+        date: date,
+        totalIn: totalIn,
+        totalOut: totalOut,
+        finalBalance: finalBalance,
+      ));
+    });
+
+    groupedDailyTransactions.value = dailyGroups;
+    debugPrint('   Grouped into ${dailyGroups.length} daily entries');
   }
 
   /// Format date for display (dd/MM/yyyy)
@@ -111,25 +195,5 @@ class AccountStatementController extends GetxController {
     } catch (e) {
       return dateString.substring(0, 10);
     }
-  }
-
-  /// Get IN amount for transaction (returns 0 if OUT)
-  double getInAmount(TransactionItemModel transaction) {
-    return transaction.transactionType == 'IN' ? transaction.amount : 0.0;
-  }
-
-  /// Get OUT amount for transaction (returns 0 if IN)
-  double getOutAmount(TransactionItemModel transaction) {
-    return transaction.transactionType == 'OUT' ? transaction.amount : 0.0;
-  }
-
-  /// Check if transaction is IN type
-  bool isInTransaction(TransactionItemModel transaction) {
-    return transaction.transactionType == 'IN';
-  }
-
-  /// Get balance for transaction
-  double getBalance(TransactionItemModel transaction) {
-    return transaction.lastBalance;
   }
 }

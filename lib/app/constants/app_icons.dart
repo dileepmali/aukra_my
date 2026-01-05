@@ -80,6 +80,7 @@ class AppIcons {
   static const String clockLoaderIc = 'assets/icons/clock_loader_20.svg';
   static const String CircleIc = 'assets/icons/Circle.svg';
   static const String percentIc = 'assets/icons/percent.svg';
+  static const String suppliersIc = 'assets/icons/suppliers_ic.svg';
 
   // Placeholder constants for backward compatibility (using similar existing assets)
   static const String homeBottom = 'assets/icons/home_home_active.svg'; // Using home active as fallback
@@ -119,4 +120,9 @@ class AppIcons {
   static const String phoneIc = 'assets/icons/mouse_square.svg';
   static const String emailIc = 'assets/icons/share.svg';
   static const String locationIc = 'assets/icons/mouse_square.svg';
+
+  // Account screen icons (using existing icons as placeholders)
+  static const String customerIc = 'assets/icons/profile_ac.svg'; // Customer icon
+  static const String supplierIc = 'assets/icons/lager_desAc.svg'; // Supplier icon
+  static const String employeeIc = 'assets/icons/profile_des.svg'; // Employee icon
 }

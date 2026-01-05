@@ -163,7 +163,8 @@ class LedgerController extends GetxController {
       if (fetcher.data != null) {
         debugPrint('✅ $partyType fetched successfully');
         debugPrint('📥 $partyType Response Type: ${fetcher.data.runtimeType}');
-        debugPrint('📥 $partyType Response: ${fetcher.data}');
+        debugPrint('📥 $partyType Full Response: ${fetcher.data}');
+        debugPrint('═══════════════════════════════════════════════════');
 
         List<dynamic> ledgerList = [];
 
@@ -172,10 +173,20 @@ class LedgerController extends GetxController {
           // Nested format: {count: 3, data: [...]}
           ledgerList = fetcher.data['data'] as List;
           debugPrint('📊 Nested format - Count: ${fetcher.data['count']}, Items: ${ledgerList.length}');
+
+          // Print first item to see structure
+          if (ledgerList.isNotEmpty) {
+            debugPrint('🔍 First Item Sample: ${ledgerList[0]}');
+          }
         } else if (fetcher.data is List) {
           // Direct array format: [...]
           ledgerList = fetcher.data as List;
           debugPrint('📊 Direct array format - Items: ${ledgerList.length}');
+
+          // Print first item to see structure
+          if (ledgerList.isNotEmpty) {
+            debugPrint('🔍 First Item Sample: ${ledgerList[0]}');
+          }
         } else {
           debugPrint('⚠️ Unexpected response format for $partyType');
           return;
@@ -185,13 +196,17 @@ class LedgerController extends GetxController {
         for (var ledgerJson in ledgerList) {
           if (ledgerJson is Map<String, dynamic>) {
             try {
+              // Debug: Print raw JSON to see what fields are coming
+              debugPrint('📦 Raw Ledger JSON: $ledgerJson');
+
               final ledger = LedgerModel.fromJson(ledgerJson);
               allLedgers.add(ledger);
 
               debugPrint('✅ Parsed ledger: ${ledger.name} (${ledger.partyType})');
+              debugPrint('   📍 Address: "${ledger.address}", Area: "${ledger.area}"');
 
-              // Sort by party type
-              switch (partyType.toUpperCase()) {
+              // Sort by party type - Use actual ledger.partyType from API response
+              switch (ledger.partyType.toUpperCase()) {
                 case 'CUSTOMER':
                   customers.add(ledger);
                   break;

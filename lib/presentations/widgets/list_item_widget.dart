@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../app/constants/app_icons.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_colors_light.dart';
 import '../../app/themes/app_text.dart';
@@ -185,17 +186,21 @@ class ListItemWidget extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                // Rupee symbol - smaller font
-                                Text(
-                                  '₹',
-                                  style: TextStyle(
-                                    color: isPositiveAmount == true
-                                        ? AppColors.primeryamount
-                                        : isPositiveAmount == false
-                                        ? AppColors.red500.withOpacity(0.7)
-                                            : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                                    fontSize: responsive.fontSize(14),
-                                    fontWeight: FontWeight.w500,
+                                // Rupee symbol icon - aligned to bottom
+                                Padding(
+                                  padding: EdgeInsets.only(top: responsive.hp(0.7)),
+                                  child: SvgPicture.asset(
+                                    AppIcons.vectoeIc3,
+                                    width: responsive.iconSizeSmall,
+                                    height: responsive.iconSizeSmall,
+                                    colorFilter: ColorFilter.mode(
+                                      isPositiveAmount == true
+                                          ? AppColors.primeryamount
+                                          : isPositiveAmount == false
+                                          ? AppColors.red500.withOpacity(0.7)
+                                              : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                 ),
                                 SizedBox(width: responsive.spacing(3)),

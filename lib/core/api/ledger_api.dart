@@ -44,6 +44,51 @@ class LedgerApi {
     }
   }
 
+  /// Update existing ledger entry (customer/supplier)
+  /// PUT /api/ledger/{ledgerId}
+  Future<LedgerCreateResponse> updateLedger({
+    required int ledgerId,
+    required LedgerModel ledger,
+  }) async {
+    try {
+      debugPrint('🔄 Updating ledger: $ledgerId');
+      debugPrint('📦 Ledger data: ${ledger.toJson()}');
+
+      await _apiFetcher.request(
+        url: 'api/ledger/$ledgerId',
+        method: 'PUT',
+        body: ledger.toJson(),
+        requireAuth: true,
+      );
+
+      // Check for errors
+      if (_apiFetcher.errorMessage != null) {
+        // Parse error response
+        if (_apiFetcher.data is Map) {
+          final errorResponse = LedgerErrorResponse.fromJson(
+            _apiFetcher.data as Map<String, dynamic>,
+          );
+          throw Exception(errorResponse.getErrorMessages());
+        }
+        throw Exception(_apiFetcher.errorMessage);
+      }
+
+      // Parse success response
+      if (_apiFetcher.data is Map) {
+        debugPrint('✅ Ledger updated successfully');
+        return LedgerCreateResponse.fromJson(
+          _apiFetcher.data as Map<String, dynamic>,
+        );
+      }
+
+      // Default success message
+      return LedgerCreateResponse(message: 'Updated successfully');
+    } catch (e) {
+      debugPrint('❌ Ledger Update API Error: $e');
+      rethrow;
+    }
+  }
+
   /// Get loading state
   bool get isLoading => _apiFetcher.isLoading;
 

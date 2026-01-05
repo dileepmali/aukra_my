@@ -1,5 +1,10 @@
+import 'package:aukra_anantkaya_space/core/responsive_layout/padding_navigation.dart';
+import 'package:aukra_anantkaya_space/presentations/widgets/custom_border_widget.dart';
+import 'package:aukra_anantkaya_space/presentations/widgets/custom_single_border_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import '../../app/constants/app_icons.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_colors_light.dart';
 import '../../app/themes/app_text.dart';
@@ -7,7 +12,6 @@ import '../../controllers/account_statement_controller.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
-import '../../core/responsive_layout/padding_navigation.dart';
 import '../../core/utils/formatters.dart';
 
 /// Account Statement Widget - UI Only (Logic in Controller)
@@ -25,309 +29,385 @@ class AccountStatementWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final responsive = AdvancedResponsiveHelper(context);
     final controller = Get.find<AccountStatementController>();
+    final borderColor = AppColors.black;
+    final borderColor1 = AppColors.containerDark;
+    final bgColor = AppColors.containerLight;
+    final bgColor1 = AppColors.containerDark;
 
-    return Container(
+    return Padding(
       padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText.custom(
-                'Account statement',
-                style: TextStyle(
-                  fontSize: responsive.fontSize(16),
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+              // Previous Month Button
+              GestureDetector(
+                onTap: controller.previousMonth,
+                child: ResponsiveContainer(
+                  widthPercent: 15,
+                  heightPercent: 7,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.containerDark,
+                        AppColors.containerLight
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: borderColor1, width: 1.4),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(Icons.arrow_back, color: AppColors.white),
                 ),
               ),
-              if (onViewDetails != null)
-                TextButton(
-                  onPressed: onViewDetails,
-                  child: AppText.custom(
-                    'View details',
-                    style: TextStyle(
-                      fontSize: responsive.fontSize(14),
-                      color: AppColorsLight.splaceSecondary1,
+              // Next Month Button
+              BorderColor(
+                isSelected: true,
+                borderRadius: 0.1,
+                leftWidth: 0.9,
+                topWidth: 1.5,
+                rightWidth: 0.9,
+                child: ResponsiveContainer(
+                  widthPercent: 61,
+                  heightPercent: 6.6,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.containerLight,
+                        AppColors.containerLight
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   ),
+                  alignment: Alignment.center,
+                  child: Obx(() => AppText.custom(
+                    controller.getMonthRangeText(),
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: responsive.fontSize(14),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )),
                 ),
+              ),
+
+              // Month Display
+              GestureDetector(
+                onTap: controller.nextMonth,
+                child: ResponsiveContainer(
+                  widthPercent: 15,
+                  heightPercent: 7,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.containerDark,
+                        AppColors.containerLight
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                    border: Border.all(color: borderColor1, width: 1.4),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(Icons.arrow_forward, color: AppColors.white),
+                ),
+              ),
+
+
             ],
           ),
-          SizedBox(height: responsive.hp(1)),
-
-          // Month Navigation Row
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: responsive.wp(4),
-              vertical: responsive.hp(1.5),
-            ),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.containerDark : AppColorsLight.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(responsive.borderRadiusSmall),
-                topRight: Radius.circular(responsive.borderRadiusSmall),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Previous Month Button
-                IconButton(
-                  onPressed: controller.previousMonth,
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                    size: responsive.iconSizeMedium,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Date Header
+              ResponsiveContainer(
+                widthPercent: 23,
+                heightPercent: 6,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  border: Border.all(color: borderColor, width: 0.4),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                 ),
-
-                // Month Range Display
-                Obx(() => AppText.custom(
-                      controller.getMonthRangeText(),
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(14),
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      ),
-                    )),
-
-                // Next Month Button
-                IconButton(
-                  onPressed: controller.nextMonth,
-                  icon: Icon(
-                    Icons.arrow_forward_ios,
-                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                    size: responsive.iconSizeMedium,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      AppIcons.calendarIc,
+                      width: responsive.iconSizeMedium - 5,
+                      height: responsive.iconSizeMedium - 5,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(width: responsive.wp(1)),
+                    AppText.headlineLarge1("DATE", color: AppColors.white),
+                  ],
                 ),
-              ],
-            ),
-          ),
-
-          // Table Header
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: responsive.wp(4),
-              vertical: responsive.hp(1),
-            ),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.containerDark : AppColorsLight.gradientColor1,
-            ),
-            child: IntrinsicHeight(
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: AppText.custom(
-                      'DATE',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(12),
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    color: AppColors.white.withOpacity(0.3),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: AppText.custom(
-                      'IN',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(12),
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    color: AppColors.white.withOpacity(0.3),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: AppText.custom(
-                      'OUT',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(12),
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    color: AppColors.white.withOpacity(0.3),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: AppText.custom(
-                      'BAL.',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(12),
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
               ),
-            ),
+              // IN Header
+              ResponsiveContainer(
+                widthPercent: 23,
+                heightPercent: 6,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  border: Border.all(color: borderColor, width: 0.4),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      AppIcons.arrowInIc,
+                      width: responsive.iconSizeMedium - 5,
+                      height: responsive.iconSizeMedium - 5,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(width: responsive.wp(1)),
+                    AppText.headlineLarge1("IN", color: AppColors.white),
+                  ],
+                ),
+              ),
+              // OUT Header
+              ResponsiveContainer(
+                widthPercent: 23,
+                heightPercent: 6,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  border: Border.all(color: borderColor, width: 0.4),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      AppIcons.arrowOutIc,
+                      width: responsive.iconSizeMedium - 5,
+                      height: responsive.iconSizeMedium - 5,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(width: responsive.wp(1)),
+                    AppText.headlineLarge1("OUT", color: AppColors.white),
+                  ],
+                ),
+              ),
+              // BAL Header
+              ResponsiveContainer(
+                widthPercent: 23,
+                heightPercent: 6,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  border: Border.all(color: borderColor, width: 0.4),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      AppIcons.arrowInIc,
+                      width: responsive.iconSizeMedium - 5,
+                      height: responsive.iconSizeMedium - 5,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(width: responsive.wp(1)),
+                    AppText.headlineLarge1("BAL.", color: AppColors.white),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          // Table Body - Transaction Rows
+          // Dynamic Transaction Rows (Grouped by Date)
           Obx(() {
-            final transactions = controller.monthTransactions;
+            final dailyGroups = controller.groupedDailyTransactions;
 
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: responsive.hp(40), // Max height for scrolling
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.containerDark : AppColorsLight.white,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(responsive.borderRadiusSmall),
-                  bottomRight: Radius.circular(responsive.borderRadiusSmall),
+            if (dailyGroups.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: responsive.hp(4)),
+                child: Center(
+                  child: Text(
+                    'No transactions for this month',
+                    style: TextStyle(color: AppColors.white, fontSize: responsive.fontSize(14)),
+                  ),
                 ),
-                border: Border.all(
-                  color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                  width: 1,
-                ),
-              ),
-              child: transactions.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(responsive.wp(8)),
-                        child: AppText.custom(
-                          'No transactions for this month',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(14),
-                            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
+              );
+            }
+
+            return Column(
+              children: List.generate(dailyGroups.length, (index) {
+                final dailyGroup = dailyGroups[index];
+                final isOddRow = index % 2 == 0; // 0-indexed, so 0,2,4 are "odd" visually
+
+                // Alternating gradients
+                final gradient = isOddRow
+                    ? LinearGradient(
+                        colors: [AppColors.containerDark, AppColors.containerDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : LinearGradient(
+                        colors: [AppColors.containerLight, AppColors.containerLight],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      );
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Date Cell
+                    ResponsiveContainer(
+                      widthPercent: 23,
+                      heightPercent: 6,
+                      decoration: BoxDecoration(
+                        gradient: gradient,
+                        border: Border.all(color: borderColor, width: 0.4),
+                        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        dailyGroup.date,
+                        style: TextStyle(color: AppColors.white, fontSize: responsive.fontSize(12)),
+                      ),
+                    ),
+                    // IN Cell (Total IN for the day)
+                    ResponsiveContainer(
+                      widthPercent: 23,
+                      heightPercent: 6,
+                      decoration: BoxDecoration(
+                        gradient: gradient,
+                        border: Border.all(color: borderColor, width: 0.4),
+                        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        dailyGroup.totalIn > 0
+                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.totalIn.toString())}'
+                            : '-',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: responsive.fontSize(12),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: transactions.length,
-                      separatorBuilder: (context, index) => Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                      ),
-                      itemBuilder: (context, index) {
-                        final transaction = transactions[index];
-                        final isIn = controller.isInTransaction(transaction);
-
-                        return Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: responsive.wp(4),
-                            vertical: responsive.hp(1.5),
-                          ),
-                          child: IntrinsicHeight(
-                            child: Row(
-                              children: [
-                                // Date Column
-                                Expanded(
-                                  flex: 3,
-                                  child: AppText.custom(
-                                    controller.formatDate(transaction.transactionDate),
-                                    style: TextStyle(
-                                      fontSize: responsive.fontSize(13),
-                                      fontWeight: FontWeight.w400,
-                                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                    ),
-                                  ),
-                                ),
-
-                                Container(
-                                  width: 1,
-                                  color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                                ),
-
-                                // IN Column
-                                Expanded(
-                                  flex: 2,
-                                  child: AppText.custom(
-                                    isIn
-                                        ? '₹${Formatters.formatAmountWithCommas(controller.getInAmount(transaction).toString())}'
-                                        : '-',
-                                    style: TextStyle(
-                                      fontSize: responsive.fontSize(13),
-                                      fontWeight: FontWeight.w500,
-                                      color: isIn
-                                          ? AppColors.primeryamount
-                                          : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                                    ),
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-
-                                Container(
-                                  width: 1,
-                                  color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                                ),
-
-                                // OUT Column
-                                Expanded(
-                                  flex: 2,
-                                  child: AppText.custom(
-                                    !isIn
-                                        ? '₹${Formatters.formatAmountWithCommas(controller.getOutAmount(transaction).toString())}'
-                                        : '-',
-                                    style: TextStyle(
-                                      fontSize: responsive.fontSize(13),
-                                      fontWeight: FontWeight.w500,
-                                      color: !isIn
-                                          ? AppColors.red500
-                                          : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                                    ),
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-
-                                Container(
-                                  width: 1,
-                                  color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                                ),
-
-                                // BAL Column
-                                Expanded(
-                                  flex: 2,
-                                  child: AppText.custom(
-                                    '₹${Formatters.formatAmountWithCommas(controller.getBalance(transaction).toString())}',
-                                    style: TextStyle(
-                                      fontSize: responsive.fontSize(13),
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                    ),
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
                     ),
+                    // OUT Cell (Total OUT for the day)
+                    ResponsiveContainer(
+                      widthPercent: 23,
+                      heightPercent: 6,
+                      decoration: BoxDecoration(
+                        gradient: gradient,
+                        border: Border.all(color: borderColor, width: 0.4),
+                        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        dailyGroup.totalOut > 0
+                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.totalOut.toString())}'
+                            : '-',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: responsive.fontSize(12),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    // BAL Cell (Final balance at end of day)
+                    ResponsiveContainer(
+                      widthPercent: 23,
+                      heightPercent: 6,
+                      decoration: BoxDecoration(
+                        gradient: gradient,
+                        border: Border.all(color: borderColor, width: 0.4),
+                        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '₹${Formatters.formatAmountWithCommas(dailyGroup.finalBalance.toString())}',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: responsive.fontSize(12),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
             );
           }),
         ],
       ),
+    );
+  }
+
+}
+
+/// Responsive Container Widget
+/// Use this to create containers with responsive width and height
+class ResponsiveContainer extends StatelessWidget {
+  final Widget? child;
+  final double? widthPercent; // Width as percentage of screen (0-100)
+  final double? heightPercent; // Height as percentage of screen (0-100)
+  final double? width; // Fixed width
+  final double? height; // Fixed height
+  final Color? color;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
+  final Decoration? decoration;
+  final AlignmentGeometry? alignment;
+  final BoxConstraints? constraints;
+
+  const ResponsiveContainer({
+    Key? key,
+    this.child,
+    this.widthPercent,
+    this.heightPercent,
+    this.width,
+    this.height,
+    this.color,
+    this.padding,
+    this.margin,
+    this.decoration,
+    this.alignment,
+    this.constraints,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final responsive = AdvancedResponsiveHelper(context);
+
+    // Calculate responsive width
+    double? finalWidth;
+    if (widthPercent != null) {
+      finalWidth = responsive.wp(widthPercent!);
+    } else if (width != null) {
+      finalWidth = width;
+    }
+
+    // Calculate responsive height
+    double? finalHeight;
+    if (heightPercent != null) {
+      finalHeight = responsive.hp(heightPercent!);
+    } else if (height != null) {
+      finalHeight = height;
+    }
+
+    return Container(
+      width: finalWidth,
+      height: finalHeight,
+      padding: padding,
+      margin: margin,
+      decoration: decoration,
+      alignment: alignment,
+      constraints: constraints,
+      color: decoration == null ? color : null,
+      child: child,
     );
   }
 }

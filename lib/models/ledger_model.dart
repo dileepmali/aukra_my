@@ -5,6 +5,7 @@ class LedgerModel {
   final int creditDay;
   final String interestType; // YEARLY, MONTHLY
   final double openingBalance;
+  final double currentBalance; // Current balance (updates with transactions)
   final String transactionType; // IN, OUT
   final double interestRate;
   final String mobileNumber;
@@ -14,6 +15,7 @@ class LedgerModel {
   final String pinCode;
   final String partyType; // CUSTOMER, SUPPLIER
   final DateTime? createdAt; // Customer creation date/time
+  final DateTime? updatedAt; // Last update date/time (transaction date)
 
   LedgerModel({
     this.id,
@@ -22,6 +24,7 @@ class LedgerModel {
     required this.creditDay,
     required this.interestType,
     required this.openingBalance,
+    required this.currentBalance,
     required this.transactionType,
     required this.interestRate,
     required this.mobileNumber,
@@ -31,9 +34,11 @@ class LedgerModel {
     required this.pinCode,
     required this.partyType,
     this.createdAt,
+    this.updatedAt,
   });
 
-  // Convert to JSON for API request
+  // Convert to JSON for API request (CREATE/UPDATE)
+  // NOTE: currentBalance is NOT sent - backend calculates it automatically
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -42,6 +47,7 @@ class LedgerModel {
       'creditDay': creditDay,
       'interestType': interestType,
       'openingBalance': openingBalance,
+      // currentBalance is excluded - backend manages it
       'transactionType': transactionType,
       'interestRate': interestRate,
       'mobileNumber': mobileNumber,
@@ -62,6 +68,7 @@ class LedgerModel {
       creditDay: json['creditDay'] ?? 0,
       interestType: json['interestType'] ?? 'YEARLY',
       openingBalance: (json['openingBalance'] ?? 0).toDouble(),
+      currentBalance: (json['currentBalance'] ?? json['openingBalance'] ?? 0).toDouble(),
       transactionType: json['transactionType'] ?? 'IN',
       interestRate: (json['interestRate'] ?? 0).toDouble(),
       mobileNumber: json['mobileNumber'] ?? '',
@@ -72,6 +79,9 @@ class LedgerModel {
       partyType: json['partyType'] ?? 'CUSTOMER',
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
           : null,
     );
   }
@@ -84,6 +94,7 @@ class LedgerModel {
     int? creditDay,
     String? interestType,
     double? openingBalance,
+    double? currentBalance,
     String? transactionType,
     double? interestRate,
     String? mobileNumber,
@@ -93,6 +104,7 @@ class LedgerModel {
     String? pinCode,
     String? partyType,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return LedgerModel(
       id: id ?? this.id,
@@ -101,6 +113,7 @@ class LedgerModel {
       creditDay: creditDay ?? this.creditDay,
       interestType: interestType ?? this.interestType,
       openingBalance: openingBalance ?? this.openingBalance,
+      currentBalance: currentBalance ?? this.currentBalance,
       transactionType: transactionType ?? this.transactionType,
       interestRate: interestRate ?? this.interestRate,
       mobileNumber: mobileNumber ?? this.mobileNumber,
@@ -110,6 +123,7 @@ class LedgerModel {
       pinCode: pinCode ?? this.pinCode,
       partyType: partyType ?? this.partyType,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

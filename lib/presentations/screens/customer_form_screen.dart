@@ -11,6 +11,7 @@ import '../../controllers/customer_form_controller.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../widgets/text_filed/custom_text_field.dart';
 import '../../buttons/dialog_botton.dart';
+import '../../buttons/app_button.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/custom_single_border_color.dart';
@@ -18,17 +19,30 @@ import '../widgets/custom_single_border_color.dart';
 class CustomerFormScreen extends StatelessWidget {
   const CustomerFormScreen({Key? key}) : super(key: key);
 
-  // Get title based on party type
-  String _getTitle(String? partyType) {
-    switch (partyType?.toLowerCase()) {
-      case 'supplier':
-        return 'Add Supplier';
-      case 'employer':
-      case 'employee':
-        return 'Add Employer';
-      case 'customer':
-      default:
-        return 'Add Customer';
+  // Get title based on party type and edit mode
+  String _getTitle(String? partyType, bool isEditMode) {
+    if (isEditMode) {
+      // Edit mode
+      switch (partyType?.toLowerCase()) {
+        case 'supplier':
+          return 'Edit Supplier';
+        case 'Employeec':
+          return 'Edit Employee';
+        case 'customer':
+        default:
+          return 'Edit Customer';
+      }
+    } else {
+      // Add mode
+      switch (partyType?.toLowerCase()) {
+        case 'supplier':
+          return 'Add Supplier';
+        case 'Employee':
+          return 'Add Employee';
+        case 'customer':
+        default:
+          return 'Add Customer';
+      }
     }
   }
 
@@ -39,21 +53,42 @@ class CustomerFormScreen extends StatelessWidget {
 
     // Get arguments from navigation
     final args = Get.arguments as Map<String, dynamic>?;
-    final contactName = args?['contactName'] as String?;
-    final contactPhone = args?['contactPhone'] as String?;
+
+    // Check if edit mode or add mode
+    final isEditMode = args?['isEditMode'] ?? false;
+    final ledgerId = args?['ledgerId'] as int?;
     final partyType = args?['partyType'] as String?;
 
+    debugPrint('📋 CustomerFormScreen - Edit Mode: $isEditMode');
     debugPrint('📋 CustomerFormScreen - partyType: $partyType');
-    debugPrint('   Title will be: ${_getTitle(partyType)}');
+    debugPrint('   Title will be: ${_getTitle(partyType, isEditMode)}');
 
     final controller = Get.put(CustomerFormController(
-      initialName: contactName,
-      initialPhone: contactPhone,
+      isEditMode: isEditMode,
+      ledgerId: ledgerId,
       partyType: partyType,
+      // For edit mode - use ledger data
+      initialName: isEditMode
+          ? (args?['partyName'] as String?)
+          : (args?['contactName'] as String?),
+      initialPhone: isEditMode
+          ? (args?['mobileNumber'] as String?)
+          : (args?['contactPhone'] as String?),
+      initialArea: args?['area'] as String?,
+      initialPinCode: args?['pinCode'] as String?,
+      initialAddress: args?['address'] as String?,
+      initialCity: args?['city'] as String?,
+      initialCountry: args?['country'] as String?,
+      initialCreditDay: args?['creditDay'] as int?,
+      initialCreditLimit: args?['creditLimit'] != null ? (args!['creditLimit'] as num).toDouble() : null,
+      initialInterestRate: args?['interestRate'] != null ? (args!['interestRate'] as num).toDouble() : null,
+      initialInterestType: args?['interestType'] as String?,
+      initialOpeningBalance: args?['openingBalance'] != null ? (args!['openingBalance'] as num).toDouble() : null,
+      initialTransactionType: args?['transactionType'] as String?,
     ));
 
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Allow keyboard to resize the UI for scrolling
+      resizeToAvoidBottomInset: true, // Allow keyboard to resize properly
       backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       appBar: CustomResponsiveAppBar(
         config: AppBarConfig(
@@ -71,7 +106,7 @@ class CustomerFormScreen extends StatelessWidget {
               ),
               SizedBox(width: responsive.wp(3),),
               AppText.custom(
-                _getTitle(partyType),
+                _getTitle(partyType, isEditMode),
                 style: TextStyle(
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
                   fontSize: responsive.fontSize(20),
@@ -85,27 +120,24 @@ class CustomerFormScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [AppColors.overlay, AppColors.overlay]
-                : [AppColorsLight.scaffoldBackground, AppColorsLight.container],
-          ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: responsive.wp(4),
+          right: responsive.wp(4),
+          top: responsive.hp(2),
+          bottom: responsive.hp(2),
         ),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: responsive.wp(4),
-                  right: responsive.wp(4),
-                  top: responsive.hp(2),
-                  bottom: responsive.hp(12), // Extra padding to avoid button overlap when scrolling
-                ),
-                child: Column(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: isDark
+                  ? [AppColors.overlay, AppColors.overlay]
+                  : [AppColorsLight.scaffoldBackground, AppColorsLight.container],
+            ),
+          ),
+          child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Name Field
@@ -279,57 +311,82 @@ class CustomerFormScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Bottom Buttons
-            SafeArea(
-              child: Stack(
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: responsive.wp(4),
-                      vertical: responsive.hp(2),
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.containerDark : AppColorsLight.scaffoldBackground,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: Offset(0, -5),
-                        ),
-                      ],
-                    ),
-                    child: Obx(() => DialogButtonRow(
-                      cancelText: 'Cancel',
-                      confirmText: 'Confirm',
-                      onCancel: () => Navigator.of(context).pop(),
-                      onConfirm: () => controller.submitForm(context),
-                      isLoading: controller.isLoading.value,
-                      cancelGradientColors: isDark
-                          ? [
-                              AppColors.containerLight,
-                             AppColors.containerDark,
-                      ]
-                          : [
-                              AppColorsLight.textSecondary.withOpacity(0.1),
-                              AppColorsLight.textSecondary.withOpacity(0.05),
-                            ],
-                      cancelTextColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      confirmTextColor: Colors.white,
-                      confirmGradientColors: [
-                        AppColors.splaceSecondary1,
-                        AppColors.splaceSecondary2,
-                      ],
-                      buttonSpacing: responsive.wp(3),
-                    )),
-                  ),
-                  Positioned.fill(
-                    child: CustomSingleBorderWidget(
-                      position: BorderPosition.top,
-                      borderWidth: 1.0,
-                    ),
+      bottomNavigationBar: SafeArea(
+        child: Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: responsive.wp(4),
+                vertical: responsive.hp(2),
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.containerDark : AppColorsLight.scaffoldBackground,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: Offset(0, -5),
                   ),
                 ],
+              ),
+              child: Obx(() {
+                if (isEditMode) {
+                  // Edit Mode: Show Cancel + Update buttons
+                  return DialogButtonRow(
+                    cancelText: 'Go back',
+                    confirmText: 'Update',
+                    onCancel: () => Navigator.of(context).pop(),
+                    onConfirm: () => controller.submitForm(context),
+                    isLoading: controller.isLoading.value,
+                    cancelGradientColors: isDark
+                        ? [
+                            AppColors.containerLight,
+                            AppColors.containerDark,
+                          ]
+                        : [
+                            AppColorsLight.textSecondary.withOpacity(0.1),
+                            AppColorsLight.textSecondary.withOpacity(0.05),
+                          ],
+                    cancelTextColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    confirmTextColor: Colors.white,
+                    confirmGradientColors: [
+                      AppColors.splaceSecondary1,
+                      AppColors.splaceSecondary2,
+                    ],
+                    buttonSpacing: responsive.wp(3),
+                  );
+                } else {
+                  // Add Mode: Show Cancel + Confirm buttons
+                  return DialogButtonRow(
+                    cancelText: 'Go back',
+                    confirmText: 'Confirm',
+                    onCancel: () => Navigator.of(context).pop(),
+                    onConfirm: () => controller.submitForm(context),
+                    isLoading: controller.isLoading.value,
+                    cancelGradientColors: isDark
+                        ? [
+                            AppColors.containerLight,
+                            AppColors.containerDark,
+                          ]
+                        : [
+                            AppColorsLight.textSecondary.withOpacity(0.1),
+                            AppColorsLight.textSecondary.withOpacity(0.05),
+                          ],
+                    cancelTextColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    confirmTextColor: Colors.white,
+                    confirmGradientColors: [
+                      AppColors.splaceSecondary1,
+                      AppColors.splaceSecondary2,
+                    ],
+                    buttonSpacing: responsive.wp(3),
+                  );
+                }
+              }),
+            ),
+            Positioned.fill(
+              child: CustomSingleBorderWidget(
+                position: BorderPosition.top,
+                borderWidth: 1.0,
               ),
             ),
           ],

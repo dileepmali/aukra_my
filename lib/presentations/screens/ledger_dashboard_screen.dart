@@ -20,6 +20,7 @@ import '../widgets/list_item_widget.dart';
 import '../widgets/bottom_sheets/transaction_detail_bottom_sheet.dart';
 import '../widgets/account_statement_widget.dart';
 import '../../controllers/account_statement_controller.dart';
+import '../widgets/dialogs/pin_verification_dialog.dart';
 
 class LedgerDashboardScreen extends StatelessWidget {
   const LedgerDashboardScreen({super.key});
@@ -30,11 +31,6 @@ class LedgerDashboardScreen extends StatelessWidget {
     final statementController = Get.put(AccountStatementController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final responsive = AdvancedResponsiveHelper(context);
-
-    // Set transactions in statement controller when available
-    if (controller.transactions.value != null) {
-      statementController.setTransactions(controller.transactions.value!.data);
-    }
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
@@ -66,10 +62,16 @@ class LedgerDashboardScreen extends StatelessWidget {
         ),
       ),
       body: Obx(() {
+        // Update statement controller with transactions reactively
+        if (controller.transactions.value != null) {
+          statementController.setTransactions(controller.transactions.value!.data);
+        }
+
         if (controller.isLoading.value && controller.dashboardData.value == null) {
           return Center(
             child: CircularProgressIndicator(
-              color: isDark ? AppColorsLight.splaceSecondary1 : AppColorsLight.splaceSecondary1,
+              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+              strokeWidth: 1.0,
             ),
           );
         }
@@ -106,6 +108,7 @@ class LedgerDashboardScreen extends StatelessWidget {
 
         return RefreshIndicator(
           onRefresh: controller.refreshDashboard,
+          color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
           child: SingleChildScrollView(
             padding: EdgeInsets.only(bottom: responsive.hp(10)),
             physics: const BouncingScrollPhysics(),
@@ -128,6 +131,44 @@ class LedgerDashboardScreen extends StatelessWidget {
                 _buildRecentTransactionsSection(context, controller, isDark, responsive),
 
                 SizedBox(height: responsive.hp(2)),
+
+                // Account Statement Header
+                Stack(
+                  children: [
+                    Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.top)),
+                    Padding(
+                    padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText.custom(
+                          'Account Statement',
+                          style: TextStyle(
+                            fontSize: responsive.fontSize(18),
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? AppColors.textSecondary : AppColorsLight.textPrimary,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            debugPrint('View Details tapped');
+                            // TODO: Navigate to detailed statement screen
+                          },
+                          child: AppText.custom(
+                            'View Details',
+                            style: TextStyle(
+                              fontSize: responsive.fontSize(18),
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),]
+                ),
+
+                SizedBox(height: responsive.hp(1)),
 
                 // Account Statement Section
                 AccountStatementWidget(
@@ -171,13 +212,43 @@ class LedgerDashboardScreen extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  // TODO: Navigate to edit screen
+                onTap: () async {
+                  // Show PIN verification dialog
+                  final pin = await PinVerificationDialog.show(context: context);
+
+                  if (pin != null && pin.isNotEmpty) {
+                    // PIN verified, navigate to edit form
+                    debugPrint('✅ PIN verified: $pin');
+
+                    // Get complete ledger data
+                    final ledgerData = {
+                      'isEditMode': true,
+                      'ledgerId': controller.ledgerDetail.value?.id,
+                      'partyType': controller.partyType,
+                      'partyName': controller.partyName,
+                      'mobileNumber': controller.ledgerDetail.value?.mobileNumber,
+                      'area': controller.ledgerDetail.value?.area,
+                      'pinCode': controller.ledgerDetail.value?.pinCode,
+                      'address': controller.ledgerDetail.value?.address,
+                      'city': controller.ledgerDetail.value?.city,
+                      'country': controller.ledgerDetail.value?.country,
+                      'creditDay': controller.ledgerDetail.value?.creditDay,
+                      'creditLimit': controller.ledgerDetail.value?.creditLimit,
+                      'interestRate': controller.ledgerDetail.value?.interestRate,
+                      'interestType': controller.ledgerDetail.value?.interestType,
+                      'openingBalance': controller.ledgerDetail.value?.openingBalance,
+                      'transactionType': controller.ledgerDetail.value?.transactionType,
+                    };
+
+                    debugPrint('📝 Navigating to edit form with data: $ledgerData');
+
+                    Get.toNamed('/customer-form', arguments: ledgerData);
+                  }
                 },
                 child: AppText.custom(
                   'Edit',
                   style: TextStyle(
-                    fontSize: responsive.fontSize(14),
+                    fontSize: responsive.fontSize(16),
                     fontWeight: FontWeight.w500,
                     color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                   ),
@@ -272,8 +343,16 @@ class LedgerDashboardScreen extends StatelessWidget {
                 ],
               ),
 
-              // Pie Chart on right side
-              _buildCreditPieChart(controller, isDark),
+              // Two Pie Charts side by side on right
+              Row(
+                children: [
+                  // Credit Limit Usage Pie Chart
+                  _buildCreditLimitPieChart(controller, isDark),
+                  SizedBox(width: responsive.wp(3)),
+                  // Closing Balance Pie Chart
+                  _buildCreditPieChart(controller, isDark),
+                ],
+              ),
             ],
           ),
           SizedBox(height: responsive.hp(0.5)),
@@ -817,10 +896,55 @@ class LedgerDashboardScreen extends StatelessWidget {
             }),
           ],
         ),
-      ),]
+      ),
+
+
+
+      ]
     );
   }
   
+  /// Build Credit Limit Usage Pie Chart - Shows how much credit limit is used
+  Widget _buildCreditLimitPieChart(LedgerDashboardController controller, bool isDark) {
+    final ledgerDetail = controller.ledgerDetail.value;
+    final dashboard = controller.dashboardData.value;
+
+    // Get credit limit and current balance
+    final double creditLimit = ledgerDetail?.creditLimit ?? 0.0;
+    final double closingBalance = ledgerDetail?.currentBalance.abs() ??
+                                  (controller.creditAmount ?? 0.0).abs();
+
+    // Calculate credit used and remaining
+    final double creditUsed = closingBalance;
+    final double creditRemaining = (creditLimit - creditUsed).clamp(0.0, creditLimit);
+
+    // Calculate percentage used (can exceed 100% if over-limit)
+    final double usagePercentage = creditLimit > 0
+        ? ((creditUsed / creditLimit) * 100)
+        : 0.0;
+
+    debugPrint('💳 Credit Limit Chart - Limit: ₹$creditLimit, Used: ₹$creditUsed, Remaining: ₹$creditRemaining, Usage: ${usagePercentage.toStringAsFixed(1)}%');
+
+    // For pie chart visualization, use percentage values (not amounts)
+    // If usage > 100%, show full pie (100%) but center text will show actual percentage
+    final double displayUsedPercent = usagePercentage.clamp(0.0, 100.0);
+    final double displayRemainingPercent = (100.0 - displayUsedPercent).clamp(0.0, 100.0);
+
+    return AnimatedPieChart(
+      usedValue: displayUsedPercent,
+      remainingValue: displayRemainingPercent,
+      centerSubText: 'Credit Used',
+      centerText: '${usagePercentage.toStringAsFixed(0)}%',
+      usedColor: AppColors.primeryamount, // Orange/Yellow for used credit
+      remainingColor: AppColors.containerDark, // Green for remaining credit
+      chartSize: 92,
+      centerSpaceRadius: 38,
+      usedRadius: 11,
+      remainingRadius: 11,
+      isDark: isDark,
+    );
+  }
+
   /// Build Credit Pie Chart Widget - Shows closing balance data from ledger detail
   Widget _buildCreditPieChart(LedgerDashboardController controller, bool isDark) {
     final ledgerDetail = controller.ledgerDetail.value;
@@ -846,8 +970,8 @@ class LedgerDashboardScreen extends StatelessWidget {
       remainingValue: displayReceived,
       centerSubText: 'Closing Bal.',
       centerText: '₹${closingBalance.toStringAsFixed(0)}',
-      usedColor: AppColors.red500, // Red color for "Given"
-      remainingColor: AppColors.primeryamount, // Green color for "Received"
+      usedColor: AppColors.primeryamount, // Red color for "Given"
+      remainingColor: AppColors.red500, // Green color for "Received"
       chartSize: 92,
       centerSpaceRadius: 38,
       usedRadius: 11,
@@ -997,12 +1121,5 @@ class LedgerDashboardScreen extends StatelessWidget {
   }
 
   /// Format Date for Bottom Sheet
-  String _formatDateForBottomSheet(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('hh:mma, dd MMM yyyy').format(date);
-    } catch (e) {
-      return dateString;
-    }
-  }
+
 }

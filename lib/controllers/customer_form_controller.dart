@@ -7,11 +7,12 @@ import '../core/utils/formatters.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import 'ledger_controller.dart';
+import '../presentations/widgets/dialogs/ledger_update_comparison_dialog.dart';
 
 class CustomerFormController extends GetxController {
-  // Text controllers
-  late TextEditingController nameController;
-  late TextEditingController phoneController;
+  // Text controllers - for both ledger and merchant modes
+  late TextEditingController nameController; // Also used for businessName in merchant mode
+  late TextEditingController phoneController; // Also used for backupPhoneNumber in merchant mode
   late TextEditingController areaController;
   late TextEditingController pinController;
   late TextEditingController addressController;
@@ -19,6 +20,15 @@ class CustomerFormController extends GetxController {
   late TextEditingController creditDaysController;
   late TextEditingController openingBalanceController;
   late TextEditingController creditLimitController;
+
+  // Merchant-specific controllers
+  late TextEditingController categoryController;
+  late TextEditingController emailController;
+  late TextEditingController cityController;
+  late TextEditingController stateController;
+  late TextEditingController countryController;
+  late TextEditingController latitudeController;
+  late TextEditingController longitudeController;
 
   // Focus nodes for all fields
   late FocusNode nameFocusNode;
@@ -31,6 +41,15 @@ class CustomerFormController extends GetxController {
   late FocusNode openingBalanceFocusNode;
   late FocusNode creditLimitFocusNode;
 
+  // Merchant-specific focus nodes
+  late FocusNode categoryFocusNode;
+  late FocusNode emailFocusNode;
+  late FocusNode cityFocusNode;
+  late FocusNode stateFocusNode;
+  late FocusNode countryFocusNode;
+  late FocusNode latitudeFocusNode;
+  late FocusNode longitudeFocusNode;
+
   // Observable for quick selection chips
   var selectedCreditDays = Rx<int?>(null);
   var selectedCreditLimit = Rx<double?>(null);
@@ -40,36 +59,124 @@ class CustomerFormController extends GetxController {
   // Loading state
   var isLoading = false.obs;
 
+  // Mode flags
+  final bool isEditMode;
+  final int? ledgerId;
+
+  // Store original data for comparison
+  Map<String, dynamic>? originalData;
+
   // API Service
   final LedgerApi _ledgerApi = LedgerApi();
 
-  // Initial values from contact
+  // Initial values from contact (for add mode)
   final String? initialName;
   final String? initialPhone;
   final String? partyType; // 'customer', 'supplier', 'employer'
+
+  // Initial ledger data (for edit mode)
+  final String? initialArea;
+  final String? initialPinCode;
+  final String? initialAddress;
+  final String? initialCity;
+  final String? initialCountry;
+  final int? initialCreditDay;
+  final double? initialCreditLimit;
+  final double? initialInterestRate;
+  final String? initialInterestType;
+  final double? initialOpeningBalance;
+  final String? initialTransactionType;
 
   CustomerFormController({
     this.initialName,
     this.initialPhone,
     this.partyType,
+    this.isEditMode = false,
+    this.ledgerId,
+    this.initialArea,
+    this.initialPinCode,
+    this.initialAddress,
+    this.initialCity,
+    this.initialCountry,
+    this.initialCreditDay,
+    this.initialCreditLimit,
+    this.initialInterestRate,
+    this.initialInterestType,
+    this.initialOpeningBalance,
+    this.initialTransactionType,
   });
 
   @override
   void onInit() {
     super.onInit();
 
-    // Initialize controllers with initial values if provided
+    debugPrint('🔧 CustomerFormController Init - Edit Mode: $isEditMode');
+    debugPrint('📋 Initial Data: name=$initialName, phone=$initialPhone, area=$initialArea');
+
+    // Initialize all controllers with data
     nameController = TextEditingController(text: initialName ?? '');
     phoneController = TextEditingController(text: initialPhone ?? '');
-    areaController = TextEditingController();
-    pinController = TextEditingController();
-    addressController = TextEditingController();
-    interestRateController = TextEditingController();
-    creditDaysController = TextEditingController();
-    openingBalanceController = TextEditingController();
-    creditLimitController = TextEditingController();
+    areaController = TextEditingController(text: initialArea ?? '');
+    pinController = TextEditingController(text: initialPinCode ?? '');
+    addressController = TextEditingController(text: initialAddress ?? '');
 
-    // Initialize focus nodes
+    // Ledger-specific fields
+    interestRateController = TextEditingController(
+      text: initialInterestRate != null ? initialInterestRate!.toString() : ''
+    );
+    creditDaysController = TextEditingController(
+      text: initialCreditDay != null ? initialCreditDay!.toString() : ''
+    );
+    openingBalanceController = TextEditingController(
+      text: initialOpeningBalance != null ? initialOpeningBalance!.toStringAsFixed(2) : ''
+    );
+    creditLimitController = TextEditingController(
+      text: initialCreditLimit != null ? initialCreditLimit!.toStringAsFixed(2) : ''
+    );
+
+    // Unused merchant controllers (initialize empty)
+    categoryController = TextEditingController();
+    emailController = TextEditingController();
+    cityController = TextEditingController();
+    stateController = TextEditingController();
+    countryController = TextEditingController();
+    latitudeController = TextEditingController();
+    longitudeController = TextEditingController();
+
+    // Set initial selection values
+    if (initialInterestType != null) {
+      selectedInterestType.value = initialInterestType!;
+    }
+    if (initialTransactionType != null) {
+      selectedTransactionType.value = initialTransactionType!;
+    }
+
+    // Store original data for comparison (only in edit mode)
+    if (isEditMode) {
+      originalData = {
+        'name': initialName ?? '',
+        'mobileNumber': initialPhone ?? '',
+        'area': initialArea ?? '',
+        'pinCode': initialPinCode ?? '',
+        'address': initialAddress ?? '',
+        'creditDay': initialCreditDay ?? 0,
+        'creditLimit': initialCreditLimit ?? 0.0,
+        'interestRate': initialInterestRate ?? 0.0,
+        'openingBalance': initialOpeningBalance ?? 0.0,
+      };
+      debugPrint('📦 Original data stored for comparison');
+      debugPrint('   initialCreditDay received: $initialCreditDay');
+      debugPrint('   creditDaysController.text: ${creditDaysController.text}');
+    }
+
+    debugPrint('✅ Controllers initialized with values');
+    debugPrint('   Name: ${nameController.text}');
+    debugPrint('   Phone: ${phoneController.text}');
+    debugPrint('   Area: ${areaController.text}');
+    debugPrint('   Credit Days: ${creditDaysController.text}');
+    debugPrint('   Credit Limit: ${creditLimitController.text}');
+
+    // Initialize all focus nodes
     nameFocusNode = FocusNode();
     phoneFocusNode = FocusNode();
     areaFocusNode = FocusNode();
@@ -79,6 +186,13 @@ class CustomerFormController extends GetxController {
     creditDaysFocusNode = FocusNode();
     openingBalanceFocusNode = FocusNode();
     creditLimitFocusNode = FocusNode();
+    categoryFocusNode = FocusNode();
+    emailFocusNode = FocusNode();
+    cityFocusNode = FocusNode();
+    stateFocusNode = FocusNode();
+    countryFocusNode = FocusNode();
+    latitudeFocusNode = FocusNode();
+    longitudeFocusNode = FocusNode();
 
     // Add focus listeners for formatting on focus loss
     openingBalanceFocusNode.addListener(() {
@@ -146,6 +260,13 @@ class CustomerFormController extends GetxController {
     creditDaysController.dispose();
     openingBalanceController.dispose();
     creditLimitController.dispose();
+    categoryController.dispose();
+    emailController.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    countryController.dispose();
+    latitudeController.dispose();
+    longitudeController.dispose();
 
     // Dispose focus nodes
     nameFocusNode.dispose();
@@ -157,6 +278,13 @@ class CustomerFormController extends GetxController {
     creditDaysFocusNode.dispose();
     openingBalanceFocusNode.dispose();
     creditLimitFocusNode.dispose();
+    categoryFocusNode.dispose();
+    emailFocusNode.dispose();
+    cityFocusNode.dispose();
+    stateFocusNode.dispose();
+    countryFocusNode.dispose();
+    latitudeFocusNode.dispose();
+    longitudeFocusNode.dispose();
 
     super.onClose();
   }
@@ -166,6 +294,8 @@ class CustomerFormController extends GetxController {
     selectedCreditDays.value = days;
     final suffix = days == 1 ? ' Day' : ' Days';
     creditDaysController.text = '$days$suffix';
+    debugPrint('✅ Credit Days Selected: $days');
+    debugPrint('   Controller text set to: "${creditDaysController.text}"');
   }
 
   // Select credit limit from quick selection
@@ -184,12 +314,20 @@ class CustomerFormController extends GetxController {
     selectedTransactionType.value = type;
   }
 
-  // Validate and submit form
+  // Validate and submit form (Create or Update)
   Future<void> submitForm(BuildContext context) async {
+    debugPrint('📝 Submit Form - Edit Mode: $isEditMode, Ledger ID: $ledgerId');
+    debugPrint('📋 Current Controller Values:');
+    debugPrint('   nameController: "${nameController.text}"');
+    debugPrint('   phoneController: "${phoneController.text}"');
+    debugPrint('   creditDaysController: "${creditDaysController.text}"');
+    debugPrint('   creditLimitController: "${creditLimitController.text}"');
+    debugPrint('   openingBalanceController: "${openingBalanceController.text}"');
+
     // Validate required fields
     if (nameController.text.trim().isEmpty) {
       AdvancedErrorService.showError(
-        'Please enter customer name',
+        isEditMode ? 'Please enter name' : 'Please enter customer name',
         severity: ErrorSeverity.medium,
         category: ErrorCategory.validation,
       );
@@ -230,6 +368,76 @@ class CustomerFormController extends GetxController {
     }
 
     try {
+      // In edit mode, show comparison dialog first
+      if (isEditMode && originalData != null) {
+        // Parse credit days by removing "Day" or "Days" suffix
+        final creditDayText = creditDaysController.text.trim().replaceAll(RegExp(r'\s*(Day|Days)\s*', caseSensitive: false), '');
+        debugPrint('🔍 Parsing Credit Days:');
+        debugPrint('   Raw text: "${creditDaysController.text.trim()}"');
+        debugPrint('   After removing suffix: "$creditDayText"');
+        final creditDay = int.tryParse(creditDayText) ?? 0;
+        debugPrint('   Parsed int: $creditDay');
+
+        final creditLimit = double.tryParse(
+              creditLimitController.text.trim().replaceAll(',', ''),
+            ) ??
+            0.0;
+
+        final interestRate = double.tryParse(
+              interestRateController.text.trim(),
+            ) ??
+            0.0;
+
+        final openingBalance = double.tryParse(
+              openingBalanceController.text.trim().replaceAll(',', ''),
+            ) ??
+            0.0;
+
+        // Create new data map
+        final newData = {
+          'name': nameController.text.trim(),
+          'mobileNumber': phoneController.text.trim(),
+          'area': areaController.text.trim(),
+          'pinCode': pinController.text.trim(),
+          'address': addressController.text.trim(),
+          'creditDay': creditDay,
+          'creditLimit': creditLimit,
+          'interestRate': interestRate,
+          'openingBalance': openingBalance,
+        };
+
+        debugPrint('📊 Showing comparison dialog');
+        debugPrint('   Old Data: $originalData');
+        debugPrint('   New Data: $newData');
+        debugPrint('');
+        debugPrint('📋 Field by Field Comparison:');
+        debugPrint('   Name: "${originalData!['name']}" -> "${newData['name']}"');
+        debugPrint('   Mobile: "${originalData!['mobileNumber']}" -> "${newData['mobileNumber']}"');
+        debugPrint('   Area: "${originalData!['area']}" -> "${newData['area']}"');
+        debugPrint('   Pin: "${originalData!['pinCode']}" -> "${newData['pinCode']}"');
+        debugPrint('   Address: "${originalData!['address']}" -> "${newData['address']}"');
+        debugPrint('   Credit Days: ${originalData!['creditDay']} -> ${newData['creditDay']}');
+        debugPrint('   Credit Limit: ${originalData!['creditLimit']} -> ${newData['creditLimit']}');
+        debugPrint('   Interest Rate: ${originalData!['interestRate']} -> ${newData['interestRate']}');
+        debugPrint('   Opening Balance: ${originalData!['openingBalance']} -> ${newData['openingBalance']}');
+        debugPrint('');
+
+        // Show comparison dialog
+        final confirmed = await LedgerUpdateComparisonDialog.show(
+          context: context,
+          oldData: originalData!,
+          newData: newData,
+        );
+
+        // If user cancels, return
+        if (confirmed != true) {
+          debugPrint('❌ User cancelled update');
+          return;
+        }
+
+        debugPrint('✅ User confirmed update, proceeding with API call');
+      }
+
       isLoading.value = true;
 
       // Get merchant ID from storage
@@ -279,6 +487,18 @@ class CustomerFormController extends GetxController {
 
       debugPrint('📋 Creating ledger with partyType: $normalizedPartyType -> $partyTypeUpperCase');
 
+      // Debug: Print all values before creating ledger
+      debugPrint('📋 Creating Ledger with values:');
+      debugPrint('   name: "${nameController.text.trim()}"');
+      debugPrint('   phone: "$phone"');
+      debugPrint('   area: "${areaController.text.trim()}"');
+      debugPrint('   address: "${addressController.text.trim()}"');
+      debugPrint('   pinCode: "${pinController.text.trim()}"');
+      debugPrint('   creditDay: $creditDay');
+      debugPrint('   creditLimit: $creditLimit');
+      debugPrint('   interestRate: $interestRate');
+      debugPrint('   openingBalance: $openingBalance');
+
       // Create ledger model
       final ledger = LedgerModel(
         name: nameController.text.trim(),
@@ -286,6 +506,7 @@ class CustomerFormController extends GetxController {
         creditDay: creditDay,
         interestType: selectedInterestType.value,
         openingBalance: openingBalance,
+        currentBalance: openingBalance, // Initial currentBalance same as openingBalance
         transactionType: selectedTransactionType.value,
         interestRate: interestRate,
         mobileNumber: phone,
@@ -296,8 +517,12 @@ class CustomerFormController extends GetxController {
         partyType: partyTypeUpperCase, // Dynamic partyType from arguments
       );
 
-      // Call API
-      final response = await _ledgerApi.createLedger(ledger);
+      debugPrint('📦 Ledger toJson(): ${ledger.toJson()}');
+
+      // Call appropriate API based on mode
+      final response = isEditMode && ledgerId != null
+          ? await _ledgerApi.updateLedger(ledgerId: ledgerId!, ledger: ledger)
+          : await _ledgerApi.createLedger(ledger);
 
       // Show success message
       AdvancedErrorService.showSuccess(
@@ -305,10 +530,16 @@ class CustomerFormController extends GetxController {
         type: SuccessType.snackbar,
       );
 
-      // Navigate back to previous screens first (close both form and contact list)
+      // Navigate back - different behavior for edit vs create
       if (context.mounted) {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
+        if (isEditMode) {
+          // Edit mode - just go back once (to ledger dashboard)
+          Navigator.of(context).pop();
+        } else {
+          // Create mode - go back twice (close both form and contact list)
+          Navigator.of(context).pop();
+          Navigator.of(context).pop();
+        }
       }
 
       // Refresh ledger controller after navigation to ensure UI is ready
@@ -317,7 +548,7 @@ class CustomerFormController extends GetxController {
 
       try {
         final ledgerController = Get.find<LedgerController>();
-        debugPrint('🔄 Refreshing ledger data after customer creation...');
+        debugPrint('🔄 Refreshing ledger data after ${isEditMode ? "update" : "creation"}...');
         await ledgerController.fetchAllLedgers();
         debugPrint('✅ Ledger data refreshed successfully');
       } catch (e) {

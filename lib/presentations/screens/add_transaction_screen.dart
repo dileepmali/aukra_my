@@ -55,7 +55,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
     final responsive = AdvancedResponsiveHelper(context);
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false, // Keep button at bottom when keyboard opens
       backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       appBar: CustomResponsiveAppBar(
         config: AppBarConfig(
@@ -103,7 +103,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  bottom: responsive.hp(10),
+                  bottom: MediaQuery.of(context).viewInsets.bottom + responsive.hp(10), // Dynamic padding for keyboard + button height
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -518,17 +518,21 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center, // Align items to bottom
         children: [
-        SvgPicture.asset(
-          AppIcons.vectoeIc3,
-          width: responsive.iconSizeLarge,
-          height: responsive.iconSizeLarge,
-          colorFilter: ColorFilter.mode(
-            isDark ? AppColors.white : AppColorsLight.textPrimary,
-            BlendMode.srcIn,
+        Padding(
+          padding: EdgeInsets.only(top: responsive.hp(1.5)), // Fine-tune vertical position
+          child: SvgPicture.asset(
+            AppIcons.vectoeIc3,
+            width: responsive.iconSizeLarge,
+            height: responsive.iconSizeLarge,
+            colorFilter: ColorFilter.mode(
+              isDark ? AppColors.white : AppColorsLight.textPrimary,
+              BlendMode.srcIn,
+            ),
           ),
         ),
-        SizedBox(width: responsive.wp(0.5)),
+        SizedBox(width: responsive.wp(0.1)),
         IntrinsicWidth(
           child: TextField(
             controller: controller.amountController,
@@ -545,8 +549,10 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             },
             style: TextStyle(
               color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-              fontSize: responsive.fontSize(48),
-              fontWeight: FontWeight.w700,
+              fontSize: responsive.fontSize(60),
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Poppins',
+
             ),
             decoration: InputDecoration(
               hintText: '0.00',
@@ -554,8 +560,9 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                 color: isDark
                     ? AppColors.white.withOpacity(0.3)
                     : AppColorsLight.textSecondary.withOpacity(0.3),
-                fontSize: responsive.fontSize(48),
-                fontWeight: FontWeight.w700,
+                fontSize: responsive.fontSize(60),
+                fontWeight: FontWeight.w900,
+                fontFamily: 'Poppins',
               ),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,

@@ -257,7 +257,7 @@ class AddTransactionController extends GetxController {
         transactionAmount: transactionAmount,
         transactionType: selectedType.value,
         transactionDate: transactionDate,
-        comments: comments.isNotEmpty ? comments : null,
+        comments: comments, // Send empty string if no comment, not null
         partyMerchantAction: 'VIEW',
         uploadedKeys: uploadedKeys.isNotEmpty ? uploadedKeys : null,
         securityKey: pin,
@@ -353,7 +353,7 @@ class AddTransactionController extends GetxController {
         transactionId: transactionId!,
         transactionAmount: transactionAmount,
         transactionDate: transactionDate,
-        comments: comments.isNotEmpty ? comments : null,
+        comments: comments, // Send empty string if no comment, not null
         uploadedKeys: uploadedKeys.isNotEmpty ? uploadedKeys : null,
         securityKey: pin,
       );
