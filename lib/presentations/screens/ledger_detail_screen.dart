@@ -523,8 +523,13 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     // Format date for subtitle using Formatters utility (time first, then date)
     final formattedDate = Formatters.formatStringToTimeAndDate(transaction.transactionDate);
 
+    // ✅ Use note/description as title, fallback to "No note" if empty
+    final noteTitle = (transaction.description != null && transaction.description.toString().trim().isNotEmpty)
+        ? transaction.description.toString()
+        : 'No note added';
+
     return ListItemWidget(
-      title: partyName,
+      title: noteTitle,
       subtitle: formattedDate,
       titlePrefixIcon: SvgPicture.asset(
         isPositive ? AppIcons.arrowInIc : AppIcons.arrowOutIc,

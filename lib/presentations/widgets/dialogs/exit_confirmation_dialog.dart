@@ -10,7 +10,6 @@ import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_colors_light.dart';
 import '../../../app/themes/app_fonts.dart';
 import '../../../app/localizations/l10n/app_localizations.dart';
-
 import '../../../app/themes/app_text.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
 import '../custom_border_widget.dart';
@@ -36,13 +35,13 @@ class _ExitConfirmationDialogState extends State<ExitConfirmationDialog> {
       });
 
       // 🔥 OPTIMIZED: Run cleanup operations in parallel for faster exit
-      // await Future.wait([
-      //   _cleanupPendingOperations(),
-      //   _saveUnsavedData(),
-      //   _clearTemporaryFiles(),
-      //   _disposeControllers(),
-      //   _clearCache(),
-      // ]);
+      await Future.wait([
+        _cleanupPendingOperations(),
+        _saveUnsavedData(),
+        _clearTemporaryFiles(),
+        _disposeControllers(),
+        _clearCache(),
+      ]);
 
       print('✅ App cleanup completed successfully');
 
@@ -66,18 +65,15 @@ class _ExitConfirmationDialogState extends State<ExitConfirmationDialog> {
   }
 
   /// Clean up any pending file operations
-  // Future<void> _cleanupPendingOperations() async {
-  //   try {
-  //     // Cancel any ongoing uploads/downloads
-  //     if (Get.isRegistered<FileController>()) {
-  //       final fileController = Get.find<FileController>();
-  //       // Add cleanup logic here if FileController has cancel methods
-  //     }
-  //     // 🔥 OPTIMIZED: Removed artificial delay
-  //   } catch (e) {
-  //     print('❌ Error cleaning pending operations: $e');
-  //   }
-  // }
+  Future<void> _cleanupPendingOperations() async {
+    try {
+      // Cancel any ongoing operations if needed
+      // Add cleanup logic here for any pending operations
+      // 🔥 OPTIMIZED: Removed artificial delay
+    } catch (e) {
+      print('❌ Error cleaning pending operations: $e');
+    }
+  }
 
   /// Save any unsaved data before exit
   Future<void> _saveUnsavedData() async {

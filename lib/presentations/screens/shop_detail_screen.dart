@@ -130,7 +130,11 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
         BackButtonService.registerWithCleanup(
           screenName: 'ShopDetailScreen',
           onBackPressed: () {
-            Get.back();
+            // ✅ FIX: Navigate to verify number screen instead of Get.back()
+            // Because shop detail screen is opened with Get.offAllNamed() (no back stack)
+            debugPrint('🔙 Back button pressed on Shop Detail Screen');
+            debugPrint('   → Navigating to Number Verify Screen');
+            Get.offAllNamed('/number-verify');
             return ;
           },
           interceptorName: 'shop_detail_interceptor',
@@ -330,7 +334,7 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
       key: fieldKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText.searchbar2(
+        AppText.headlineLarge1(
           label,
           color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
           maxLines: 1,
@@ -371,7 +375,7 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText.searchbar2(
+        AppText.headlineLarge1(
           label,
           color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
           maxLines: 1,
@@ -836,8 +840,6 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
     }
 
     try {
-      controller.isLoading.value = true;
-
       // Validate address - should have minimum 5 characters and not be random
       if (location.trim().length < 5) {
         AdvancedErrorService.showError(
@@ -845,7 +847,6 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
           severity: ErrorSeverity.medium,
           category: ErrorCategory.validation,
         );
-        controller.isLoading.value = false;
         return;
       }
 
@@ -900,8 +901,6 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
         severity: ErrorSeverity.high,
         category: ErrorCategory.general,
       );
-    } finally {
-      controller.isLoading.value = false;
     }
   }
 }

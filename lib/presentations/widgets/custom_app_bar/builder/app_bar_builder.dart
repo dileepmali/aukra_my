@@ -212,6 +212,7 @@ class AppBarBuilder {
                             config.currentFilter,
                             config.currentSortBy,
                             config.currentSortOrder,
+                            config.hideFilters, // 🔥 NEW: Pass hideFilters from config
                           );
                         }
                       },
@@ -324,6 +325,7 @@ class AppBarBuilder {
     String? currentFilter,
     String? currentSortBy,
     String? currentSortOrder,
+    List<String>? hideFilters, // 🔥 NEW: Hide specific filters parameter
   ) {
     if (context == null) return;
 
@@ -339,6 +341,7 @@ class AppBarBuilder {
         initialFilter: currentFilter,
         initialSortBy: currentSortBy,
         initialSortOrder: currentSortOrder,
+        hideFilters: hideFilters, // 🔥 NEW: Pass hideFilters to bottom sheet
       ),
     );
   }

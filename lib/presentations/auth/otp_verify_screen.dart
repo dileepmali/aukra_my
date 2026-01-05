@@ -824,24 +824,119 @@ Future<void> _handleVerifyOtp() async {
 
       Future.delayed(const Duration(seconds: 1), () async {
         if (mounted && isOtpVerified) {
-          // ✅ Check if merchant already exists in storage
-          final merchantId = await AuthStorage.getMerchantId();
-          final hasShopDetails = await AuthStorage.hasShopDetails();
+          // ✅ IMPROVED: Retry mechanism with exponential backoff
+          // Sometimes backend needs time to sync merchant data with new session token
+          int maxRetries = 3;
+          int retryCount = 0;
+          bool merchantFound = false;
 
-          debugPrint('📊 Merchant ID: $merchantId');
-          debugPrint('📊 Shop Details Complete: $hasShopDetails');
+          while (retryCount < maxRetries && !merchantFound) {
+            // Add delay for retries (0ms for first attempt, then increasing delays)
+            if (retryCount > 0) {
+              final delayMs = retryCount * 1000; // 1s, 2s delays
+              debugPrint('⏳ Retry attempt $retryCount/${maxRetries - 1} - Waiting ${delayMs}ms before checking again...');
+              await Future.delayed(Duration(milliseconds: delayMs));
+            }
 
-          if (merchantId != null && hasShopDetails) {
-            // ✅ Merchant exists → Navigate to Main Screen
-            debugPrint('✅ DECISION: Merchant exists (ID: $merchantId)');
-            debugPrint('   → Navigate to Main Screen');
-            debugPrint('   → SKIP Shop Detail Screen');
-            debugPrint('==========================================');
-            debugPrint('');
-            Get.offAllNamed(AppRoutes.main);
-          } else {
-            // ❌ No merchant → Navigate to Shop Detail Screen
-            debugPrint('⚠️ DECISION: Merchant does not exist');
+            debugPrint('📡 Fetching all merchant data from /api/merchant/all (Attempt ${retryCount + 1}/$maxRetries)...');
+
+            try {
+              await apiFetcher.request(
+                url: 'api/merchant/all',
+                method: 'GET',
+                requireAuth: true,
+              );
+
+              if (apiFetcher.errorMessage == null && apiFetcher.data != null) {
+                debugPrint('✅ Merchant API response received (Attempt ${retryCount + 1})');
+                debugPrint('📊 Response type: ${apiFetcher.data.runtimeType}');
+
+                // ✅ STEP 2: Parse merchant data and match with logged-in phone
+                if (apiFetcher.data is List && (apiFetcher.data as List).isNotEmpty) {
+                  final loggedInPhone = await AuthStorage.getPhoneNumber();
+
+                  // Normalize logged-in phone
+                  String normalizedLoggedInPhone = loggedInPhone?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
+                  if (normalizedLoggedInPhone.startsWith('91') && normalizedLoggedInPhone.length == 12) {
+                    normalizedLoggedInPhone = normalizedLoggedInPhone.substring(2);
+                  }
+
+                  // Find matching merchant
+                  final merchantList = apiFetcher.data as List;
+                  dynamic matchedMerchant;
+
+                  for (var merchant in merchantList) {
+                    if (merchant is Map) {
+                      // ✅ FIX: Check BOTH phone/mobileNumber AND adminMobileNumber for number change support
+                      String? merchantPhone = merchant['phone']?.toString() ?? merchant['mobileNumber']?.toString();
+                      String? adminPhone = merchant['adminMobileNumber']?.toString();
+
+                      // Check primary phone
+                      bool primaryMatch = false;
+                      if (merchantPhone != null) {
+                        String normalizedMerchantPhone = merchantPhone.replaceAll(RegExp(r'[^0-9]'), '');
+                        if (normalizedMerchantPhone.startsWith('91') && normalizedMerchantPhone.length == 12) {
+                          normalizedMerchantPhone = normalizedMerchantPhone.substring(2);
+                        }
+                        primaryMatch = normalizedMerchantPhone == normalizedLoggedInPhone;
+                      }
+
+                      // Check admin phone (for changed numbers)
+                      bool adminMatch = false;
+                      if (adminPhone != null) {
+                        String normalizedAdminPhone = adminPhone.replaceAll(RegExp(r'[^0-9]'), '');
+                        if (normalizedAdminPhone.startsWith('91') && normalizedAdminPhone.length == 12) {
+                          normalizedAdminPhone = normalizedAdminPhone.substring(2);
+                        }
+                        adminMatch = normalizedAdminPhone == normalizedLoggedInPhone;
+                      }
+
+                      if (primaryMatch || adminMatch) {
+                        matchedMerchant = merchant;
+                        debugPrint('✅ Found matching merchant: ${merchant['merchantId']} on attempt ${retryCount + 1}');
+                        debugPrint('   Match type: ${primaryMatch ? "Primary phone" : "Admin phone (changed number)"}');
+                        break;
+                      }
+                    }
+                  }
+
+                  // ✅ STEP 3: Save merchant data if found
+                  if (matchedMerchant != null) {
+                    final merchantId = int.tryParse(matchedMerchant['merchantId']?.toString() ?? '');
+                    if (merchantId != null) {
+                      await AuthStorage.saveMerchantId(merchantId);
+                      await AuthStorage.markShopDetailsComplete();
+
+                      // Save other merchant data if available
+                      if (matchedMerchant['businessName'] != null) {
+                        await AuthStorage.saveBusinessName(matchedMerchant['businessName'].toString());
+                      }
+
+                      debugPrint('✅ Merchant data saved to storage');
+                      debugPrint('✅ DECISION: Merchant exists (ID: $merchantId)');
+                      debugPrint('   → Navigate to Main Screen');
+                      debugPrint('==========================================');
+                      merchantFound = true;
+                      Get.offAllNamed(AppRoutes.main);
+                      return;
+                    }
+                  }
+                } else {
+                  debugPrint('⚠️ API returned empty merchant list on attempt ${retryCount + 1}');
+                }
+              } else {
+                debugPrint('⚠️ API error on attempt ${retryCount + 1}: ${apiFetcher.errorMessage}');
+              }
+            } catch (e) {
+              debugPrint('⚠️ Error fetching merchant on attempt ${retryCount + 1}: $e');
+            }
+
+            retryCount++;
+          }
+
+          // ✅ STEP 4: If no merchant found after all retries, navigate to Shop Detail Screen
+          if (!merchantFound) {
+            debugPrint('⚠️ DECISION: Merchant does not exist (checked $maxRetries times)');
             debugPrint('   → Navigate to Shop Detail Screen');
             debugPrint('   → User will fill merchant details');
             debugPrint('==========================================');

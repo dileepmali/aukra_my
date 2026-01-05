@@ -21,6 +21,7 @@ class FiltersBottomSheet extends StatefulWidget {
   final String? initialFilter;
   final String? initialSortBy;
   final String? initialSortOrder;
+  final List<String>? hideFilters; // 🔥 NEW: Hide specific filters
 
   const FiltersBottomSheet({
     Key? key,
@@ -29,6 +30,7 @@ class FiltersBottomSheet extends StatefulWidget {
     this.initialFilter,
     this.initialSortBy,
     this.initialSortOrder,
+    this.hideFilters, // 🔥 NEW: Pass filters to hide
   }) : super(key: key);
 
   @override
@@ -114,7 +116,7 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
             SizedBox(height: responsive.hp(1.5)),
             Center(
               child: Container(
-                width: responsive.wp(12),
+                width: responsive.wp(20),
                 height: 4,
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.textWhite54 : AppColorsLight.textPrimary.withOpacity(0.3),
@@ -155,46 +157,52 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                     color: isDark ? Colors.black : AppColorsLight.scaffoldBackground,
                     child: Column(
                       children: [
-                        GestureDetector(
-                          onTap: () => setState(() => selectedFilter = 'Sort by'),
-                          child: _buildSidebarItem(
-                            AppStrings.getLocalizedString(context, (localizations) => localizations.sortBy),
-                            selectedFilter == 'Sort by',
-                            responsive
+                        // 🔥 CONDITIONAL: Show only if not hidden
+                        if (!_isFilterHidden('Sort by'))
+                          GestureDetector(
+                            onTap: () => setState(() => selectedFilter = 'Sort by'),
+                            child: _buildSidebarItem(
+                              AppStrings.getLocalizedString(context, (localizations) => localizations.sortBy),
+                              selectedFilter == 'Sort by',
+                              responsive
+                            ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => setState(() => selectedFilter = 'Date'),
-                          child: _buildSidebarItem(
-                            'Date',
-                            selectedFilter == 'Date',
-                            responsive
+                        if (!_isFilterHidden('Date'))
+                          GestureDetector(
+                            onTap: () => setState(() => selectedFilter = 'Date'),
+                            child: _buildSidebarItem(
+                              'Date',
+                              selectedFilter == 'Date',
+                              responsive
+                            ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => setState(() => selectedFilter = 'Transaction'),
-                          child: _buildSidebarItem(
-                            'Transaction',
-                            selectedFilter == 'Transaction',
-                            responsive
+                        if (!_isFilterHidden('Transaction'))
+                          GestureDetector(
+                            onTap: () => setState(() => selectedFilter = 'Transaction'),
+                            child: _buildSidebarItem(
+                              'Transaction',
+                              selectedFilter == 'Transaction',
+                              responsive
+                            ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => setState(() => selectedFilter = 'Reminder'),
-                          child: _buildSidebarItem(
-                            'Reminder',
-                            selectedFilter == 'Reminder',
-                            responsive
+                        if (!_isFilterHidden('Reminder'))
+                          GestureDetector(
+                            onTap: () => setState(() => selectedFilter = 'Reminder'),
+                            child: _buildSidebarItem(
+                              'Reminder',
+                              selectedFilter == 'Reminder',
+                              responsive
+                            ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => setState(() => selectedFilter = 'User'),
-                          child: _buildSidebarItem(
-                            'User',
-                            selectedFilter == 'User',
-                            responsive
+                        if (!_isFilterHidden('User'))
+                          GestureDetector(
+                            onTap: () => setState(() => selectedFilter = 'User'),
+                            child: _buildSidebarItem(
+                              'User',
+                              selectedFilter == 'User',
+                              responsive
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -227,7 +235,7 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                 isDark ? AppColors.overlay : AppColorsLight.white,
               ],
               showBorder: true,
-              primaryButtonText: AppStrings.getLocalizedString(context, (localizations) => localizations.goBack),
+              primaryButtonText: AppStrings.getLocalizedString(context, (localizations) => localizations.cancel),
               onPrimaryPressed: isLoadingState ? null : () => Navigator.pop(context),
               secondaryButtonText: AppStrings.getLocalizedString(context, (localizations) => localizations.apply),
               buttonSpacing: responsive.spacing(16),
@@ -684,6 +692,14 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
       },
       isCheckboxStyle: false, // Radio button style
     );
+  }
+
+  /// 🔥 NEW: Check if a filter should be hidden
+  bool _isFilterHidden(String filterName) {
+    if (widget.hideFilters == null || widget.hideFilters!.isEmpty) {
+      return false; // Show all filters if no hide list provided
+    }
+    return widget.hideFilters!.contains(filterName);
   }
 
 }

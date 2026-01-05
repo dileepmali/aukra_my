@@ -10,6 +10,13 @@ class AuthStorage {
   static const _shopDetailsCompleteKey = "shop_details_complete";
   static const _merchantIdKey = "merchant_id";
   static const _userIdKey = "user_id";
+  static const _merchantNameKey = "merchant_name";
+  static const _businessNameKey = "business_name";
+  // ✅ NEW: Additional merchant data fields (from POST response)
+  static const _merchantMobileKey = "merchant_mobile";
+  static const _merchantAddressKey = "merchant_address";
+  static const _merchantPinCodeKey = "merchant_pincode";
+  static const _masterMobileNumberKey = "master_mobile_number";
   static final _storage = FlutterSecureStorage();
 
   static Future<void> saveToken(String token) async {
@@ -76,6 +83,109 @@ class AuthStorage {
 
   static Future<void> clearUserId() async {
     await _storage.delete(key: _userIdKey);
+  }
+
+  // Merchant Name Methods
+  static Future<void> saveMerchantName(String merchantName) async {
+    await _storage.write(key: _merchantNameKey, value: merchantName);
+  }
+
+  static Future<String?> getMerchantName() async {
+    return await _storage.read(key: _merchantNameKey);
+  }
+
+  static Future<void> clearMerchantName() async {
+    await _storage.delete(key: _merchantNameKey);
+  }
+
+  // ✅ NEW: Business Name Methods
+  static Future<void> saveBusinessName(String businessName) async {
+    await _storage.write(key: _businessNameKey, value: businessName);
+  }
+
+  static Future<String?> getBusinessName() async {
+    return await _storage.read(key: _businessNameKey);
+  }
+
+  static Future<void> clearBusinessName() async {
+    await _storage.delete(key: _businessNameKey);
+  }
+
+  // ✅ NEW: Merchant Mobile Methods
+  static Future<void> saveMerchantMobile(String mobile) async {
+    await _storage.write(key: _merchantMobileKey, value: mobile);
+  }
+
+  static Future<String?> getMerchantMobile() async {
+    return await _storage.read(key: _merchantMobileKey);
+  }
+
+  static Future<void> clearMerchantMobile() async {
+    await _storage.delete(key: _merchantMobileKey);
+  }
+
+  // ✅ NEW: Merchant Address Methods
+  static Future<void> saveMerchantAddress(String address) async {
+    await _storage.write(key: _merchantAddressKey, value: address);
+  }
+
+  static Future<String?> getMerchantAddress() async {
+    return await _storage.read(key: _merchantAddressKey);
+  }
+
+  static Future<void> clearMerchantAddress() async {
+    await _storage.delete(key: _merchantAddressKey);
+  }
+
+  // ✅ NEW: Merchant PinCode Methods
+  static Future<void> saveMerchantPinCode(String pinCode) async {
+    await _storage.write(key: _merchantPinCodeKey, value: pinCode);
+  }
+
+  static Future<String?> getMerchantPinCode() async {
+    return await _storage.read(key: _merchantPinCodeKey);
+  }
+
+  static Future<void> clearMerchantPinCode() async {
+    await _storage.delete(key: _merchantPinCodeKey);
+  }
+
+  // ✅ NEW: Master Mobile Number Methods
+  static Future<void> saveMasterMobileNumber(String mobile) async {
+    await _storage.write(key: _masterMobileNumberKey, value: mobile);
+  }
+
+  static Future<String?> getMasterMobileNumber() async {
+    return await _storage.read(key: _masterMobileNumberKey);
+  }
+
+  static Future<void> clearMasterMobileNumber() async {
+    await _storage.delete(key: _masterMobileNumberKey);
+  }
+
+  // ✅ NEW: Get complete merchant data as Map (useful for replacing GET API calls)
+  /// Returns complete merchant data from storage (alternative to GET api/merchant)
+  /// Returns null if merchantId is not found
+  static Future<Map<String, dynamic>?> getMerchantData() async {
+    final merchantId = await getMerchantId();
+
+    // If no merchantId, return null (merchant not registered yet)
+    if (merchantId == null) {
+      return null;
+    }
+
+    // Build merchant data map from storage
+    final merchantData = <String, dynamic>{
+      'merchantId': merchantId,
+      'merchantName': await getMerchantName() ?? '',
+      'businessName': await getBusinessName() ?? '',
+      'mobileNumber': await getMerchantMobile() ?? '',
+      'address': await getMerchantAddress() ?? '',
+      'pinCode': await getMerchantPinCode() ?? '',
+      'masterMobileNumber': await getMasterMobileNumber() ?? '',
+    };
+
+    return merchantData;
   }
 
   /// Check if JWT token exists and is valid (not expired)
@@ -158,6 +268,18 @@ class AuthStorage {
       // Clear user ID
       await clearUserId();
 
+      // Clear merchant name
+      await clearMerchantName();
+
+      // Clear business name
+      await clearBusinessName();
+
+      // ✅ NEW: Clear all merchant data
+      await clearMerchantMobile();
+      await clearMerchantAddress();
+      await clearMerchantPinCode();
+      await clearMasterMobileNumber();
+
       // Optionally clear other cached data
       // await _storage.deleteAll();  // अगर सारे keys clear करने हों
 
@@ -169,7 +291,7 @@ class AuthStorage {
       print("✅ User logged out successfully.");
       print("📱 Phone number cleared from storage.");
       print("🏪 Shop details cleared from storage.");
-      print("🏢 Merchant ID cleared from storage.");
+      print("🏢 Merchant data cleared from storage.");
     } catch (e) {
       print('❌ Error during logout: $e');
     }

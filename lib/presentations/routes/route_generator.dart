@@ -25,6 +25,12 @@ import '../screens/customer_form_screen.dart';
 import '../screens/ledger_detail_screen.dart';
 import '../screens/add_transaction_screen.dart';
 import '../screens/ledger_dashboard_screen.dart';
+import '../screens/customer_statement_screen.dart';
+import '../screens/search_screen.dart';
+import '../screens/change_number_screen.dart';
+import '../screens/manage_businesses_screen.dart';
+import '../screens/policy_terms_screen.dart';
+import '../screens/about_us_screen.dart';
 import 'app_routes.dart';
 
 final List<GetPage> getPages = [
@@ -100,6 +106,31 @@ final List<GetPage> getPages = [
     name: AppRoutes.ledgerDashboard,
     page: () => const LedgerDashboardScreen(),
     binding: LedgerDashboardBinding(),
+  ),
+  GetPage(
+    name: AppRoutes.customerStatement,
+    page: () => const CustomerStatementScreen(),
+  ),
+  GetPage(
+    name: AppRoutes.searchScreen,
+    page: () => const SearchScreen(),
+  ),
+  GetPage(
+    name: AppRoutes.changeNumber,
+    page: () => const ChangeNumberScreen(),
+  ),
+  GetPage(
+    name: AppRoutes.manageBusinesses,
+    page: () => const ManageBusinessesScreen(),
+    middlewares: [AuthMiddleware()],
+  ),
+  GetPage(
+    name: AppRoutes.policyTerms,
+    page: () => const PolicyTermsScreen(),
+  ),
+  GetPage(
+    name: AppRoutes.aboutUs,
+    page: () => const AboutUsScreen(),
   ),
 ];
 

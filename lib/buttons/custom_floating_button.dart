@@ -39,6 +39,8 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
         return 'Add Supplier';
       case 'employers':
         return 'Add Employer';
+      case 'businesses':
+        return 'Add Business';
       default:
         return 'Add Customer';
     }
@@ -93,7 +95,7 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
       child: BorderColor(
         isSelected: true,
         child: Container(
-          width: responsive.wp(50),
+          width: responsive.wp(45),
           height: buttonSize,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),

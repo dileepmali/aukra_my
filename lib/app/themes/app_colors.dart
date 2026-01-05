@@ -13,6 +13,8 @@ class AppColors {
   static const Color red800 = Color(0xFF991B1B); // Red gradient end
   static const Color green400 = Color(0xFF4ADE80); // Green gradient start
   static const Color green800 = Color(0xFF166534); // Green gradient end
+  static const Color blue700 = Color(0xFF1e3a8a); // rgba(30, 58, 138, 1)
+  static const Color blue900 = Color(0xFF1d4ed8); // rgba(29, 78, 216, 1)
 
 
   static const Color containerColor = Color(0x0FFFFFFF);

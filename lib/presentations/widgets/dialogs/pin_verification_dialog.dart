@@ -12,23 +12,30 @@ import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../buttons/dialog_botton.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
+import 'mobile_number_dialog.dart';
 
 class PinVerificationDialog {
-  static Future<String?> show({
+  static Future<Map<String, String>?> show({
     required BuildContext context,
     String title = 'Enter Security Pin',
     String subtitle = 'Enter your 4-digit pin to proceed',
+    String? maskedPhoneNumber,
+    bool requireOtp = false,
+    String? confirmButtonText,
     Color? titleColor,
     Color? subtitleColor,
     List<Color>? confirmGradientColors,
     Color? confirmTextColor,
   }) async {
-    return showDialog<String>(
+    return showDialog<Map<String, String>>(
       context: context,
       barrierDismissible: true,
       builder: (context) => _PinVerificationDialogContent(
         title: title,
         subtitle: subtitle,
+        maskedPhoneNumber: maskedPhoneNumber,
+        requireOtp: requireOtp,
+        confirmButtonText: confirmButtonText,
         titleColor: titleColor,
         subtitleColor: subtitleColor,
         confirmGradientColors: confirmGradientColors,
@@ -41,6 +48,9 @@ class PinVerificationDialog {
 class _PinVerificationDialogContent extends StatefulWidget {
   final String title;
   final String subtitle;
+  final String? maskedPhoneNumber;
+  final bool requireOtp;
+  final String? confirmButtonText;
   final Color? titleColor;
   final Color? subtitleColor;
   final List<Color>? confirmGradientColors;
@@ -49,6 +59,9 @@ class _PinVerificationDialogContent extends StatefulWidget {
   const _PinVerificationDialogContent({
     required this.title,
     required this.subtitle,
+    this.maskedPhoneNumber,
+    this.requireOtp = false,
+    this.confirmButtonText,
     this.titleColor,
     this.subtitleColor,
     this.confirmGradientColors,
@@ -63,8 +76,18 @@ class _PinVerificationDialogContent extends StatefulWidget {
 class _PinVerificationDialogContentState
     extends State<_PinVerificationDialogContent> {
   final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
+  final FocusNode _otpFocusNode = FocusNode();
   String? errorMessage;
+
+  // Two-step state management
+  bool _isOtpStep = false;
+  String? _enteredPin;
+
+  // OTP timer
+  int _resendTimer = 30;
+  bool _canResend = false;
 
   @override
   void initState() {
@@ -78,26 +101,107 @@ class _PinVerificationDialogContentState
   @override
   void dispose() {
     _pinController.dispose();
+    _otpController.dispose();
     _pinFocusNode.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
-  void _validateAndSubmit() {
-    final pin = _pinController.text.trim();
-    if (pin.isEmpty) {
+  void _startResendTimer() {
+    setState(() {
+      _resendTimer = 30;
+      _canResend = false;
+    });
+
+    Future.doWhile(() async {
+      await Future.delayed(Duration(seconds: 1));
+      if (!mounted) return false;
+
       setState(() {
-        errorMessage = 'Please enter PIN';
+        _resendTimer--;
+        if (_resendTimer <= 0) {
+          _canResend = true;
+        }
       });
-      return;
+
+      return _resendTimer > 0;
+    });
+  }
+
+  void _resendOtp() {
+    if (_canResend) {
+      debugPrint('🔄 Resending OTP...');
+      _startResendTimer();
+      // TODO: Implement actual OTP resend API call
     }
-    if (pin.length != 4) {
-      setState(() {
-        errorMessage = 'PIN must be 4 digits';
-      });
-      return;
+  }
+
+  Future<void> _validateAndSubmit() async {
+    if (!_isOtpStep) {
+      // Step 1: Validate PIN
+      final pin = _pinController.text.trim();
+      if (pin.isEmpty) {
+        setState(() {
+          errorMessage = 'Please enter PIN';
+        });
+        return;
+      }
+      if (pin.length != 4) {
+        setState(() {
+          errorMessage = 'PIN must be 4 digits';
+        });
+        return;
+      }
+
+      // If requireOtp is true, move to OTP step
+      if (widget.requireOtp) {
+        setState(() {
+          _enteredPin = pin;
+          _isOtpStep = true;
+          errorMessage = null;
+          _pinController.clear();
+        });
+        _startResendTimer();
+        Future.delayed(Duration(milliseconds: 300), () {
+          _otpFocusNode.requestFocus();
+        });
+      } else {
+        // No OTP required, return PIN only
+        Navigator.of(context).pop({'pin': pin});
+      }
+    } else {
+      // Step 2: Validate OTP
+      final otp = _otpController.text.trim();
+      if (otp.isEmpty) {
+        setState(() {
+          errorMessage = 'Please enter OTP';
+        });
+        return;
+      }
+      if (otp.length != 4) {
+        setState(() {
+          errorMessage = 'OTP must be 4 digits';
+        });
+        return;
+      }
+
+      // OTP validated - now show mobile number dialog
+      final mobileNumber = await MobileNumberDialog.show(
+        context: context,
+        title: 'Enter New Mobile Number',
+        subtitle: 'Enter your new 10-digit mobile number',
+        confirmButtonText: 'Confirm',
+      );
+
+      // If mobile number is entered, return all data
+      if (mobileNumber != null) {
+        Navigator.of(context).pop({
+          'pin': _enteredPin!,
+          'otp': otp,
+          'mobile': mobileNumber,
+        });
+      }
     }
-    // Return PIN to caller
-    Navigator.of(context).pop(pin);
   }
 
   @override
@@ -107,6 +211,10 @@ class _PinVerificationDialogContentState
 
     return Dialog(
       backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: responsive.wp(9),
+        vertical: responsive.hp(2),
+      ),
       child: BorderColor(
         isSelected: true,
         child: Container(
@@ -121,13 +229,14 @@ class _PinVerificationDialogContentState
             ),
             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Title
               AppText.custom(
-                widget.title,
+                _isOtpStep ? 'Enter OTP' : widget.title,
                 style: TextStyle(
                   color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                   fontSize: responsive.fontSize(20),
@@ -139,20 +248,22 @@ class _PinVerificationDialogContentState
 
               // Subtitle
               AppText.custom(
-                widget.subtitle,
+                _isOtpStep
+                    ? 'Enter OTP received on your phone\n${widget.maskedPhoneNumber ?? ""}'
+                    : '${widget.subtitle}${widget.maskedPhoneNumber != null ? '\n${widget.maskedPhoneNumber}' : ''}',
                 style: TextStyle(
                   color: isDark ? AppColors.textInverse : AppColorsLight.textSecondary,
                   fontSize: responsive.fontSize(15),
                 ),
                 textAlign: TextAlign.start,
-                maxLines: 2,
+                maxLines: 3,
               ),
               SizedBox(height: responsive.hp(3)),
 
-              // PIN Input
+              // PIN/OTP Input
               Pinput(
-                controller: _pinController,
-                focusNode: _pinFocusNode,
+                controller: _isOtpStep ? _otpController : _pinController,
+                focusNode: _isOtpStep ? _otpFocusNode : _pinFocusNode,
                 length: 4,
                 obscureText: true,
                 obscuringCharacter: '●',
@@ -205,6 +316,28 @@ class _PinVerificationDialogContentState
                 ),
               ),
 
+              // Resend OTP section (only show in OTP step)
+              if (_isOtpStep) ...[
+                SizedBox(height: responsive.hp(2)),
+                GestureDetector(
+                  onTap: _canResend ? _resendOtp : null,
+                  child: AppText.custom(
+                    _canResend
+                        ? 'Resend OTP'
+                        : 'Resend OTP in $_resendTimer seconds',
+                    style: TextStyle(
+                      color: _canResend
+                          ? (isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary1)
+                          : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
+                      fontSize: responsive.fontSize(14),
+                      fontWeight: FontWeight.w600,
+                      decoration: _canResend ? TextDecoration.underline : null,
+                    ),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
+              ],
+
               // Error message
               if (errorMessage != null) ...[
                 SizedBox(height: responsive.hp(1)),
@@ -223,7 +356,9 @@ class _PinVerificationDialogContentState
               // Dialog Button Row with Go Back and Confirm buttons
               DialogButtonRow(
               cancelText: 'Go Back',
-              confirmText: 'Confirm',
+              confirmText: _isOtpStep
+                  ? 'Confirm'
+                  : (widget.confirmButtonText ?? 'Confirm'),
               onCancel: () => Navigator.of(context).pop(),
               onConfirm: _validateAndSubmit,
               cancelIcon: SvgPicture.asset(
@@ -241,12 +376,12 @@ class _PinVerificationDialogContentState
               confirmGradientColors: widget.confirmGradientColors ?? (isDark
                   ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
                   : [AppColorsLight.splaceSecondary1, AppColorsLight.splaceSecondary2]),
-              confirmTextColor: widget.confirmTextColor,
+              confirmTextColor: widget.confirmTextColor ?? AppColors.white,
               buttonSpacing: responsive.wp(3),
               buttonHeight: responsive.hp(6),
-
-                              ),
-            ],
+              ),
+              ],
+            ),
           ),
         ),
       ),

@@ -24,12 +24,32 @@ class LedgerController extends GetxController {
     fetchAllLedgers();
   }
 
-  /// Fetch merchant details from GET api/merchant
+  /// Fetch merchant details - Storage first, then API fallback
   Future<void> fetchMerchantDetails() async {
     try {
-      debugPrint('📡 Fetching merchant details from API...');
+      debugPrint('📡 Fetching merchant details...');
 
-      // Get merchant ID from storage
+      // ✅ STEP 1: Try to load from storage FIRST (fast & offline)
+      final merchantData = await AuthStorage.getMerchantData();
+
+      if (merchantData != null && merchantData['merchantName']?.toString().isNotEmpty == true) {
+        debugPrint('✅ Merchant data loaded from STORAGE (fast):');
+        debugPrint('   merchantName: ${merchantData['merchantName']}');
+        debugPrint('   businessName: ${merchantData['businessName']}');
+
+        // Set data from storage
+        merchantName.value = merchantData['merchantName'].toString();
+        businessName.value = merchantData['businessName']?.toString() ?? '';
+
+        debugPrint('🏢 Merchant Name (from storage): ${merchantName.value}');
+        debugPrint('🏪 Business Name (from storage): ${businessName.value}');
+        debugPrint('✅ Using storage data - API call skipped!');
+        return; // ✅ Data found in storage, no API call needed
+      }
+
+      debugPrint('⚠️ No merchant data in storage, calling GET API...');
+
+      // ✅ STEP 2: If storage is empty, call GET API (fallback)
       final merchantId = await AuthStorage.getMerchantId();
       debugPrint('🏢 Merchant ID from storage: $merchantId');
 
@@ -39,9 +59,9 @@ class LedgerController extends GetxController {
         return;
       }
 
-      // Call GET API with timeout
+      // ✅ Call /api/merchant/all to get all merchants, then match by merchantId
       await _apiFetcher.request(
-        url: 'api/merchant',
+        url: 'api/merchant/all',
         method: 'GET',
         requireAuth: true,
       ).timeout(
@@ -53,20 +73,56 @@ class LedgerController extends GetxController {
         },
       );
 
-      debugPrint('📥 Merchant API Response: ${_apiFetcher.data}');
+      debugPrint('📥 Merchant API Response from /api/merchant/all: ${_apiFetcher.data}');
       if (_apiFetcher.errorMessage != null) {
         debugPrint('❌ Merchant API Error: ${_apiFetcher.errorMessage}');
       }
 
-      // Check if we got valid merchant data
+      // Check if we got valid merchant data from API
       if (_apiFetcher.data != null) {
-        debugPrint('✅ Merchant details fetched successfully');
+        debugPrint('✅ Merchant details fetched from /api/merchant/all successfully');
 
         if (_apiFetcher.data is List && (_apiFetcher.data as List).isNotEmpty) {
-          // Response is an array, get first merchant
-          final data = (_apiFetcher.data as List)[0] as Map<String, dynamic>;
-          merchantName.value = data['businessName'] ?? 'Aukra';
-          debugPrint('🏢 Merchant Name (from array): ${merchantName.value}');
+          // ✅ FIX: Match merchant by merchantId from storage instead of taking first item
+          final merchantList = _apiFetcher.data as List;
+          Map<String, dynamic>? matchedMerchant;
+
+          debugPrint('🔍 Searching for merchant with ID: $merchantId in ${merchantList.length} merchants');
+
+          // Find merchant with matching merchantId from storage
+          for (var merchant in merchantList) {
+            if (merchant is Map) {
+              final merchantIdFromApi = int.tryParse(merchant['merchantId']?.toString() ?? '');
+              debugPrint('   Checking merchant: ID=$merchantIdFromApi, Name=${merchant['businessName']}');
+
+              if (merchantIdFromApi == merchantId) {
+                matchedMerchant = merchant as Map<String, dynamic>;
+                debugPrint('✅ Found matching merchant by ID: $merchantIdFromApi');
+                break;
+              }
+            }
+          }
+
+          // Use matched merchant or fallback to first merchant
+          final data = matchedMerchant ?? (merchantList[0] as Map<String, dynamic>);
+
+          if (matchedMerchant == null) {
+            debugPrint('⚠️ No matching merchant found for ID: $merchantId, using first merchant as fallback');
+          }
+
+          // Use merchantName (person's name), fallback to businessName
+          merchantName.value = data['merchantName'] ?? data['businessName'] ?? 'Aukra';
+          businessName.value = data['businessName'] ?? '';
+
+          debugPrint('🏢 Merchant Name (matched by ID): ${merchantName.value}');
+          debugPrint('🏪 Business Name (matched by ID): ${businessName.value}');
+
+          // ✅ Save to storage for next time
+          await AuthStorage.saveMerchantName(merchantName.value);
+          if (businessName.value.isNotEmpty) {
+            await AuthStorage.saveBusinessName(businessName.value);
+          }
+          debugPrint('💾 Merchant data saved to storage for future use');
         } else if (_apiFetcher.data is Map) {
           final data = _apiFetcher.data as Map<String, dynamic>;
 
@@ -74,11 +130,18 @@ class LedgerController extends GetxController {
           merchantName.value = data['merchantName'] ?? data['name'] ?? 'Aukra';
           businessName.value = data['businessName'] ?? '';
 
-          debugPrint('🏢 Merchant Name: ${merchantName.value}');
-          debugPrint('🏪 Business Name: ${businessName.value}');
+          debugPrint('🏢 Merchant Name (from API): ${merchantName.value}');
+          debugPrint('🏪 Business Name (from API): ${businessName.value}');
+
+          // ✅ Save to storage for next time
+          await AuthStorage.saveMerchantName(merchantName.value);
+          if (businessName.value.isNotEmpty) {
+            await AuthStorage.saveBusinessName(businessName.value);
+          }
+          debugPrint('💾 Merchant data saved to storage for future use');
         }
       } else {
-        debugPrint('❌ Failed to fetch merchant details: ${_apiFetcher.errorMessage}');
+        debugPrint('❌ Failed to fetch merchant details from API: ${_apiFetcher.errorMessage}');
         merchantName.value = 'Aukra'; // Default name on error
       }
     } catch (e) {

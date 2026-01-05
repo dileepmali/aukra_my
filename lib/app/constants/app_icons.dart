@@ -50,7 +50,6 @@ class AppIcons {
   static const String arrowBackIc = 'assets/icons/arrow_back.svg';
 
   // Common fallback icons (using existing assets as fallbacks)
-  static const String documentIc = 'assets/icons/document_text.svg';
   static const String downloadIc = 'assets/icons/document_download.svg';
   static const String forwardIc = 'assets/icons/document_forward.svg';
   static const String crownBlackIc = 'assets/icons/crown_black.svg';
@@ -80,7 +79,18 @@ class AppIcons {
   static const String clockLoaderIc = 'assets/icons/clock_loader_20.svg';
   static const String CircleIc = 'assets/icons/Circle.svg';
   static const String percentIc = 'assets/icons/percent.svg';
-  static const String suppliersIc = 'assets/icons/suppliers_ic.svg';
+  static const String translateIc = 'assets/icons/translate.svg';
+  static const String shopIc = 'assets/icons/shop-add.svg';
+  static const String mobileIc = 'assets/icons/mobile.svg';
+  static const String messageIc = 'assets/icons/message-question.svg';
+  static const String informationIc = 'assets/icons/information.svg';
+  static const String bookIc = 'assets/icons/book.svg';
+  static const String changeNumberIc = 'assets/icons/chnage_number.svg';
+  static const String shopDotIc = 'assets/icons/shop_dot.svg';
+  static const String shopDotBlueIc = 'assets/icons/shop_dot_blue.svg';
+  static const String documentIc = 'assets/icons/document.svg';
+  static const String locationIc = 'assets/icons/location.svg';
+  static const String personIc = 'assets/icons/person.svg';
 
   // Placeholder constants for backward compatibility (using similar existing assets)
   static const String homeBottom = 'assets/icons/home_home_active.svg'; // Using home active as fallback
@@ -96,7 +106,6 @@ class AppIcons {
   static const String scannerIc = 'assets/icons/scanner.svg'; // Scanner icon using document text
   static const String fingerprintIc = 'assets/icons/fingerprint.svg'; // Using more_vert
   static const String galleryPickIc = 'assets/icons/gallery_add.svg'; // Using more_vert
-  static const String videoPlayerIc = 'assets/icons/video_play.svg'; // Using more_vert
 
   // Additional placeholders for commonly used icons (using best available matches)
   static const String uploadIc = 'assets/icons/document_forward.svg';
@@ -119,10 +128,9 @@ class AppIcons {
   static const String chatIc = 'assets/icons/share.svg';
   static const String phoneIc = 'assets/icons/mouse_square.svg';
   static const String emailIc = 'assets/icons/share.svg';
-  static const String locationIc = 'assets/icons/mouse_square.svg';
 
   // Account screen icons (using existing icons as placeholders)
   static const String customerIc = 'assets/icons/profile_ac.svg'; // Customer icon
-  static const String supplierIc = 'assets/icons/lager_desAc.svg'; // Supplier icon
+  static const String supplierIc = 'assets/icons/suppliers_ic.svg'; // Supplier icon
   static const String employeeIc = 'assets/icons/profile_des.svg'; // Employee icon
 }

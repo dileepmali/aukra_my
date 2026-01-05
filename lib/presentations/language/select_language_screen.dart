@@ -31,9 +31,15 @@ import '../widgets/custom_single_border_color.dart';
 import '../widgets/dialogs/exit_confirmation_dialog.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
+import '../../buttons/row_app_bar.dart'; // ✅ NEW: Import BottomActionBar
 
 class SelectLanguageScreen extends StatefulWidget {
-  const SelectLanguageScreen({super.key});
+  final bool fromProfile; // ✅ NEW: Track if opened from My Profile screen
+
+  const SelectLanguageScreen({
+    super.key,
+    this.fromProfile = false, // Default: first install flow
+  });
 
   @override
   State<SelectLanguageScreen> createState() => _SelectLanguageScreenState();
@@ -130,6 +136,27 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
         binding: NumberBinding(),
       );
     }
+  }
+
+  /// ✅ NEW: Handle Save button from My Profile (just save language and go back)
+  Future<void> _handleSaveLanguage() async {
+    debugPrint('💾 Saving language from profile...');
+
+    // Get selected language
+    final selectedLang = _searchController.currentLanguages.firstWhere(
+      (lang) => _localizationController.currentLanguageCode == lang['code'],
+      orElse: () => _searchController.currentLanguages.first,
+    );
+
+    // Save the selected language
+    if (_localizationController.currentLanguageCode != selectedLang['code']) {
+      await _localizationController.changeLocale(selectedLang['code'] ?? '');
+    }
+
+    debugPrint('✅ Language saved: ${selectedLang['code']}');
+
+    // Go back to My Profile
+    Get.back();
   }
 
   Future<void> _handleContinuePressed(BuildContext context) async {
@@ -447,71 +474,91 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
                     ),
                   ),
                 ),
+                // ✅ CONDITIONAL: Show BottomActionBar if from Profile, else show AppButton
                 Positioned(
                   bottom: isKeyboardVisible
                       ? MediaQuery.of(context).viewInsets.bottom * 0.0
                       : 0.0,
                   left: 0,
                   right: 0,
-                  child: Stack(
-                    children: [
-                      Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.containerDark : AppColorsLight.white
-                      ),
-                      padding: EdgeInsets.only(
-                        left: responsive.screenPadding.left,
-                        right: responsive.screenPadding.right,
-                        bottom: responsive.screenPadding.bottom,
-                        top: responsive.hp(1.5),
-                      ),
-                      child: Obx(() => AppButton(
-                            width: double.infinity,
-                            height: responsive.hp(9),
-                            gradientColors: [
-                              AppColors.splaceSecondary1,
-                              AppColors.splaceSecondary2,
-                            ],
-                            enableSweepGradient: true,
-                            borderRadius: BorderRadius.circular(
-                                responsive.borderRadiusSmall),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: responsive.wp(2),
-                                offset: Offset(0, responsive.hp(0.3)),
+                  child: widget.fromProfile
+                      ? // ✅ From My Profile → Show BottomActionBar (Go Back + Save)
+                      BottomActionBar(
+                          showBorder: true,
+                          primaryButtonText: 'Go Back',
+                          onPrimaryPressed: () {
+                            debugPrint('🔙 Go Back pressed - returning to profile');
+                            Get.back();
+                          },
+                          secondaryButtonText: 'Save',
+                          onSecondaryPressed: () => _handleSaveLanguage(),
+                        )
+                      : // ✅ First Install → Show AppButton (Continue)
+                      Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.containerDark
+                                      : AppColorsLight.white),
+                              padding: EdgeInsets.only(
+                                left: responsive.screenPadding.left,
+                                right: responsive.screenPadding.right,
+                                bottom: responsive.screenPadding.bottom,
+                                top: responsive.hp(1.5),
                               ),
-                            ],
-                            padding: EdgeInsets.symmetric(
-                                horizontal: responsive.spacing(20)),
-                            onPressed: _searchController.isSelecting.value
-                                ? null
-                                : () => _handleContinuePressed(context),
-                            child: _searchController.isSelecting.value
-                                ? Center(
-                                  child: SizedBox(
-                                    height: responsive.hp(3),
-                                    width: responsive.wp(7),
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.buttonTextColor,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                )
-                                : Center(
-                              child: AppText.button(
-                                AppStrings.getLocalizedString(context, (localizations) => localizations.continueText),
-                                color: Colors.black,
-                                maxLines: 1,
-                                minFontSize: 12,
-                                textAlign: TextAlign.center,
-                              ),
+                              child: Obx(() => AppButton(
+                                    width: double.infinity,
+                                    height: responsive.hp(9),
+                                    gradientColors: [
+                                      AppColors.splaceSecondary1,
+                                      AppColors.splaceSecondary2,
+                                    ],
+                                    enableSweepGradient: true,
+                                    borderRadius: BorderRadius.circular(
+                                        responsive.borderRadiusSmall),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.15),
+                                        blurRadius: responsive.wp(2),
+                                        offset: Offset(0, responsive.hp(0.3)),
+                                      ),
+                                    ],
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: responsive.spacing(20)),
+                                    onPressed: _searchController.isSelecting.value
+                                        ? null
+                                        : () => _handleContinuePressed(context),
+                                    child: _searchController.isSelecting.value
+                                        ? Center(
+                                            child: SizedBox(
+                                              height: responsive.hp(3),
+                                              width: responsive.wp(7),
+                                              child: CircularProgressIndicator(
+                                                color: AppColors.buttonTextColor,
+                                                strokeWidth: 2,
+                                              ),
+                                            ),
+                                          )
+                                        : Center(
+                                            child: AppText.button(
+                                              AppStrings.getLocalizedString(
+                                                  context,
+                                                  (localizations) =>
+                                                      localizations.continueText),
+                                              color: Colors.black,
+                                              maxLines: 1,
+                                              minFontSize: 12,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                  )),
                             ),
-                      )),
-                      ),
-                      Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.top))
-                    ]
-                  ),
+                            Positioned.fill(
+                                child: CustomSingleBorderWidget(
+                                    position: BorderPosition.top))
+                          ],
+                        ),
                 ),
               ],
             ),

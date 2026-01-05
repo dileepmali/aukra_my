@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '../core/untils/error_types.dart';
 import '../models/contact_model.dart';
 import '../app/localizations/l10n/app_localizations.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:azlistview/azlistview.dart';
 import '../core/untils/string_validator.dart';
-import '../core/services/error_service.dart';
 import '../core/services/contact_cache_service.dart';
+import '../core/services/native_contact_service.dart';
 
 class ContactController extends GetxController {
   // Observable variables
@@ -27,7 +25,7 @@ class ContactController extends GetxController {
   final RxBool hasMoreContacts = true.obs;
   final RxBool isLoadingMore = false.obs;
   static const int contactsPerPage = 5000; // ✅ ULTRA FAST: Load 5000 contacts at once - maximum speed
-  List<Contact> allDeviceContacts = [];
+  List<Map<String, String>> allDeviceContacts = []; // Native contact data
 
   // ✅ OPTIMIZED: Full contact list for instant search
   final RxList<ContactItem> allContactItems = <ContactItem>[].obs;
@@ -58,7 +56,7 @@ class ContactController extends GetxController {
 
   // ✅ NEW: Incremental refresh - only fetch NEW contacts
   Future<void> refreshContacts() async {
-    print("🔄 Incremental refresh triggered - fetching only NEW contacts");
+    print("🔄 Incremental refresh triggered - fetching only NEW contacts (Native Mode)");
 
     // ✅ SAVE: Preserve current search query before refresh
     final String currentSearchQuery = searchController.text.trim();
@@ -69,12 +67,9 @@ class ContactController extends GetxController {
     }
 
     try {
-      // ✅ Step 1: Fetch ALL device contacts to compare
-      print("📱 Fetching device contacts to check for new additions...");
-      List<Contact> freshDeviceContacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withThumbnail: false,
-      );
+      // ✅ Step 1: Fetch ALL device contacts to compare (Native)
+      print("📱 Fetching device contacts from Native API...");
+      List<Map<String, String>> freshDeviceContacts = await NativeContactService.fetchContacts();
 
       print("📊 Previous count: ${allDeviceContacts.length}, Current count: ${freshDeviceContacts.length}");
 
@@ -88,22 +83,19 @@ class ContactController extends GetxController {
         print("🆕 Found $newContactsCount NEW contacts - processing incrementally");
 
         // Get only the new contacts (assuming they're at the end)
-        List<Contact> newContacts = freshDeviceContacts.sublist(previousCount);
+        List<Map<String, String>> newContacts = freshDeviceContacts.sublist(previousCount);
 
         // Process new contacts
         List<ContactItem> newContactItems = [];
-        for (Contact contact in newContacts) {
-          if (contact.displayName.isNotEmpty) {
-            final sanitizedName = StringValidator.sanitizeForText(contact.displayName);
-            String phoneNumber = '';
-            if (contact.phones.isNotEmpty) {
-              phoneNumber = StringValidator.sanitizeForText(contact.phones.first.number);
-            }
+        for (var contactMap in newContacts) {
+          final name = StringValidator.sanitizeForText(contactMap['name'] ?? '');
+          final phone = StringValidator.sanitizeForText(contactMap['phone'] ?? '');
 
+          if (name.isNotEmpty) {
             final newItem = ContactItem(
-              name: sanitizedName,
-              phone: phoneNumber,
-              initials: _getInitials(sanitizedName),
+              name: name,
+              phone: phone,
+              initials: _getInitials(name),
             );
 
             _assignSingleContactTag(newItem);
@@ -293,15 +285,12 @@ class ContactController extends GetxController {
     super.onClose();
   }
 
-  // ✅ INSTANT LOADING: Load first 100 contacts in 1 second, rest in background
+  // ✅ NATIVE: Load contacts using Android native implementation
   Future<void> loadContacts() async {
-    // ✅ PERFORMANCE TRACKING: Start measuring time
     final loadStartTime = DateTime.now();
-    final stopwatch = Stopwatch()..start();
 
-    print("🔥 loadContacts() CALLED - INSTANT LOADING MODE");
-    print("⏱️ PERFORMANCE: Load started at ${loadStartTime.toIso8601String()}");
-    print("🔥 Current state - isLoading: ${isLoading.value}, _contactsLoaded: $_contactsLoaded");
+    print("🔥 loadContacts() CALLED - NATIVE ANDROID MODE");
+    print("⏱️ Load started at ${loadStartTime.toIso8601String()}");
 
     isLoading.value = true;
     currentPage.value = 0;
@@ -310,12 +299,9 @@ class ContactController extends GetxController {
     allContactItems.clear();
 
     try {
-      // Check permission
-      final permissionCheckTime = DateTime.now();
+      // Check permission using permission_handler
       PermissionStatus permissionStatus = await Permission.contacts.status;
-      final permissionCheckDuration = DateTime.now().difference(permissionCheckTime);
-      print("🔥 Current permission status: $permissionStatus");
-      print("⏱️ PERFORMANCE: Permission check took ${permissionCheckDuration.inMilliseconds}ms");
+      print("🔥 Permission status: $permissionStatus");
 
       bool hasPermission = false;
 
@@ -323,212 +309,99 @@ class ContactController extends GetxController {
         print("✅ Permission already granted");
         hasPermission = true;
       } else if (permissionStatus.isDenied) {
-        print("⚠️ Permission denied - requesting...");
+        print("⚠️ Requesting permission...");
         PermissionStatus result = await Permission.contacts.request();
-        print("🔥 Permission request result: $result");
         hasPermission = result.isGranted;
       } else if (permissionStatus.isPermanentlyDenied) {
-        print("🚫 Permission permanently denied - need to open settings");
+        print("🚫 Permission permanently denied");
         hasPermission = false;
       }
 
       if (hasPermission) {
         isPermissionDenied.value = false;
-        print("✅ Permission GRANTED - Loading contacts");
 
-        // ✅ CACHE CHECK: Try to load from cache first (ULTRA FAST)
+        // ✅ CACHE CHECK: Try cache first
         final cacheValid = await ContactCacheService.isCacheValid();
-
         if (cacheValid) {
-          // ✅ CACHE HIT: Load from cache (under 500ms)
-          print("⚡ CACHE HIT: Loading contacts from cache...");
-          final cacheLoadStart = DateTime.now();
-
           List<ContactItem> cachedContacts = await ContactCacheService.loadFromCache();
-
           if (cachedContacts.isNotEmpty) {
-            final cacheLoadDuration = DateTime.now().difference(cacheLoadStart);
-            print("⚡ INSTANT: Loaded ${cachedContacts.length} contacts from cache in ${cacheLoadDuration.inMilliseconds}ms");
-
-            // Convert cached contacts to device contacts format (for compatibility)
-            allDeviceContacts = [];
-            for (var contact in cachedContacts) {
-              allDeviceContacts.add(Contact(
-                id: contact.phone.isNotEmpty ? contact.phone : contact.name,
-                displayName: contact.name,
-              ));
-            }
-
-            // Add to contacts list directly
+            print("⚡ CACHE HIT: ${cachedContacts.length} contacts");
             contacts.addAll(cachedContacts);
             filteredContacts.value = List.from(contacts);
-            totalContactCount.value = cachedContacts.length;
-
-            // Hide loading immediately
             isLoading.value = false;
             _contactsLoaded = true;
-
-            print("✅ CACHE LOADED: Screen interactive in ${cacheLoadDuration.inMilliseconds}ms");
-
-            // ✅ BACKGROUND REFRESH: Update cache in background (don't block UI)
             _refreshCacheInBackground();
-
-            return; // Exit early - cache loaded successfully
+            return;
           }
         }
 
-        // ✅ CACHE MISS: Load from device (3-8 seconds)
-        print("📱 CACHE MISS: Loading contacts from device...");
-        final fetchStartTime = DateTime.now();
-        print("⏱️ PERFORMANCE: Starting device contact fetch at ${fetchStartTime.toIso8601String()}");
+        // ✅ NATIVE: Fetch from Android using MethodChannel
+        print("📱 Fetching contacts from Android native...");
+        final fetchStart = DateTime.now();
 
-        // ✅ OPTIMIZED: Load contacts with full properties (no better alternative)
-        allDeviceContacts = await FlutterContacts.getContacts(
-          withProperties: true,  // Need phone numbers
-          withThumbnail: false,  // Skip thumbnails
-          withPhoto: false,      // Skip photos
-        );
+        allDeviceContacts = await NativeContactService.fetchContacts();
 
-        final fetchEndTime = DateTime.now();
-        final fetchDuration = fetchEndTime.difference(fetchStartTime);
-        print("⏱️ PERFORMANCE: Device contact fetch completed in ${fetchDuration.inMilliseconds}ms");
-        print("⏱️ PERFORMANCE: Fetch ended at ${fetchEndTime.toIso8601String()}");
+        final fetchDuration = DateTime.now().difference(fetchStart);
+        print("✅ Native fetch completed in ${fetchDuration.inMilliseconds}ms");
+        print("📱 Got ${allDeviceContacts.length} contacts from native");
 
-        totalContactCount.value = allDeviceContacts.length;
-        print("📱 Fetched ${allDeviceContacts.length} contacts from device");
+        // Convert to ContactItem
+        for (var contactMap in allDeviceContacts) {
+          final name = StringValidator.sanitizeForText(contactMap['name'] ?? '');
+          final phone = StringValidator.sanitizeForText(contactMap['phone'] ?? '');
 
-        // ✅ PERFORMANCE: Measure first batch processing time
-        final batchProcessStartTime = DateTime.now();
-        print("⏱️ PERFORMANCE: Starting first batch processing at ${batchProcessStartTime.toIso8601String()}");
+          if (name.isNotEmpty) {
+            final contactItem = ContactItem(
+              name: name,
+              phone: phone,
+              initials: _getInitials(name),
+            );
 
-        // Load first batch
-        await _loadContactChunk();
+            _assignSingleContactTag(contactItem);
+            contacts.add(contactItem);
+          }
+        }
 
-        final batchProcessEndTime = DateTime.now();
-        final batchProcessDuration = batchProcessEndTime.difference(batchProcessStartTime);
-        print("⏱️ PERFORMANCE: First batch processed in ${batchProcessDuration.inMilliseconds}ms");
-        print("⏱️ PERFORMANCE: Batch processing ended at ${batchProcessEndTime.toIso8601String()}");
+        // Sort contacts
+        _assignContactTags(contacts);
+        filteredContacts.value = List.from(contacts);
+        totalContactCount.value = contacts.length;
 
-        // ✅ PERFORMANCE: Measure shimmer hiding time (when UI becomes interactive)
-        final shimmerHideTime = DateTime.now();
-        final totalTimeUntilShimmerHide = shimmerHideTime.difference(loadStartTime);
-
-        // Hide loading shimmer after first batch
+        // Hide loading
         isLoading.value = false;
         _contactsLoaded = true;
 
-        print("🎯 PERFORMANCE SUMMARY:");
-        print("   ⏱️ Total time from start to shimmer hide: ${totalTimeUntilShimmerHide.inMilliseconds}ms");
-        print("   ⏱️ Permission check: ${permissionCheckDuration.inMilliseconds}ms");
-        print("   ⏱️ Device contact fetch: ${fetchDuration.inMilliseconds}ms");
-        print("   ⏱️ First batch processing: ${batchProcessDuration.inMilliseconds}ms");
-        print("   📊 First batch size: ${contacts.length} contacts");
-        print("   📊 Total contacts: ${allDeviceContacts.length}");
-        print("   🚀 Shimmer hidden at: ${shimmerHideTime.toIso8601String()}");
-        print("   ✅ Screen is now INTERACTIVE and RESPONSIVE");
+        final totalDuration = DateTime.now().difference(loadStartTime);
+        print("🎯 NATIVE PERFORMANCE:");
+        print("   ⏱️ Total time: ${totalDuration.inMilliseconds}ms");
+        print("   📊 Contacts loaded: ${contacts.length}");
+        print("   ✅ Screen INTERACTIVE");
 
-        // Auto-load remaining contacts in background
-        if (hasMoreContacts.value) {
-          print("🔄 Starting background loading of remaining ${allDeviceContacts.length - contacts.length} contacts...");
-          _autoLoadAllRemainingContacts();
-        }
-
-        // ✅ INSTANT: Skip search index building - search directly from allDeviceContacts
-        // Search will be instant anyway using filterContacts() method
-        print("🚀 Skipping search index - using direct search for instant results");
-
-        // ✅ SAVE TO CACHE: Save contacts for next time (background task)
-        print("💾 Saving contacts to cache for next time...");
+        // Save to cache
         _saveToCacheInBackground();
-
-        final completionTime = DateTime.now();
-        final totalLoadTime = completionTime.difference(loadStartTime);
-        print("✅ Contact loading completed: ${contacts.length} contacts loaded");
-        print("⏱️ PERFORMANCE: Total execution time: ${totalLoadTime.inMilliseconds}ms");
 
       } else {
         isLoading.value = false;
         isPermissionDenied.value = true;
         _contactsLoaded = false;
-        print("❌ Permission DENIED - cannot load contacts");
-
-        if (permissionStatus != PermissionStatus.permanentlyDenied) {
-          final context = Get.context;
-          final l10n = context != null ? AppLocalizations.of(context) : null;
-          AdvancedErrorService.showError(
-            l10n?.contactsAccessRequired ?? 'Contacts access is required to load your contacts',
-            severity: ErrorSeverity.medium,
-            category: ErrorCategory.permission,
-          );
-        }
+        print("❌ Permission DENIED");
       }
     } catch (e, stackTrace) {
       isLoading.value = false;
       _contactsLoaded = false;
       print("❌ Error loading contacts: $e");
-
-      final context = Get.context;
-      final l10n = context != null ? AppLocalizations.of(context) : null;
-      AdvancedErrorService.showError(
-        l10n?.failedToLoadContacts(e.toString()) ?? 'Failed to load contacts: ${e.toString()}',
-        severity: ErrorSeverity.medium,
-        category: ErrorCategory.general,
-      );
+      print("Stack: $stackTrace");
     }
   }
 
-  // ✅ NEW: Load contacts silently without showing shimmer (for pull-to-refresh)
+  // ✅ DEPRECATED: Old method - now using native implementation in loadContacts()
+  // Kept for backward compatibility but not actively used
   Future<void> _loadContactsSilently() async {
-    print("🔄 _loadContactsSilently() CALLED - Loading without shimmer");
-
-    // ✅ DON'T set isLoading = true, to avoid showing shimmer
-    currentPage.value = 0;
-
-    try {
-      // Check permission status
-      PermissionStatus permissionStatus = await Permission.contacts.status;
-
-      if (permissionStatus.isGranted) {
-        isPermissionDenied.value = false;
-
-        // Fetch contacts from device
-        allDeviceContacts = await FlutterContacts.getContacts(
-          withProperties: true,
-          withThumbnail: false,
-        );
-
-        totalContactCount.value = allDeviceContacts.length;
-
-        // Load first batch
-        await _loadContactChunk();
-
-        // Auto-load remaining contacts in background
-        if (hasMoreContacts.value) {
-          _autoLoadAllRemainingContacts();
-        }
-
-        // Build search index for large lists
-        if (allDeviceContacts.length > 500) {
-          _buildSearchIndexProgressively();
-        } else {
-          await _loadAllContactItems();
-        }
-
-        // Set contacts loaded flag
-        _contactsLoaded = true;
-
-        print("✅ Silent refresh completed: ${contacts.length} contacts loaded");
-      } else {
-        isPermissionDenied.value = true;
-        _contactsLoaded = false;
-      }
-    } catch (e) {
-      print("❌ Error in silent contact loading: $e");
-      _contactsLoaded = false;
-    }
+    print("⚠️ _loadContactsSilently() is deprecated - using loadContacts() instead");
+    await loadContacts();
   }
 
-  // Load a chunk of contacts (pagination)
+  // Load a chunk of contacts (pagination) - Native Mode
   Future<void> _loadContactChunk() async {
     final startIndex = currentPage.value * contactsPerPage;
     final endIndex = (startIndex + contactsPerPage).clamp(0, allDeviceContacts.length);
@@ -541,24 +414,22 @@ class ContactController extends GetxController {
     // ✅ INSTANT LOADING: Process all contacts at once without delays
     List<ContactItem> newContacts = [];
 
-    // Process all contacts in the chunk directly
+    // Process all contacts in the chunk directly (Native format)
     for (int i = startIndex; i < endIndex; i++) {
-      final contact = allDeviceContacts[i];
+      final contactMap = allDeviceContacts[i];
+      final name = StringValidator.sanitizeForText(contactMap['name'] ?? '');
+      final phone = StringValidator.sanitizeForText(contactMap['phone'] ?? '');
 
-      if (contact.displayName.isNotEmpty) {
-        // ✅ FIX: Sanitize contact name to prevent UTF-16 errors
-        final sanitizedName = StringValidator.sanitizeForText(contact.displayName);
-
-        String phoneNumber = '';
-        if (contact.phones.isNotEmpty) {
-          // ✅ FIX: Sanitize phone number as well
-          phoneNumber = StringValidator.sanitizeForText(contact.phones.first.number);
+      if (name.isNotEmpty) {
+        // ✅ DEBUG: Log phone data for first few contacts
+        if (i < 5) {
+          print('📱 DEBUG Contact #$i: Name="$name", Phone="$phone"');
         }
 
         newContacts.add(ContactItem(
-          name: sanitizedName,
-          phone: phoneNumber,
-          initials: _getInitials(sanitizedName),
+          name: name,
+          phone: phone,
+          initials: _getInitials(name),
         ));
       }
     }
@@ -627,19 +498,15 @@ class ContactController extends GetxController {
 
           List<ContactItem> batchItems = [];
 
-          // Process each contact in the batch with individual error handling
+          // Process each contact in the batch with individual error handling (Native Mode)
           for (int contactIndex = 0; contactIndex < batch.length; contactIndex++) {
             try {
-              final contact = batch[contactIndex];
+              final contactMap = batch[contactIndex];
 
               // ✅ SAFE: Validate contact data before processing
-              if (_isValidContact(contact)) {
-                final contactName = StringValidator.sanitizeForText(contact.displayName);
-                String phoneNumber = '';
-
-                if (contact.phones.isNotEmpty) {
-                  phoneNumber = StringValidator.sanitizeForText(contact.phones.first.number);
-                }
+              if (_isValidContact(contactMap)) {
+                final contactName = StringValidator.sanitizeForText(contactMap['name'] ?? '');
+                final phoneNumber = StringValidator.sanitizeForText(contactMap['phone'] ?? '');
 
                 final contactItem = ContactItem(
                   name: contactName,
@@ -658,7 +525,7 @@ class ContactController extends GetxController {
                   print("⚠️ Skipped invalid contact at index ${i + contactIndex}");
                 }
               }
-            } catch (contactError, contactStackTrace) {
+            } catch (contactError, _) {
               failedContacts++;
               final errorMsg = "Contact processing error at index ${i + contactIndex}: $contactError";
               errorDetails.add(errorMsg);
@@ -884,21 +751,19 @@ class ContactController extends GetxController {
 
       List<ContactItem> matchedContacts = [];
 
-      // ✅ DIRECT SEARCH: Process and search contacts on-the-fly for instant results
+      // ✅ DIRECT SEARCH: Process and search contacts on-the-fly for instant results (Native Mode)
       for (int i = 0; i < allDeviceContacts.length; i++) {
         try {
-          final contact = allDeviceContacts[i];
+          final contactMap = allDeviceContacts[i];
+          final name = contactMap['name'] ?? '';
+          final phone = contactMap['phone'] ?? '';
 
           // ✅ SKIP: Invalid contacts quickly
-          if (contact.displayName.trim().isEmpty) continue;
+          if (name.trim().isEmpty) continue;
 
           // ✅ FAST: Process contact data on-demand for search
-          final contactName = StringValidator.sanitizeForText(contact.displayName).toLowerCase();
-          String contactPhone = '';
-
-          if (contact.phones.isNotEmpty) {
-            contactPhone = StringValidator.sanitizeForText(contact.phones.first.number).replaceAll(RegExp(r'[^0-9]'), '');
-          }
+          final contactName = StringValidator.sanitizeForText(name).toLowerCase();
+          final contactPhone = StringValidator.sanitizeForText(phone).replaceAll(RegExp(r'[^0-9]'), '');
 
           final searchQuery = query.toLowerCase();
           final searchPhoneQuery = query.replaceAll(RegExp(r'[^0-9]'), '');
@@ -925,9 +790,9 @@ class ContactController extends GetxController {
           // ✅ ADD: Create ContactItem only for matched contacts (performance optimization)
           if (isMatch) {
             final matchedContact = ContactItem(
-              name: StringValidator.sanitizeForText(contact.displayName),
-              phone: contact.phones.isNotEmpty ? StringValidator.sanitizeForText(contact.phones.first.number) : '',
-              initials: _getInitials(StringValidator.sanitizeForText(contact.displayName)),
+              name: StringValidator.sanitizeForText(name),
+              phone: StringValidator.sanitizeForText(phone),
+              initials: _getInitials(StringValidator.sanitizeForText(name)),
             );
 
             // ✅ AzListView: Assign tag for search results
@@ -1080,25 +945,25 @@ class ContactController extends GetxController {
   // ✅ REMOVED: Contact validation removed to prevent duplicate activity entries
   // Validation will be handled in ShareScreen instead
 
-  // ✅ VALIDATION: Check if contact data is valid before processing
-  bool _isValidContact(Contact contact) {
+  // ✅ VALIDATION: Check if contact data is valid before processing (Native Mode)
+  bool _isValidContact(Map<String, String> contactMap) {
     try {
+      final name = contactMap['name'] ?? '';
+      final phone = contactMap['phone'] ?? '';
+
       // Check if contact has a valid display name
-      if (contact.displayName.trim().isEmpty) {
+      if (name.trim().isEmpty) {
         return false;
       }
 
       // Check for extremely long names that might cause issues
-      if (contact.displayName.length > 200) {
+      if (name.length > 200) {
         return false;
       }
 
       // Validate phone number if present
-      if (contact.phones.isNotEmpty) {
-        final phoneNumber = contact.phones.first.number;
-        if (phoneNumber.length > 50) {
-          return false; // Extremely long phone numbers are suspicious
-        }
+      if (phone.isNotEmpty && phone.length > 50) {
+        return false; // Extremely long phone numbers are suspicious
       }
 
       return true;
@@ -1108,7 +973,7 @@ class ContactController extends GetxController {
     }
   }
 
-  // ✅ FALLBACK: Emergency contact loading for when main processing fails
+  // ✅ FALLBACK: Emergency contact loading for when main processing fails (Native Mode)
   Future<void> _fallbackContactLoading() async {
     try {
       print("🆘 Attempting fallback contact loading...");
@@ -1119,21 +984,15 @@ class ContactController extends GetxController {
 
       for (int i = 0; i < fallbackLimit; i++) {
         try {
-          final contact = allDeviceContacts[i];
+          final contactMap = allDeviceContacts[i];
+          final name = StringValidator.sanitizeForText(contactMap['name'] ?? '');
+          final phone = StringValidator.sanitizeForText(contactMap['phone'] ?? '');
 
-          if (contact.displayName.isNotEmpty) {
-            // ✅ FIX: Use sanitization even in fallback loading
-            final name = StringValidator.sanitizeForText(contact.displayName);
-            String phone = '';
-
-            if (contact.phones.isNotEmpty) {
-              phone = StringValidator.sanitizeForText(contact.phones.first.number);
-            }
-
+          if (name.isNotEmpty) {
             fallbackContacts.add(ContactItem(
               name: name,
               phone: phone,
-              initials: _getInitials(name), // ✅ FIX: Use safe _getInitials method instead of direct indexing
+              initials: _getInitials(name),
             ));
           }
         } catch (e) {
@@ -1196,14 +1055,10 @@ class ContactController extends GetxController {
 
         List<ContactItem> batchItems = [];
 
-        for (Contact contact in batch) {
-          if (_isValidContact(contact)) {
-            final contactName = StringValidator.sanitizeForText(contact.displayName);
-            String phoneNumber = '';
-
-            if (contact.phones.isNotEmpty) {
-              phoneNumber = StringValidator.sanitizeForText(contact.phones.first.number);
-            }
+        for (var contactMap in batch) {
+          if (_isValidContact(contactMap)) {
+            final contactName = StringValidator.sanitizeForText(contactMap['name'] ?? '');
+            final phoneNumber = StringValidator.sanitizeForText(contactMap['phone'] ?? '');
 
             final contactItem = ContactItem(
               name: contactName,
@@ -1314,17 +1169,13 @@ class ContactController extends GetxController {
   // ✅ CACHE: Refresh cache in background without blocking UI
   void _refreshCacheInBackground() async {
     try {
-      print("🔄 Background refresh: Checking for new contacts...");
+      print("🔄 Background refresh: Checking for new contacts (Native Mode)...");
 
       // Wait a bit before fetching
       await Future.delayed(const Duration(seconds: 2));
 
-      // Fetch fresh contacts from device
-      List<Contact> freshContacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withThumbnail: false,
-        withPhoto: false,
-      );
+      // Fetch fresh contacts from device (Native)
+      List<Map<String, String>> freshContacts = await NativeContactService.fetchContacts();
 
       print("🔍 Comparing: Cache has ${contacts.length}, Device has ${freshContacts.length}");
 
