@@ -37,7 +37,7 @@ class LedgerModel {
     this.updatedAt,
   });
 
-  // Convert to JSON for API request (CREATE/UPDATE)
+  // Convert to JSON for API request (CREATE)
   // NOTE: currentBalance is NOT sent - backend calculates it automatically
   Map<String, dynamic> toJson() {
     return {
@@ -56,6 +56,22 @@ class LedgerModel {
       'merchantId': merchantId,
       'pinCode': pinCode,
       'partyType': partyType,
+    };
+  }
+
+  // Convert to JSON for UPDATE API (PUT)
+  // Excludes: id, openingBalance, transactionType, merchantId, partyType
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      'name': name,
+      'creditLimit': creditLimit,
+      'creditDay': creditDay,
+      'interestType': interestType,
+      'interestRate': interestRate,
+      'mobileNumber': mobileNumber,
+      'area': area,
+      'address': address,
+      'pinCode': pinCode,
     };
   }
 

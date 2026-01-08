@@ -52,12 +52,12 @@ class LedgerApi {
   }) async {
     try {
       debugPrint('🔄 Updating ledger: $ledgerId');
-      debugPrint('📦 Ledger data: ${ledger.toJson()}');
+      debugPrint('📦 Ledger update data: ${ledger.toUpdateJson()}');
 
       await _apiFetcher.request(
         url: 'api/ledger/$ledgerId',
         method: 'PUT',
-        body: ledger.toJson(),
+        body: ledger.toUpdateJson(),
         requireAuth: true,
       );
 

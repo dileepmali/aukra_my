@@ -339,14 +339,15 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                 primaryButtonText: 'Edit',
                 onPrimaryPressed: () async {
                   // Show PIN verification dialog for Exit/Edit
-                  final pin = await PinVerificationDialog.show(
+                  final result = await PinVerificationDialog.show(
                     context: context,
                     title: 'Enter Security Pin',
                     subtitle: 'Enter your 4-digit pin to edit transaction',
+                    requireOtp: false,
                   );
 
                   // If PIN is entered (not null), proceed with edit
-                  if (pin != null && pin.isNotEmpty) {
+                  if (result != null && result['pin'] != null) {
                     Navigator.pop(context);
 
                     // Navigate to Add Transaction screen in edit mode
@@ -398,10 +399,11 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                   }
 
                   // Show PIN verification dialog
-                  final pin = await PinVerificationDialog.show(
+                  final result = await PinVerificationDialog.show(
                     context: context,
                     title: 'Enter Security Pin',
                     subtitle: 'Enter your 4-digit pin to delete transaction',
+                    requireOtp: false,
                     confirmGradientColors: isDark
                         ? [
                             AppColors.red800,
@@ -415,13 +417,13 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                   );
 
                   // If PIN is entered (not null), proceed with deletion
-                  if (pin != null && pin.isNotEmpty) {
+                  if (result != null && result['pin'] != null) {
                     try {
                       // Call Delete API
                       final api = LedgerTransactionApi();
                       final response = await api.deleteTransaction(
                         transactionId: transactionId!,
-                        securityKey: pin,
+                        securityKey: result['pin']!,
                       );
 
                       // Close bottom sheet

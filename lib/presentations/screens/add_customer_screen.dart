@@ -271,91 +271,100 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 ),
               ),
 
-              // Contacts list with A-Z index
+              // Contacts list with A-Z index and pull-to-refresh
               Expanded(
-                child: AzListView(
-                  indexBarItemHeight: responsive.hp(2.2),
-                  data: contacts,
-                  itemCount: contacts.length,
-                  itemBuilder: (context, index) {
-                    final customer = contacts[index];
-                    return ListItemWidget(
-                      title: customer.name,
-                      subtitle: customer.phone.isNotEmpty ? customer.phone : 'No phone',
-                      showAvatar: true,
-                      avatarText: customer.initials.isNotEmpty
-                          ? customer.initials
-                          : (customer.name.isNotEmpty
-                              ? customer.name[0].toUpperCase()
-                              : '?'),
-                      onTap: () {
-                        // Navigate to customer form with contact data
-                        // Use Formatters utility to extract phone number
-                        final phoneNumber = Formatters.extractPhoneNumber(customer.phone);
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    // Refresh contacts when user pulls down
+                    debugPrint('🔄 Pull-to-refresh triggered');
+                    await _contactController.refreshContacts();
+                  },
+                  color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                  backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+                  child: AzListView(
+                    indexBarItemHeight: responsive.hp(2.2),
+                    data: contacts,
+                    itemCount: contacts.length,
+                    itemBuilder: (context, index) {
+                      final customer = contacts[index];
+                      return ListItemWidget(
+                        title: customer.name,
+                        subtitle: customer.phone.isNotEmpty ? customer.phone : 'No phone',
+                        showAvatar: true,
+                        avatarText: customer.initials.isNotEmpty
+                            ? customer.initials
+                            : (customer.name.isNotEmpty
+                                ? customer.name[0].toUpperCase()
+                                : '?'),
+                        onTap: () {
+                          // Navigate to customer form with contact data
+                          // Use Formatters utility to extract phone number
+                          final phoneNumber = Formatters.extractPhoneNumber(customer.phone);
 
-                        Get.toNamed(
-                          AppRoutes.customerForm,
-                          arguments: {
-                            'contactName': customer.name,
-                            'contactPhone': phoneNumber,
-                            'partyType': widget.partyType ?? 'customer', // Pass partyType
-                          },
-                        );
-                      },
-                    );
-                  },
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.only(
-                    left: responsive.wp(1),
-                    top: responsive.hp(1),
-                    right: responsive.wp(8),
-                    bottom: responsive.hp(10),
-                  ),
-                  susItemBuilder: (BuildContext context, int index) {
-                    final contact = contacts[index];
-                    return const SizedBox.shrink(); // Hide section headers
-                  },
-                  indexBarData: isKeyboardVisible ? [] : _staticAlphabetIndex,
-                  indexBarOptions: IndexBarOptions(
-                    needRebuild: true,
-                    // Text styling for alphabet letters
-                    textStyle: TextStyle(
-                      fontSize: responsive.fontSize(12),
-                      color: isDark ? Colors.white : AppColorsLight.black,
-                      fontWeight: FontWeight.w500,
-                      height: 1.8,
+                          Get.toNamed(
+                            AppRoutes.customerForm,
+                            arguments: {
+                              'contactName': customer.name,
+                              'contactPhone': phoneNumber,
+                              'partyType': widget.partyType ?? 'customer', // Pass partyType
+                            },
+                          );
+                        },
+                      );
+                    },
+                    physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                    padding: EdgeInsets.only(
+                      left: responsive.wp(1),
+                      top: responsive.hp(1),
+                      right: responsive.wp(8),
+                      bottom: responsive.hp(10),
                     ),
-                    // Selected letter styling
-                    selectTextStyle: AppFonts.headlineSmall(
-                      color: isDark ? AppColors.black : Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    selectItemDecoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isDark ? Colors.white : AppColorsLight.black,
-                    ),
-                    // Hint bubble (large preview when scrolling)
-                    indexHintWidth: responsive.wp(20),
-                    indexHintHeight: responsive.wp(20),
-                    indexHintDecoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: SweepGradient(
-                        colors: [
-                          AppColors.splaceSecondary1,
-                          AppColors.splaceSecondary2,
-                          AppColors.splaceSecondary1,
-                          AppColors.splaceSecondary2,
-                          AppColors.splaceSecondary1,
-                          AppColors.splaceSecondary2,
-                          AppColors.splaceSecondary1,
-                        ],
-                        startAngle: 0.0,
-                        endAngle: 3.14 * 2,
+                    susItemBuilder: (BuildContext context, int index) {
+                      final contact = contacts[index];
+                      return const SizedBox.shrink(); // Hide section headers
+                    },
+                    indexBarData: isKeyboardVisible ? [] : _staticAlphabetIndex,
+                    indexBarOptions: IndexBarOptions(
+                      needRebuild: true,
+                      // Text styling for alphabet letters
+                      textStyle: TextStyle(
+                        fontSize: responsive.fontSize(12),
+                        color: isDark ? Colors.white : AppColorsLight.black,
+                        fontWeight: FontWeight.w500,
+                        height: 1.8,
                       ),
+                      // Selected letter styling
+                      selectTextStyle: AppFonts.headlineSmall(
+                        color: isDark ? AppColors.black : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      selectItemDecoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? Colors.white : AppColorsLight.black,
+                      ),
+                      // Hint bubble (large preview when scrolling)
+                      indexHintWidth: responsive.wp(20),
+                      indexHintHeight: responsive.wp(20),
+                      indexHintDecoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: SweepGradient(
+                          colors: [
+                            AppColors.splaceSecondary1,
+                            AppColors.splaceSecondary2,
+                            AppColors.splaceSecondary1,
+                            AppColors.splaceSecondary2,
+                            AppColors.splaceSecondary1,
+                            AppColors.splaceSecondary2,
+                            AppColors.splaceSecondary1,
+                          ],
+                          startAngle: 0.0,
+                          endAngle: 3.14 * 2,
+                        ),
+                      ),
+                      indexHintAlignment: Alignment.centerRight,
+                      indexHintChildAlignment: Alignment.center,
+                      indexHintOffset: Offset(responsive.wp(-5), 0),
                     ),
-                    indexHintAlignment: Alignment.centerRight,
-                    indexHintChildAlignment: Alignment.center,
-                    indexHintOffset: Offset(responsive.wp(-5), 0),
                   ),
                 ),
               ),

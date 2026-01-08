@@ -6,6 +6,8 @@ import '../core/api/global_api_function.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import '../models/merchant_model.dart';
+import '../core/services/duplicate_prevention_service.dart';
+import '../core/utils/secure_logger.dart';
 
 class ShopDetailController extends GetxController {
   final RxBool isLoading = false.obs;
@@ -267,25 +269,57 @@ class ShopDetailController extends GetxController {
   }
 
   Future<bool> submitMerchantDetails(MerchantModel merchant) async {
+    // 🛡️ SECURITY: Duplicate merchant prevention
+    final duplicateKey = DuplicatePrevention.generateKey(
+      operation: 'create_merchant',
+      params: {
+        'businessName': merchant.businessName,
+        'mobileNumber': merchant.mobileNumber,
+      },
+    );
+
+    if (DuplicatePrevention.isPending(duplicateKey)) {
+      SecureLogger.warning('Duplicate merchant creation detected and prevented');
+      AdvancedErrorService.showError(
+        'Merchant registration already in progress. Please wait.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.validation,
+      );
+      return false;
+    }
+
+    if (DuplicatePrevention.wasRecentlyCompleted(duplicateKey)) {
+      final timeSince = DuplicatePrevention.getTimeSinceCompleted(duplicateKey);
+      SecureLogger.warning('Recently completed merchant registration detected: ${timeSince?.inSeconds}s ago');
+
+      AdvancedErrorService.showError(
+        'Merchant details were just submitted. Please check if they were saved.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.validation,
+      );
+      return false;
+    }
+
+    // Mark as pending
+    DuplicatePrevention.markPending(duplicateKey);
+
     try {
-      debugPrint('');
-      debugPrint('🚀 ==================== SUBMIT MERCHANT STARTED ====================');
-      debugPrint('📝 Submitting merchant details...');
-      debugPrint('   Merchant: ${merchant.toString()}');
+      // 🛡️ SECURITY: Set loading state
+      isLoading.value = true;
+      SecureLogger.divider('SUBMIT MERCHANT');
+      SecureLogger.info('Submitting merchant details...');
 
       // ✅ FIRST: Check if merchant already exists
-      debugPrint('');
-      debugPrint('🔍 Step 1: Checking if merchant already exists...');
+      SecureLogger.info('Checking if merchant already exists...');
       await _fetchExistingMerchant();
 
       final existingMerchantId = await AuthStorage.getMerchantId();
       if (existingMerchantId != null) {
-        debugPrint('✅ Merchant already exists with ID: $existingMerchantId');
-        debugPrint('✅ Skipping POST - using existing merchant');
+        SecureLogger.success('Merchant already exists with ID: $existingMerchantId');
+        DuplicatePrevention.removePending(duplicateKey);
         return true;
       }
-      debugPrint('📝 No existing merchant found - proceeding with creation...');
-      debugPrint('');
+      SecureLogger.info('No existing merchant found - proceeding with creation...');
 
       final payload = merchant.toJson();
       debugPrint('');
@@ -357,33 +391,112 @@ class ShopDetailController extends GetxController {
         debugPrint('📥 POST Response Type: ${_apiFetcher.data.runtimeType}');
         debugPrint('🔍 Response data keys: ${_apiFetcher.data is Map ? _apiFetcher.data.keys.toList() : 'Not a map'}');
 
-        // Extract and save merchantId from response
-        int? merchantId;
-
+        // ✅ NEW: Use POST response data directly instead of calling GET
         if (_apiFetcher.data is Map) {
-          // Try different possible field names
-          if (_apiFetcher.data['merchantId'] != null) {
-            merchantId = int.tryParse(_apiFetcher.data['merchantId'].toString());
-          } else if (_apiFetcher.data['id'] != null) {
-            merchantId = int.tryParse(_apiFetcher.data['id'].toString());
-          } else if (_apiFetcher.data['_id'] != null) {
-            merchantId = int.tryParse(_apiFetcher.data['_id'].toString());
-          } else if (_apiFetcher.data['data'] is Map && _apiFetcher.data['data']['merchantId'] != null) {
+          final responseData = _apiFetcher.data;
+
+          // 🔍 DEBUG: Check what merchantName and businessName API returned
+          debugPrint('🔍 ========== POST RESPONSE FIELDS CHECK ==========');
+          debugPrint('   Response merchantName: ${responseData['merchantName']}');
+          debugPrint('   Response businessName: ${responseData['businessName']}');
+          debugPrint('   Submitted merchantName: ${merchant.merchantName}');
+          debugPrint('   Submitted businessName: ${merchant.businessName}');
+          debugPrint('==================================================');
+
+          // Extract merchantId from different possible field names
+          int? merchantId;
+          if (responseData['merchantId'] != null) {
+            merchantId = int.tryParse(responseData['merchantId'].toString());
+          } else if (responseData['id'] != null) {
+            merchantId = int.tryParse(responseData['id'].toString());
+          } else if (responseData['_id'] != null) {
+            merchantId = int.tryParse(responseData['_id'].toString());
+          } else if (responseData['data'] is Map && responseData['data']['merchantId'] != null) {
             // Check nested data object
-            merchantId = int.tryParse(_apiFetcher.data['data']['merchantId'].toString());
+            merchantId = int.tryParse(responseData['data']['merchantId'].toString());
           }
-        }
 
-        if (merchantId != null) {
-          await AuthStorage.saveMerchantId(merchantId);
-          debugPrint('🏢 Merchant ID saved from POST response: $merchantId');
+          if (merchantId != null) {
+            // ✅ Save all merchant data from POST response
+            await AuthStorage.saveMerchantId(merchantId);
+
+            // ✅ Save merchantName (person's name)
+            // Priority: POST response > Submitted data
+            String finalMerchantName = merchant.merchantName; // Default: what user submitted
+            if (responseData['merchantName'] != null && responseData['merchantName'].toString().isNotEmpty) {
+              finalMerchantName = responseData['merchantName'].toString();
+              debugPrint('✅ Using merchantName from POST response: $finalMerchantName');
+            } else {
+              debugPrint('⚠️ POST response has no merchantName, using submitted value: $finalMerchantName');
+            }
+            await AuthStorage.saveMerchantName(finalMerchantName);
+
+            // ✅ Save businessName (shop name)
+            // Priority: POST response > Submitted data
+            String finalBusinessName = merchant.businessName; // Default: what user submitted
+            if (responseData['businessName'] != null && responseData['businessName'].toString().isNotEmpty) {
+              finalBusinessName = responseData['businessName'].toString();
+              debugPrint('✅ Using businessName from POST response: $finalBusinessName');
+            } else {
+              debugPrint('⚠️ POST response has no businessName, using submitted value: $finalBusinessName');
+            }
+            await AuthStorage.saveBusinessName(finalBusinessName);
+
+            // ✅ Save mobileNumber (registered number)
+            if (responseData['mobileNumber'] != null) {
+              await AuthStorage.saveMerchantMobile(responseData['mobileNumber'].toString());
+            } else {
+              await AuthStorage.saveMerchantMobile(merchant.mobileNumber);
+            }
+
+            // ✅ Save address
+            if (responseData['address'] != null) {
+              await AuthStorage.saveMerchantAddress(responseData['address'].toString());
+            } else {
+              await AuthStorage.saveMerchantAddress(merchant.address);
+            }
+
+            // ✅ Save pinCode (if available in response)
+            if (responseData['pinCode'] != null && responseData['pinCode'].toString().isNotEmpty) {
+              await AuthStorage.saveMerchantPinCode(responseData['pinCode'].toString());
+            } else if (merchant.pinCode.isNotEmpty) {
+              await AuthStorage.saveMerchantPinCode(merchant.pinCode);
+            }
+
+            // ✅ Save masterMobileNumber
+            if (responseData['masterMobileNumber'] != null) {
+              await AuthStorage.saveMasterMobileNumber(responseData['masterMobileNumber'].toString());
+            } else {
+              await AuthStorage.saveMasterMobileNumber(merchant.masterMobileNumber);
+            }
+
+            debugPrint('');
+            debugPrint('🏢 ========== MERCHANT DATA SAVED TO STORAGE ==========');
+            debugPrint('   merchantId: $merchantId');
+            debugPrint('   merchantName (Person): $finalMerchantName');
+            debugPrint('   businessName (Shop): $finalBusinessName');
+            debugPrint('   mobileNumber: ${responseData['mobileNumber'] ?? merchant.mobileNumber}');
+            debugPrint('   address: ${responseData['address'] ?? merchant.address}');
+            debugPrint('   pinCode: ${responseData['pinCode'] ?? merchant.pinCode}');
+            debugPrint('   masterMobileNumber: ${responseData['masterMobileNumber'] ?? merchant.masterMobileNumber}');
+            debugPrint('✅ All data saved to storage successfully!');
+            debugPrint('✅ Profile screen will show: $finalMerchantName');
+            debugPrint('✅ Manage business will show: $finalBusinessName');
+            debugPrint('========================================================');
+            debugPrint('');
+
+            return true;
+          } else {
+            debugPrint('⚠️ No merchantId in POST response, fetching from GET api/merchant...');
+            // Fallback: Fetch merchant data to get the ID
+            await _fetchExistingMerchant();
+            return true;
+          }
         } else {
-          debugPrint('⚠️ No merchantId in POST response, fetching from GET api/merchant...');
-          // Fetch merchant data to get the ID
+          debugPrint('⚠️ POST response is not a Map, fetching from GET api/merchant...');
           await _fetchExistingMerchant();
+          return true;
         }
-
-        return true;
       } else {
         // ✅ Enhanced error message for debugging
         String detailedError = _apiFetcher.errorMessage ?? 'Failed to submit merchant details';
@@ -420,22 +533,49 @@ class ShopDetailController extends GetxController {
       }
 
       return false;
+    } finally {
+      // 🛡️ SECURITY: Always reset loading state and remove from pending tracking
+      isLoading.value = false;
+
+      final duplicateKey = DuplicatePrevention.generateKey(
+        operation: 'create_merchant',
+        params: {
+          'businessName': merchant.businessName,
+          'mobileNumber': merchant.mobileNumber,
+        },
+      );
+      DuplicatePrevention.removePending(duplicateKey);
     }
   }
 
-  /// Fetch existing merchant data from GET api/merchant
+  /// Fetch existing merchant data - Storage first, then GET api/merchant fallback
   Future<void> _fetchExistingMerchant() async {
     try {
       debugPrint('📡 Fetching existing merchant details...');
 
+      // ✅ STEP 1: Try to load from storage first (fast & offline)
+      final merchantData = await AuthStorage.getMerchantData();
+
+      if (merchantData != null && merchantData['merchantId'] != null) {
+        debugPrint('✅ Merchant data found in STORAGE:');
+        debugPrint('   merchantId: ${merchantData['merchantId']}');
+        debugPrint('   merchantName: ${merchantData['merchantName']}');
+        debugPrint('   businessName: ${merchantData['businessName']}');
+        debugPrint('✅ Using storage data - API call skipped!');
+        return; // Data found in storage, no API call needed
+      }
+
+      debugPrint('⚠️ No merchant data in storage, calling GET /api/merchant/all...');
+
+      // ✅ STEP 2: If storage is empty, call /api/merchant/all (fallback)
       await _apiFetcher.request(
-        url: 'api/merchant',
+        url: 'api/merchant/all',
         method: 'GET',
         requireAuth: true,
       );
 
       if (_apiFetcher.errorMessage == null && _apiFetcher.data != null) {
-        debugPrint('✅ Existing merchant data fetched successfully');
+        debugPrint('✅ Existing merchant data fetched successfully from /api/merchant/all');
         debugPrint('📊 Response data type: ${_apiFetcher.data.runtimeType}');
         debugPrint('📊 Response data: ${_apiFetcher.data}');
 
@@ -443,9 +583,46 @@ class ShopDetailController extends GetxController {
 
         // Handle different response formats
         if (_apiFetcher.data is List && (_apiFetcher.data as List).isNotEmpty) {
-          // Response is an array, get first item
-          merchantData = (_apiFetcher.data as List)[0];
-          debugPrint('📋 Extracted merchant from array: $merchantData');
+          // ✅ FIX: Match merchant by phone number instead of taking first item
+          final merchantList = _apiFetcher.data as List;
+          final loggedInPhone = await AuthStorage.getPhoneNumber();
+
+          // Normalize logged-in phone
+          String normalizedLoggedInPhone = loggedInPhone?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
+          if (normalizedLoggedInPhone.startsWith('91') && normalizedLoggedInPhone.length == 12) {
+            normalizedLoggedInPhone = normalizedLoggedInPhone.substring(2);
+          }
+
+          debugPrint('🔍 Searching for merchant with phone: $normalizedLoggedInPhone in ${merchantList.length} merchants');
+
+          // Find matching merchant by phone
+          for (var merchant in merchantList) {
+            if (merchant is Map) {
+              String? merchantPhone = merchant['phone']?.toString() ?? merchant['mobileNumber']?.toString();
+              if (merchantPhone != null) {
+                String normalizedMerchantPhone = merchantPhone.replaceAll(RegExp(r'[^0-9]'), '');
+                if (normalizedMerchantPhone.startsWith('91') && normalizedMerchantPhone.length == 12) {
+                  normalizedMerchantPhone = normalizedMerchantPhone.substring(2);
+                }
+
+                debugPrint('   Checking merchant: Phone=$normalizedMerchantPhone, ID=${merchant['merchantId']}');
+
+                if (normalizedMerchantPhone == normalizedLoggedInPhone) {
+                  merchantData = merchant;
+                  debugPrint('✅ Found matching merchant by phone: ${merchant['merchantId']}');
+                  break;
+                }
+              }
+            }
+          }
+
+          // Fallback to first item if no match found
+          if (merchantData == null) {
+            merchantData = merchantList[0];
+            debugPrint('⚠️ No matching merchant found by phone, using first merchant as fallback');
+          }
+
+          debugPrint('📋 Selected merchant data: $merchantData');
         } else if (_apiFetcher.data is Map) {
           // Response is a map
           merchantData = _apiFetcher.data;

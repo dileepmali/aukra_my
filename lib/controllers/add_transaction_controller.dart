@@ -8,6 +8,9 @@ import '../core/api/image_upload_api.dart';
 import '../core/api/auth_storage.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
+import '../core/services/rate_limiter_service.dart';
+import '../core/utils/secure_logger.dart';
+import '../core/services/duplicate_prevention_service.dart';
 
 class AddTransactionController extends GetxController {
   // Controllers
@@ -192,6 +195,11 @@ class AddTransactionController extends GetxController {
       return 'Please enter valid amount';
     }
 
+    // ✅ NEW: Validate note field - REQUIRED
+    if (noteController.text.trim().isEmpty) {
+      return 'Please add a note for this transaction';
+    }
+
     return null; // Validation passed
   }
 
@@ -206,20 +214,72 @@ class AddTransactionController extends GetxController {
 
   // Create new transaction
   Future<void> createTransaction(String pin) async {
-    // Validate form
-    final validationError = validateForm();
-    if (validationError != null) {
-      // Show validation error using AdvancedErrorService
+    // 🛡️ SECURITY: Rate limit check - Prevent spam transactions
+    final rateLimitKey = 'create_transaction_${ledgerId}';
+    if (!RateLimiter.isAllowed(
+      rateLimitKey,
+      maxAttempts: RateLimitConfig.createTransaction.maxAttempts,
+      duration: RateLimitConfig.createTransaction.duration,
+    )) {
+      final cooldown = RateLimiter.getRemainingCooldown(
+        rateLimitKey,
+        maxAttempts: RateLimitConfig.createTransaction.maxAttempts,
+        duration: RateLimitConfig.createTransaction.duration,
+      );
+
       AdvancedErrorService.showError(
-        validationError,
-        severity: ErrorSeverity.medium,
+        'Too many transactions! Please wait ${RateLimiter.formatCooldown(cooldown)}.',
+        severity: ErrorSeverity.high,
         category: ErrorCategory.validation,
-        customDuration: Duration(seconds: 3),
+        customDuration: Duration(seconds: 5),
       );
       return;
     }
 
+    // ✅ Validation is now done in the screen BEFORE PIN dialog opens
+    // No need to validate again here
+
+    // Prevent double submission
+    if (isSubmitting.value) {
+      SecureLogger.warning('Already submitting transaction, ignoring duplicate request');
+      return;
+    }
+
     isSubmitting.value = true;
+
+    // 🛡️ SECURITY: Duplicate prevention check
+    final duplicateKey = DuplicatePrevention.generateTransactionKey(
+      ledgerId: ledgerId!,
+      amount: double.parse(amountController.text.trim()),
+      type: selectedType.value,
+    );
+
+    if (DuplicatePrevention.isPending(duplicateKey)) {
+      SecureLogger.warning('Duplicate transaction detected and prevented');
+      AdvancedErrorService.showError(
+        'Transaction already in progress. Please wait.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.validation,
+      );
+      isSubmitting.value = false;
+      return;
+    }
+
+    if (DuplicatePrevention.wasRecentlyCompleted(duplicateKey)) {
+      final timeSince = DuplicatePrevention.getTimeSinceCompleted(duplicateKey);
+      SecureLogger.warning('Recently completed transaction detected: ${timeSince?.inSeconds}s ago');
+
+      AdvancedErrorService.showError(
+        'This transaction was just completed. Please wait before submitting again.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.validation,
+      );
+      isSubmitting.value = false;
+      return;
+    }
+
+    // Mark as pending
+    DuplicatePrevention.markPending(duplicateKey);
 
     try {
       // Get merchant ID from auth storage
@@ -288,7 +348,7 @@ class AddTransactionController extends GetxController {
         Get.back(result: true); // Return true to indicate success
       });
     } catch (e) {
-      debugPrint('❌ Transaction Error: $e');
+      SecureLogger.error('Transaction Error: $e');
 
       // Show error using AdvancedErrorService
       AdvancedErrorService.showError(
@@ -298,23 +358,16 @@ class AddTransactionController extends GetxController {
         customDuration: Duration(seconds: 3),
       );
     } finally {
+      // Remove from pending tracking
+      DuplicatePrevention.removePending(duplicateKey);
       isSubmitting.value = false;
     }
   }
 
   // Update existing transaction
   Future<void> updateTransaction(String pin) async {
-    // Validate form
-    final validationError = validateForm();
-    if (validationError != null) {
-      AdvancedErrorService.showError(
-        validationError,
-        severity: ErrorSeverity.medium,
-        category: ErrorCategory.validation,
-        customDuration: Duration(seconds: 3),
-      );
-      return;
-    }
+    // ✅ Validation is now done in the screen BEFORE PIN dialog opens
+    // No need to validate again here
 
     // Check if transaction ID exists
     if (transactionId == null) {

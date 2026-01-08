@@ -4,19 +4,27 @@ import 'package:get/get.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_colors_light.dart';
 import '../../../app/themes/app_text.dart';
+import '../../../core/api/ledger_api.dart';
 import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/services/error_service.dart';
+import '../../../core/untils/error_types.dart';
+import '../../../models/ledger_model.dart';
 import '../custom_border_widget.dart';
 import '../../../buttons/dialog_botton.dart';
+import '../../../controllers/ledger_dashboard_controller.dart';
+import '../../../controllers/ledger_detail_controller.dart';
+import '../../../controllers/ledger_controller.dart';
 
 class LedgerUpdateComparisonDialog {
   static Future<bool?> show({
     required BuildContext context,
     required Map<String, dynamic> oldData,
     required Map<String, dynamic> newData,
+    required int ledgerId,
   }) async {
     return showDialog<bool>(
       context: context,
@@ -24,19 +32,130 @@ class LedgerUpdateComparisonDialog {
       builder: (context) => _LedgerUpdateComparisonDialogContent(
         oldData: oldData,
         newData: newData,
+        ledgerId: ledgerId,
       ),
     );
   }
 }
 
-class _LedgerUpdateComparisonDialogContent extends StatelessWidget {
+class _LedgerUpdateComparisonDialogContent extends StatefulWidget {
   final Map<String, dynamic> oldData;
   final Map<String, dynamic> newData;
+  final int ledgerId;
 
   const _LedgerUpdateComparisonDialogContent({
     required this.oldData,
     required this.newData,
+    required this.ledgerId,
   });
+
+  @override
+  State<_LedgerUpdateComparisonDialogContent> createState() =>
+      _LedgerUpdateComparisonDialogContentState();
+}
+
+class _LedgerUpdateComparisonDialogContentState
+    extends State<_LedgerUpdateComparisonDialogContent> {
+  final LedgerApi _ledgerApi = LedgerApi();
+  bool _isUpdating = false;
+
+  Future<void> _handleUpdate() async {
+    setState(() {
+      _isUpdating = true;
+    });
+
+    try {
+      // Create LedgerModel from newData
+      final ledgerModel = LedgerModel(
+        id: widget.ledgerId,
+        name: widget.newData['name'] ?? '',
+        creditLimit: (widget.newData['creditLimit'] ?? 0).toDouble(),
+        creditDay: widget.newData['creditDay'] ?? 0,
+        interestType: widget.newData['interestType'] ?? 'MONTHLY',
+        interestRate: (widget.newData['interestRate'] ?? 0).toDouble(),
+        mobileNumber: widget.newData['mobileNumber'] ?? '',
+        area: widget.newData['area'] ?? '',
+        address: widget.newData['address'] ?? '',
+        pinCode: widget.newData['pinCode'] ?? '',
+        partyType: widget.newData['partyType'] ?? 'CUSTOMER',
+        openingBalance: (widget.newData['openingBalance'] ?? 0).toDouble(),
+        currentBalance: (widget.newData['currentBalance'] ?? 0).toDouble(),
+        transactionType: widget.newData['transactionType'] ?? 'IN',
+        merchantId: widget.newData['merchantId'] ?? 0,
+      );
+
+      debugPrint('🔄 Starting ledger update...');
+      debugPrint('📦 Ledger ID: ${widget.ledgerId}');
+      debugPrint('📦 Update data: ${ledgerModel.toUpdateJson()}');
+
+      // Call API
+      final response = await _ledgerApi.updateLedger(
+        ledgerId: widget.ledgerId,
+        ledger: ledgerModel,
+      );
+
+      debugPrint('✅ Ledger updated successfully: ${response.message}');
+
+      if (mounted) {
+        // Refresh all ledger-related controllers
+        debugPrint('🔄 Refreshing ledger controllers after update...');
+
+        // 1. Refresh LedgerController (main ledger list)
+        try {
+          final ledgerController = Get.find<LedgerController>();
+          await ledgerController.fetchAllLedgers();
+          debugPrint('✅ LedgerController refreshed');
+        } catch (e) {
+          debugPrint('⚠️ LedgerController not found or error: $e');
+        }
+
+        // 2. Refresh LedgerDashboardController if exists
+        try {
+          final dashboardController = Get.find<LedgerDashboardController>();
+          await dashboardController.fetchDashboard();
+          debugPrint('✅ LedgerDashboardController refreshed');
+        } catch (e) {
+          debugPrint('⚠️ LedgerDashboardController not found or error: $e');
+        }
+
+        // 3. Refresh LedgerDetailController if exists
+        try {
+          final detailController = Get.find<LedgerDetailController>();
+          await detailController.fetchLedgerDetails();
+          await detailController.fetchTransactions();
+          debugPrint('✅ LedgerDetailController refreshed');
+        } catch (e) {
+          debugPrint('⚠️ LedgerDetailController not found or error: $e');
+        }
+
+        // Close dialog and return true
+        if (context.mounted) {
+          Navigator.of(context).pop(true);
+
+          // Show success message using AdvancedErrorService
+          AdvancedErrorService.showSuccess(
+            response.message,
+            type: SuccessType.snackbar,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating ledger: $e');
+
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+
+        // Show error message using AdvancedErrorService
+        AdvancedErrorService.showError(
+          e.toString().replaceAll('Exception: ', ''),
+          severity: ErrorSeverity.high,
+          category: ErrorCategory.network,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,72 +248,72 @@ class _LedgerUpdateComparisonDialogContent extends StatelessWidget {
                       _buildComparisonRow(
                         context: context,
                         label: 'Name',
-                        oldValue: oldData['name'] ?? '',
-                        newValue: newData['name'] ?? '',
+                        oldValue: widget.oldData['name'] ?? '',
+                        newValue: widget.newData['name'] ?? '',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Mobile Number',
-                        oldValue: oldData['mobileNumber'] ?? '',
-                        newValue: newData['mobileNumber'] ?? '',
+                        oldValue: widget.oldData['mobileNumber'] ?? '',
+                        newValue: widget.newData['mobileNumber'] ?? '',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Area',
-                        oldValue: oldData['area'] ?? '',
-                        newValue: newData['area'] ?? '',
+                        oldValue: widget.oldData['area'] ?? '',
+                        newValue: widget.newData['area'] ?? '',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Pin Code',
-                        oldValue: oldData['pinCode'] ?? '',
-                        newValue: newData['pinCode'] ?? '',
+                        oldValue: widget.oldData['pinCode'] ?? '',
+                        newValue: widget.newData['pinCode'] ?? '',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Address',
-                        oldValue: oldData['address'] ?? '',
-                        newValue: newData['address'] ?? '',
+                        oldValue: widget.oldData['address'] ?? '',
+                        newValue: widget.newData['address'] ?? '',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Credit Days',
-                        oldValue: '${oldData['creditDay'] ?? 0} days',
-                        newValue: '${newData['creditDay'] ?? 0} days',
+                        oldValue: '${widget.oldData['creditDay'] ?? 0} days',
+                        newValue: '${widget.newData['creditDay'] ?? 0} days',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Credit Limit',
-                        oldValue: '₹${Formatters.formatAmountWithCommas((oldData['creditLimit'] ?? 0).toString())}',
-                        newValue: '₹${Formatters.formatAmountWithCommas((newData['creditLimit'] ?? 0).toString())}',
+                        oldValue: '₹${Formatters.formatAmountWithCommas((widget.oldData['creditLimit'] ?? 0).toString())}',
+                        newValue: '₹${Formatters.formatAmountWithCommas((widget.newData['creditLimit'] ?? 0).toString())}',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Interest Rate',
-                        oldValue: '${oldData['interestRate'] ?? 0}%',
-                        newValue: '${newData['interestRate'] ?? 0}%',
+                        oldValue: '${widget.oldData['interestRate'] ?? 0}%',
+                        newValue: '${widget.newData['interestRate'] ?? 0}%',
                         isDark: isDark,
                         responsive: responsive,
                       ),
                       _buildComparisonRow(
                         context: context,
                         label: 'Opening Balance',
-                        oldValue: '₹${Formatters.formatAmountWithCommas((oldData['openingBalance'] ?? 0).toString())}',
-                        newValue: '₹${Formatters.formatAmountWithCommas((newData['openingBalance'] ?? 0).toString())}',
+                        oldValue: '₹${Formatters.formatAmountWithCommas((widget.oldData['openingBalance'] ?? 0).toString())}',
+                        newValue: '₹${Formatters.formatAmountWithCommas((widget.newData['openingBalance'] ?? 0).toString())}',
                         isDark: isDark,
                         responsive: responsive,
                       ),
@@ -210,23 +329,25 @@ class _LedgerUpdateComparisonDialogContent extends StatelessWidget {
                 children:[
                   Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.top)),
                   Container(
-                  padding: EdgeInsets.symmetric(vertical: responsive.hp(1)),
-                  child: DialogButtonRow(
-                    cancelText: 'Cancel',
-                    confirmText: 'Save',
-                    onCancel: () => Navigator.of(context).pop(false),
-                    onConfirm: () => Navigator.of(context).pop(true),
-                    cancelGradientColors: isDark
-                        ? [AppColors.containerDark, AppColors.containerLight]
-                        : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
-                    confirmGradientColors: isDark
-                        ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
-                        : [AppColorsLight.splaceSecondary1, AppColorsLight.splaceSecondary2],
-                    confirmTextColor: Colors.white,
-                    buttonSpacing: responsive.wp(3),
-                    buttonHeight: responsive.hp(6),
+                    padding: EdgeInsets.symmetric(vertical: responsive.hp(1)),
+                    child: DialogButtonRow(
+                      cancelText: 'Cancel',
+                      confirmText: 'Save',
+                      onCancel: () => Navigator.of(context).pop(false),
+                      onConfirm: _handleUpdate,
+                      isLoading: _isUpdating,
+                      cancelGradientColors: isDark
+                          ? [AppColors.containerDark, AppColors.containerLight]
+                          : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                      confirmGradientColors: isDark
+                          ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
+                          : [AppColorsLight.splaceSecondary1, AppColorsLight.splaceSecondary2],
+                      confirmTextColor: Colors.white,
+                      buttonSpacing: responsive.wp(3),
+                      buttonHeight: responsive.hp(6),
+                    ),
                   ),
-                ),]
+                ]
               ),
             ],
           ),

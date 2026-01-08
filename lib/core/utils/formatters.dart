@@ -83,6 +83,110 @@ class Formatters {
     return formattedAmount.replaceAll(',', '');
   }
 
+  /// Masks phone number showing only last 4 digits
+  ///
+  /// Examples:
+  /// - "+919876543210" → "+91 ******3210"
+  /// - "+1234567890" → "+1 ******7890"
+  /// - "9876543210" → "******3210"
+  static String formatMaskedPhone(String phoneNumber) {
+    if (phoneNumber.isEmpty) return phoneNumber;
+
+    // Remove any existing spaces
+    String cleanNumber = phoneNumber.replaceAll(' ', '');
+
+    // Check if it starts with + (country code)
+    if (cleanNumber.startsWith('+')) {
+      // Remove the + sign temporarily
+      String withoutPlus = cleanNumber.substring(1);
+
+      // Detect country code length
+      int countryCodeLength = 2; // Default to 2 (for +91, +44, etc.)
+
+      if (withoutPlus.startsWith('1') && withoutPlus.length == 11) {
+        countryCodeLength = 1;
+      } else if (withoutPlus.startsWith('91') && withoutPlus.length == 12) {
+        countryCodeLength = 2;
+      } else if (withoutPlus.startsWith('44') && withoutPlus.length >= 12) {
+        countryCodeLength = 2;
+      }
+
+      // Extract parts
+      if (withoutPlus.length > countryCodeLength + 4) {
+        String countryCode = '+' + withoutPlus.substring(0, countryCodeLength);
+        String number = withoutPlus.substring(countryCodeLength);
+
+        // Mask all except last 4 digits
+        String last4 = number.substring(number.length - 4);
+        String masked = '*' * (number.length - 4);
+
+        return '$countryCode $masked$last4';
+      }
+    } else {
+      // No country code - mask all except last 4 digits
+      if (cleanNumber.length > 4) {
+        String last4 = cleanNumber.substring(cleanNumber.length - 4);
+        String masked = '*' * (cleanNumber.length - 4);
+        return '$masked$last4';
+      }
+    }
+
+    return cleanNumber;
+  }
+
+  /// Formats phone number with space after country code
+  ///
+  /// Examples:
+  /// - "+919876543210" → "+91 9876543210"
+  /// - "+1234567890" → "+1 234567890"
+  /// - "+441234567890" → "+44 1234567890"
+  /// - "9876543210" → "9876543210" (no country code, returns as is)
+  static String formatPhoneWithCountryCode(String phoneNumber) {
+    if (phoneNumber.isEmpty) return phoneNumber;
+
+    // Remove any existing spaces
+    String cleanNumber = phoneNumber.replaceAll(' ', '');
+
+    // Check if it starts with + (country code)
+    if (cleanNumber.startsWith('+')) {
+      // Remove the + sign temporarily to work with digits only
+      String withoutPlus = cleanNumber.substring(1);
+
+      // Common country codes and their lengths (in digits, without +)
+      // +1 (USA/Canada) = 1 digit
+      // +44 (UK) = 2 digits
+      // +91 (India) = 2 digits
+      // +234 (Nigeria) = 3 digits
+
+      // Try to detect country code length (1-3 digits after +)
+      int countryCodeLength = 2; // Default to 2 (for +91, +44, etc.)
+
+      // Check for specific patterns
+      if (withoutPlus.startsWith('1') && withoutPlus.length == 11) {
+        // +1 followed by 10 digits (USA/Canada format)
+        countryCodeLength = 1;
+      } else if (withoutPlus.startsWith('91') && withoutPlus.length == 12) {
+        // +91 followed by 10 digits (India format)
+        countryCodeLength = 2;
+      } else if (withoutPlus.startsWith('44') && withoutPlus.length >= 12) {
+        // +44 (UK format)
+        countryCodeLength = 2;
+      } else if (withoutPlus.length > 10) {
+        // For other cases, assume 2-digit country code
+        countryCodeLength = 2;
+      }
+
+      // Format: +CC NNNNNNNNNN
+      if (withoutPlus.length > countryCodeLength) {
+        String countryCode = '+' + withoutPlus.substring(0, countryCodeLength);
+        String number = withoutPlus.substring(countryCodeLength);
+        return '$countryCode $number';
+      }
+    }
+
+    return cleanNumber;
+  }
+
   /// Validates if phone number is valid (10 digits)
   static bool isValidPhoneNumber(String phoneNumber) {
     final digitsOnly = extractPhoneNumber(phoneNumber);
@@ -98,14 +202,15 @@ class Formatters {
 
   // ==================== DATE & TIME FORMATTING ====================
 
-  /// Formats DateTime to time string (hh:mm a)
+  /// Formats DateTime to time string (HH:mm) - 24-hour format
   ///
   /// Examples:
-  /// - DateTime(2026, 1, 4, 14, 30) → "02:30 PM"
-  /// - DateTime(2026, 1, 4, 9, 15) → "09:15 AM"
+  /// - DateTime(2026, 1, 4, 14, 30) → "14:30"
+  /// - DateTime(2026, 1, 4, 9, 15) → "09:15"
+  /// - DateTime(2026, 1, 4, 13, 0) → "13:00"
   static String formatTime(DateTime dateTime) {
     final localTime = dateTime.toLocal();
-    final timeFormat = DateFormat('hh:mm a');
+    final timeFormat = DateFormat('HH:mm');
     return timeFormat.format(localTime);
   }
 
@@ -120,11 +225,11 @@ class Formatters {
     return dateFormat.format(localTime);
   }
 
-  /// Formats DateTime to combined date and time string (d MMM yyyy, hh:mm a)
+  /// Formats DateTime to combined date and time string (d MMM yyyy, HH:mm)
   ///
   /// Examples:
-  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026, 02:30 PM"
-  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025, 09:15 AM"
+  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026, 14:30"
+  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025, 09:15"
   /// - null → "No date available"
   static String formatTimeAndDate(DateTime? dateTime) {
     if (dateTime == null) {
@@ -137,11 +242,11 @@ class Formatters {
     return '$formattedDate, $formattedTime';
   }
 
-  /// Formats DateTime to date and time string (d MMM yyyy, hh:mm a)
+  /// Formats DateTime to date and time string (d MMM yyyy, HH:mm)
   ///
   /// Examples:
-  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026, 02:30 PM"
-  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025, 09:15 AM"
+  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026, 14:30"
+  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025, 09:15"
   /// - null → "No date available"
   static String formatDateAndTime(DateTime? dateTime) {
     if (dateTime == null) {
@@ -157,7 +262,7 @@ class Formatters {
   /// Formats string to DateTime and then to date and time
   ///
   /// Examples:
-  /// - "2026-01-04T14:30:00.000Z" → "4 Jan 2026, 02:30 PM"
+  /// - "2026-01-04T14:30:00.000Z" → "4 Jan 2026, 14:30"
   /// - "invalid" → "No date available"
   /// - null → "No date available"
   static String formatStringToTimeAndDate(String? dateTimeString) {
@@ -172,7 +277,7 @@ class Formatters {
   /// Formats string to DateTime and then to date and time
   ///
   /// Examples:
-  /// - "2026-01-04T14:30:00.000Z" → "4 Jan 2026, 02:30 PM"
+  /// - "2026-01-04T14:30:00.000Z" → "4 Jan 2026, 14:30"
   /// - "invalid" → "No date available"
   /// - null → "No date available"
   static String formatStringToDateAndTime(String? dateTimeString) {
@@ -195,11 +300,11 @@ class Formatters {
     return dateFormat.format(localTime);
   }
 
-  /// Formats DateTime to full format (d MMM yyyy 'at' hh:mm a)
+  /// Formats DateTime to full format (d MMM yyyy 'at' HH:mm)
   ///
   /// Examples:
-  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026 at 02:30 PM"
-  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025 at 09:15 AM"
+  /// - DateTime(2026, 1, 4, 14, 30) → "4 Jan 2026 at 14:30"
+  /// - DateTime(2025, 12, 25, 9, 15) → "25 Dec 2025 at 09:15"
   static String formatFullDateTime(DateTime? dateTime) {
     if (dateTime == null) {
       return 'No date available';
@@ -207,7 +312,7 @@ class Formatters {
 
     final localTime = dateTime.toLocal();
     final dateFormat = DateFormat('d MMM yyyy');
-    final timeFormat = DateFormat('hh:mm a');
+    final timeFormat = DateFormat('HH:mm');
     return '${dateFormat.format(localTime)} at ${timeFormat.format(localTime)}';
   }
 }

@@ -21,13 +21,17 @@ class AppRoutes {
   static const String recycleBin = '/recycle-bin';
   static const String securitySettings = '/security-settings';
   static const String policyTerms = '/policy-terms';
+  static const String aboutUs = '/about-us';
   static const String shareFile = '/share-file/:shareId';
   static const String shareDemo = '/share-demo/:shareId';
   static const String fileSharePreview = '/file-share-preview';
   static const String searchScreen = '/search-screen'; // 🔍 NEW: Dedicated search screen
+  static const String changeNumber = '/change-number'; // 📱 NEW: Change merchant number screen
+  static const String manageBusinesses = '/manage-businesses'; // 🏢 NEW: Manage businesses screen
   static const String addCustomer = '/add-customer';
   static const String customerForm = '/customer-form';
   static const String ledgerDetail = '/ledger-detail';
   static const String addTransaction = '/add-transaction';
   static const String ledgerDashboard = '/ledger-dashboard';
+  static const String customerStatement = '/customer-statement';
 }

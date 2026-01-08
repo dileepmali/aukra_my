@@ -8,6 +8,8 @@ import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import 'ledger_controller.dart';
 import '../presentations/widgets/dialogs/ledger_update_comparison_dialog.dart';
+import '../core/services/duplicate_prevention_service.dart';
+import '../core/utils/secure_logger.dart';
 
 class CustomerFormController extends GetxController {
   // Text controllers - for both ledger and merchant modes
@@ -367,6 +369,39 @@ class CustomerFormController extends GetxController {
       }
     }
 
+    // 🛡️ SECURITY: Duplicate ledger prevention (only for create mode)
+    if (!isEditMode) {
+      final duplicateKey = DuplicatePrevention.generateLedgerKey(
+        name: nameController.text.trim(),
+        mobileNumber: phone,
+      );
+
+      if (DuplicatePrevention.isPending(duplicateKey)) {
+        SecureLogger.warning('Duplicate ledger creation detected and prevented');
+        AdvancedErrorService.showError(
+          'Ledger creation already in progress. Please wait.',
+          severity: ErrorSeverity.medium,
+          category: ErrorCategory.validation,
+        );
+        return;
+      }
+
+      if (DuplicatePrevention.wasRecentlyCompleted(duplicateKey)) {
+        final timeSince = DuplicatePrevention.getTimeSinceCompleted(duplicateKey);
+        SecureLogger.warning('Recently completed ledger detected: ${timeSince?.inSeconds}s ago');
+
+        AdvancedErrorService.showError(
+          'This ledger was just created. Please check your customer list.',
+          severity: ErrorSeverity.medium,
+          category: ErrorCategory.validation,
+        );
+        return;
+      }
+
+      // Mark as pending
+      DuplicatePrevention.markPending(duplicateKey);
+    }
+
     try {
       // In edit mode, show comparison dialog first
       if (isEditMode && originalData != null) {
@@ -403,7 +438,12 @@ class CustomerFormController extends GetxController {
           'creditDay': creditDay,
           'creditLimit': creditLimit,
           'interestRate': interestRate,
+          'interestType': selectedInterestType.value,
+          'partyType': partyType ?? 'CUSTOMER',
           'openingBalance': openingBalance,
+          'currentBalance': openingBalance,
+          'transactionType': selectedTransactionType.value,
+          'merchantId': await AuthStorage.getMerchantId() ?? 0,
         };
 
         debugPrint('📊 Showing comparison dialog');
@@ -427,6 +467,7 @@ class CustomerFormController extends GetxController {
           context: context,
           oldData: originalData!,
           newData: newData,
+          ledgerId: ledgerId!,
         );
 
         // If user cancels, return
@@ -555,12 +596,22 @@ class CustomerFormController extends GetxController {
         debugPrint('⚠️ Could not refresh ledger controller: $e');
       }
     } catch (e) {
+      SecureLogger.error('Ledger submission error: $e');
       AdvancedErrorService.showError(
         e.toString().replaceAll('Exception: ', ''),
         severity: ErrorSeverity.high,
         category: ErrorCategory.network,
       );
     } finally {
+      // 🛡️ SECURITY: Remove from pending tracking (only for create mode)
+      if (!isEditMode) {
+        final phone = phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+        final duplicateKey = DuplicatePrevention.generateLedgerKey(
+          name: nameController.text.trim(),
+          mobileNumber: phone,
+        );
+        DuplicatePrevention.removePending(duplicateKey);
+      }
       isLoading.value = false;
     }
   }

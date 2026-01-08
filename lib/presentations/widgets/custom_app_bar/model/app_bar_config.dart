@@ -76,6 +76,9 @@ class AppBarConfig {
   final String? currentSortBy;
   final String? currentSortOrder;
 
+  // 🔥 NEW: Hide specific filters in bottom sheet
+  final List<String>? hideFilters; // ['Reminder', 'User'] to hide these options
+
   // ✅ Breadcrumb navigation for nested folders (Desktop)
   final List<String>? breadcrumbs;  // List of parent folder names
   final String? currentFolderName;  // Current folder name
@@ -154,6 +157,9 @@ class AppBarConfig {
     this.currentFilter,
     this.currentSortBy,
     this.currentSortOrder,
+
+    // Hide filters
+    this.hideFilters, // 🔥 NEW: Hide specific filters parameter
 
     // Breadcrumb navigation
     this.breadcrumbs,

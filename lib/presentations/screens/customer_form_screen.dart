@@ -37,7 +37,8 @@ class CustomerFormScreen extends StatelessWidget {
       switch (partyType?.toLowerCase()) {
         case 'supplier':
           return 'Add Supplier';
-        case 'Employee':
+        case 'employee':
+        case 'employer':
           return 'Add Employee';
         case 'customer':
         default:
@@ -407,7 +408,7 @@ class CustomerFormScreen extends StatelessWidget {
         color: isDark
             ? AppColors.white.withOpacity(0.7)
             : AppColorsLight.textSecondary,
-        fontSize: responsive.fontSize(16),
+        fontSize: responsive.fontSize(14),
         fontWeight: FontWeight.w400,
         letterSpacing: 1.0,
       ),

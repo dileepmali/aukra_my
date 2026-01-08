@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'auth_storage.dart';
+import '../utils/secure_logger.dart';
 
 class ApiFetcher extends ChangeNotifier {
   bool isLoading = false;
@@ -28,13 +29,15 @@ class ApiFetcher extends ChangeNotifier {
     notifyListeners();
 
     final fullUrl = '$baseUri$url';
-    
-    // 🔍 Enhanced Network Logging
-    print('\n🌐 ===== API REQUEST START =====');
-    print('📍 URL: $fullUrl');
-    print('🔄 Method: $method');
-    print('⏰ Timeout: ${timeout.inSeconds}s');
-    print('🔐 Requires Auth: $requireAuth');
+
+    // 🔍 Enhanced Network Logging (Only in debug mode)
+    if (kDebugMode) {
+      SecureLogger.divider('API REQUEST');
+      SecureLogger.info('URL: $fullUrl');
+      SecureLogger.info('Method: $method');
+      SecureLogger.info('Timeout: ${timeout.inSeconds}s');
+      SecureLogger.info('Requires Auth: $requireAuth');
+    }
 
     try {
       String? token;
@@ -42,15 +45,14 @@ class ApiFetcher extends ChangeNotifier {
       if (requireAuth) {
         token = await AuthStorage.getValidToken();
         if (token == null) {
-          print('❌ AUTH FAILED: No valid token found');
+          SecureLogger.error('AUTH FAILED: No valid token found');
           errorMessage = "Authentication required. Please login.";
           data = null;
           isLoading = false;
           notifyListeners();
-          print('🌐 ===== API REQUEST END (AUTH FAILED) =====\n');
           return;
         }
-        print('🔑 Auth Token: ${token.substring(0, 20)}...');
+        SecureLogger.log('Auth Token: ${token.substring(0, 20)}...', sensitive: true);
       }
 
       // Merge headers safely with device info
@@ -65,9 +67,11 @@ class ApiFetcher extends ChangeNotifier {
         ...?headers,
       };
       
-      print('📋 Headers: $requestHeaders');
-      if (body != null) {
-        print('📦 Body: $body');
+      if (kDebugMode) {
+        SecureLogger.log('Headers: $requestHeaders', sensitive: true);
+        if (body != null) {
+          SecureLogger.info('Body: $body');
+        }
       }
 
       late http.Response response;
@@ -103,57 +107,60 @@ class ApiFetcher extends ChangeNotifier {
                   .timeout(timeout);
       }
 
-      // 📊 Response Logging
-      print('📈 Status Code: ${response.statusCode}');
-      print('📄 Response Body: ${response.body}');
+      // 📊 Response Logging (Only in debug mode)
+      if (kDebugMode) {
+        SecureLogger.apiResponse(
+          statusCode: response.statusCode,
+          url: fullUrl,
+          body: response.body,
+        );
+      }
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         data = _tryDecode(response.body);
-        print('✅ SUCCESS: Data parsed successfully');
+        SecureLogger.success('Data parsed successfully');
 
         // Save token automatically if returned
         if (data is Map && data["token"] != null) {
-          print('🔑 Token received from API: ${data["token"]}');
+          SecureLogger.log('Token received from API', sensitive: true);
           await AuthStorage.saveToken(data["token"]);
-        } else {
-          print('⚠️ No token found in API response');
-          if (data is Map) {
-            print('🔍 Response data keys: ${data.keys.toList()}');
-          }
         }
       } else {
         // Parse error response body for better error messages
         final errorBody = _tryDecode(response.body);
         String errorMsg = "Server Error: ${response.statusCode}";
-        
+
         if (errorBody is Map && errorBody['message'] != null) {
           errorMsg = errorBody['message'];
         } else if (response.reasonPhrase != null) {
           errorMsg += " → ${response.reasonPhrase}";
         }
-        
-        print('❌ ERROR: $errorMsg');
-        print('📄 Error Body: $errorBody');
-        
+
+        SecureLogger.error('API Error: $errorMsg');
+
         errorMessage = errorMsg;
         data = errorBody; // Keep error data for detailed error handling
       }
     } on SocketException {
       errorMessage = "No Internet Connection";
       data = null;
-      print('❌ SOCKET EXCEPTION: No internet connection detected');
+      SecureLogger.error('SOCKET EXCEPTION: No internet connection');
     } on FormatException {
       errorMessage = "Invalid Response Format";
       data = null;
+      SecureLogger.error('FORMAT EXCEPTION: Invalid response format');
     } on HttpException {
       errorMessage = "Bad HTTP Response";
       data = null;
+      SecureLogger.error('HTTP EXCEPTION: Bad response');
     } on TimeoutException {
       errorMessage = "Request Timed Out";
       data = null;
+      SecureLogger.error('TIMEOUT: Request took too long');
     } catch (e) {
       errorMessage = "Unexpected Error: $e";
       data = null;
+      SecureLogger.error('UNEXPECTED ERROR: $e');
     }
 
     isLoading = false;

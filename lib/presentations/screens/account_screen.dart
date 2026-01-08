@@ -360,7 +360,36 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   void _navigateToLedger(int tabIndex) {
-    // Navigate to ledger screen with specific tab
-    Get.toNamed('/ledger', arguments: {'initialTab': tabIndex});
+    // Navigate to customer statement screen with specific party type
+    String partyType;
+    String partyTypeLabel;
+
+    switch (tabIndex) {
+      case 0: // Customers
+        partyType = 'CUSTOMER';
+        partyTypeLabel = 'Customer';
+        break;
+      case 1: // Suppliers
+        partyType = 'SUPPLIER';
+        partyTypeLabel = 'Supplier';
+        break;
+      case 2: // Employees
+        partyType = 'EMPLOYEE';
+        partyTypeLabel = 'Employee';
+        break;
+      default:
+        partyType = 'CUSTOMER';
+        partyTypeLabel = 'Customer';
+    }
+
+    Get.toNamed('/customer-statement', arguments: {
+      'partyType': partyType,
+      'partyTypeLabel': partyTypeLabel,
+    });
   }
+
+  // void _navigateToLedger(int tabIndex) {
+  //   // Navigate to ledger screen with specific tab
+  //   Get.toNamed('/ledger', arguments: {'initialTab': tabIndex});
+  // }
 }

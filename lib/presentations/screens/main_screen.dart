@@ -15,6 +15,7 @@ import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../widgets/custom_single_border_color.dart';
+import '../widgets/dialogs/exit_confirmation_dialog.dart';
 import '../../buttons/custom_floating_button.dart';
 import '../routes/app_routes.dart';
 import '../../controllers/ledger_controller.dart';
@@ -31,7 +32,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  int _ledgerTabIndex = 0; // Track Ledger screen's internal tab (0=Customers, 1=Suppliers, 2=Employers)
+  int _ledgerTabIndex = 0; // Track Ledger screen's internal tab (0=Customers, 1=Suppliers, 2=Employees)
 
   // Tab screens
   late final List<Widget> _screens;
@@ -69,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
         case 1:
           return 'suppliers';
         case 2:
-          return 'employers';
+          return 'employees';
         default:
           return 'customers';
       }
@@ -88,28 +89,8 @@ class _MainScreenState extends State<MainScreen> {
         if (didPop) return;
 
         if (_selectedIndex == 0) {
-          // On first tab - show exit confirmation
-          final shouldExit = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text('Exit App'),
-              content: Text('Do you want to exit the app?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text('Exit'),
-                ),
-              ],
-            ),
-          );
-
-          if (shouldExit == true) {
-            SystemNavigator.pop();
-          }
+          // On first tab - show custom exit confirmation dialog
+          showExitConfirmationDialog(context);
         } else {
           // On other tabs - go back to first tab
           setState(() {
@@ -155,7 +136,7 @@ class _MainScreenState extends State<MainScreen> {
                           partyType = 'supplier';
                           break;
                         case 2:
-                          partyType = 'employer';
+                          partyType = 'employee';
                           break;
                       }
 

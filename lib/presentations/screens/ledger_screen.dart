@@ -149,9 +149,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
         searchController: _searchController,
         searchHint: 'Search ledger...',
         onSearchChanged: _handleSearchChanged,
+        onSearchTap: () {
+          debugPrint('🔍 Navigating to search screen...');
+          Get.toNamed('/search-screen');
+        },
         isGridView: _isGridView,
         onViewToggle: _handleViewToggle,
-        enableSearchInput: true,
+        enableSearchInput: false,
         showViewToggle: false,
         onFiltersApplied: _handleFiltersApplied,
         currentFilter: _currentFilter,
@@ -197,7 +201,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
   }
 
   Widget _buildTabBar(AdvancedResponsiveHelper responsive, bool isDark) {
-    final tabs = ['Customers', 'Suppliers', 'Employers'];
+    final tabs = ['Customers', 'Suppliers', 'Employees'];
 
     return Stack(
       children: [
@@ -335,7 +339,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       // Convert UTC to local time
                       final localTime = displayDate.toLocal();
                       final dateFormat = DateFormat('d MMM yyyy');
-                      final timeFormat = DateFormat('hh:mm a');
+                      final timeFormat = DateFormat('HH:mm');
                       final formattedDate = dateFormat.format(localTime);
                       final formattedTime = timeFormat.format(localTime);
                       subtitle = '$formattedDate, $formattedTime';
@@ -453,7 +457,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       // Convert UTC to local time
                       final localTime = displayDate.toLocal();
                       final dateFormat = DateFormat('d MMM yyyy');
-                      final timeFormat = DateFormat('hh:mm a');
+                      final timeFormat = DateFormat('HH:mm');
                       final formattedDate = dateFormat.format(localTime);
                       final formattedTime = timeFormat.format(localTime);
                       subtitle = '$formattedDate, $formattedTime';
@@ -568,7 +572,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       // Convert UTC to local time
                       final localTime = displayDate.toLocal();
                       final dateFormat = DateFormat('d MMM yyyy');
-                      final timeFormat = DateFormat('hh:mm a');
+                      final timeFormat = DateFormat('HH:mm');
                       final formattedDate = dateFormat.format(localTime);
                       final formattedTime = timeFormat.format(localTime);
                       subtitle = '$formattedDate, $formattedTime';
