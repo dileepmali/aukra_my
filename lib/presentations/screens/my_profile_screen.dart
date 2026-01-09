@@ -20,10 +20,12 @@ import '../widgets/custom_border_widget.dart';
 import '../widgets/custom_single_border_color.dart';
 import '../widgets/list_item_widget.dart';
 import '../widgets/dialogs/logout_confirmation_dialog.dart';
+import '../widgets/dialogs/edit_profile_name_dialog.dart';
 import '../language/select_language_screen.dart'; // ✅ NEW: Import SelectLanguageScreen
 import 'manage_businesses_screen.dart';
 import 'policy_terms_screen.dart';
 import 'about_us_screen.dart';
+import 'security_settings_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -48,6 +50,19 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     } catch (e) {
       debugPrint('⚠️ LocalizationController not found: $e');
     }
+    _loadMerchantData();
+
+    // ✅ Listen for when screen comes back into view (after navigation)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Auto-refresh when returning from other screens
+      debugPrint('👀 Profile screen initialized - ready to receive updates');
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // ✅ Reload data when screen is visible again (e.g., after pop from manage business)
     _loadMerchantData();
   }
 
@@ -253,9 +268,22 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
               // Right side - Edit Icon
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   debugPrint('✏️ Edit profile tapped');
-                  // TODO: Navigate to edit profile screen
+                  // Show edit profile name dialog
+                  final newName = await EditProfileNameDialog.show(
+                    context: context,
+                    currentName: _merchantName,
+                  );
+
+                  if (newName != null && newName.isNotEmpty) {
+                    debugPrint('✅ New name entered: $newName');
+                    setState(() {
+                      _merchantName = newName;
+                    });
+                    // TODO: Save to backend/storage
+                    // await AuthStorage.updateMerchantName(newName);
+                  }
                 },
                 child: Container(
                   padding: EdgeInsets.all(responsive.wp(2)),
@@ -305,7 +333,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'icon': AppIcons.lockIc,
         'title': 'Security',
         'subtitle': 'Set pin,biometric,activities & more',
-        'onTap': () => debugPrint('Security & Privacy tapped'),
+        'onTap': () {
+          debugPrint('🔒 Navigating to security settings screen...');
+          Get.to(() => const SecuritySettingsScreen());
+        },
       },
       {
         'icon': AppIcons.translateIc,

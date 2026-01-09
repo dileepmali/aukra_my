@@ -86,67 +86,90 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
           );
         }
 
-        return Column(
-          children: [
-            // Business Stats Cards
-            _buildStatsCards(responsive, isDark),
+        return RefreshIndicator(
+          color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+          backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+          onRefresh: _controller.fetchMerchants,
+          child: CustomScrollView(
+            slivers: [
+              // Business Stats Cards (Non-scrollable)
+              SliverToBoxAdapter(
+                child: _buildStatsCards(responsive, isDark),
+              ),
 
-            // Search Bar
-            _buildSearchBar(responsive, isDark),
+              // Search Bar (Non-scrollable)
+              SliverToBoxAdapter(
+                child: _buildSearchBar(responsive, isDark),
+              ),
 
-            // Business Lists
-            Expanded(
-              child: _controller.filteredMerchants.isEmpty
-                  ? Center(
-                      child: AppText.custom(
-                        'No businesses found',
-                        style: TextStyle(
-                          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                          fontSize: responsive.fontSize(16),
+              // Business Lists (Scrollable)
+              _controller.filteredMerchants.isEmpty
+                  ? SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: AppText.custom(
+                          'No businesses found',
+                          style: TextStyle(
+                            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                            fontSize: responsive.fontSize(16),
+                          ),
                         ),
                       ),
                     )
-                  : RefreshIndicator(
-                      color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                      backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
-                      onRefresh: _controller.fetchMerchants,
-                      child: ListView.builder(
-                        padding: EdgeInsets.all(responsive.wp(4)),
-                        itemCount: _controller.filteredMerchants.length + 2, // +2 for header and bottom spacing
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            // All Businesses Section Header
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AppText.custom(
-                                  'All Businesses',
-                                  style: TextStyle(
-                                    color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                                    fontSize: responsive.fontSize(14),
-                                    fontWeight: FontWeight.w500,
+                  : SliverPadding(
+                      padding: EdgeInsets.all(responsive.wp(4)),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == 0) {
+                              // All Businesses Section Header
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppText.custom(
+                                    'All Businesses',
+                                    style: TextStyle(
+                                      color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                                      fontSize: responsive.fontSize(14),
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: responsive.hp(1)),
-                              ],
-                            );
-                          } else if (index == _controller.filteredMerchants.length + 1) {
-                            // Bottom spacing
-                            return SizedBox(height: responsive.hp(10));
-                          } else {
-                            // Business Card
-                            final merchant = _controller.filteredMerchants[index - 1];
-                            return _buildBusinessCard(
-                              merchant: merchant,
-                              responsive: responsive,
-                              isDark: isDark,
-                            );
-                          }
-                        },
+                                  SizedBox(height: responsive.hp(1)),
+                                ],
+                              );
+                            } else if (index == _controller.filteredMerchants.length + 1) {
+                              // Bottom spacing
+                              return SizedBox(height: responsive.hp(10));
+                            } else {
+                              // Business Card
+                              final merchant = _controller.filteredMerchants[index - 1];
+                              return Column(
+                                children: [
+                                  _buildBusinessCard(
+                                    merchant: merchant,
+                                    responsive: responsive,
+                                    isDark: isDark,
+                                  ),
+                                  if (index < _controller.filteredMerchants.length)
+                                    Divider(
+                                      color: isDark
+                                          ? AppColors.white.withOpacity(0.1)
+                                          : AppColorsLight.textSecondary.withOpacity(0.1),
+                                      height: 1,
+                                      thickness: 1,
+                                      endIndent: responsive.wp(2),
+                                      indent: responsive.wp(2),
+                                    ),
+                                ],
+                              );
+                            }
+                          },
+                          childCount: _controller.filteredMerchants.length + 2, // +2 for header and bottom spacing
+                        ),
                       ),
                     ),
-            ),
-          ],
+            ],
+          ),
         );
       }),
       floatingActionButton: CustomFloatingActionButton(
@@ -176,7 +199,7 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
         padding: EdgeInsets.all(responsive.wp(4)),
         child: Row(
           children: [
-            // Active Businesses Card
+            // Total Businesses Card
             Expanded(
               child: Container(
                 padding: EdgeInsets.all(responsive.wp(4)),
@@ -203,7 +226,7 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                     ),
                     SizedBox(height: responsive.hp(0.2)),
                     Obx(() => AppText.custom(
-                      '${_controller.mainAccountCount}',
+                      '${_controller.totalCount}',
                       style: TextStyle(
                         color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                         fontSize: responsive.fontSize(32),
@@ -217,7 +240,7 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
 
             SizedBox(width: responsive.wp(2)),
 
-            // Inactive Businesses Card
+            // Other Accounts Card
             Expanded(
               child: Container(
                 padding: EdgeInsets.all(responsive.wp(4)),
@@ -294,7 +317,6 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
     required bool isDark,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: responsive.hp(1)),
       decoration: BoxDecoration(
         color: isDark ? AppColors.containerLight : AppColorsLight.white,
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
@@ -302,11 +324,15 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
+          onTap: () async {
             debugPrint('🏢 Business tapped: ${merchant.businessName} (ID: ${merchant.merchantId})');
+
+            // Note: MerchantListModel doesn't have address field
+            // BusinessDetailScreen will load address from storage on init
             Get.to(() => BusinessDetailScreen(
               merchantId: merchant.merchantId,
               businessName: merchant.businessName,
+              // address will be loaded from AuthStorage in BusinessDetailScreen
             ));
           },
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),

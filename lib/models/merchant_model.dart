@@ -27,7 +27,7 @@ class MerchantModel {
     this.otp,
   });
 
-  // Convert model to JSON for API request
+  // Convert model to JSON for API request (POST - Create merchant)
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {
       'merchantName': merchantName,
@@ -56,6 +56,51 @@ class MerchantModel {
     // When mobileNumber != masterMobileNumber, otp will be the verified OTP (send it)
     if (otp != null && otp!.isNotEmpty) {
       data['otp'] = otp;
+    }
+
+    return data;
+  }
+
+  // Convert model to JSON for PUT API request (Update merchant)
+  // ✅ All fields are optional - user can update only what they want
+  Map<String, dynamic> toUpdateJson() {
+    final Map<String, dynamic> data = {};
+
+    // Add businessName (required for update)
+    if (businessName.isNotEmpty) {
+      data['businessName'] = businessName;
+    }
+
+    // Add address (required for update)
+    if (address.isNotEmpty) {
+      data['address'] = address;
+    }
+
+    // Add country (required for update)
+    if (country.isNotEmpty) {
+      data['country'] = country;
+    }
+
+    // ✅ Optional fields - only add if provided and not empty
+    if (city.isNotEmpty) {
+      data['city'] = city;
+    }
+
+    if (area.isNotEmpty) {
+      data['area'] = area;
+    }
+
+    if (state.isNotEmpty) {
+      data['state'] = state;
+    }
+
+    if (pinCode.isNotEmpty) {
+      data['pinCode'] = pinCode;
+    }
+
+    // ✅ Optional location - only add if provided
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
 
     return data;

@@ -22,6 +22,8 @@ class PinVerificationDialog {
     String? maskedPhoneNumber,
     bool requireOtp = false,
     String? confirmButtonText,
+    bool showWarning = false, // ✅ Show warning container
+    String? warningText, // ✅ Custom warning text
     Color? titleColor,
     Color? subtitleColor,
     List<Color>? confirmGradientColors,
@@ -36,6 +38,8 @@ class PinVerificationDialog {
         maskedPhoneNumber: maskedPhoneNumber,
         requireOtp: requireOtp,
         confirmButtonText: confirmButtonText,
+        showWarning: showWarning,
+        warningText: warningText,
         titleColor: titleColor,
         subtitleColor: subtitleColor,
         confirmGradientColors: confirmGradientColors,
@@ -51,6 +55,8 @@ class _PinVerificationDialogContent extends StatefulWidget {
   final String? maskedPhoneNumber;
   final bool requireOtp;
   final String? confirmButtonText;
+  final bool showWarning;
+  final String? warningText;
   final Color? titleColor;
   final Color? subtitleColor;
   final List<Color>? confirmGradientColors;
@@ -62,6 +68,8 @@ class _PinVerificationDialogContent extends StatefulWidget {
     this.maskedPhoneNumber,
     this.requireOtp = false,
     this.confirmButtonText,
+    this.showWarning = false,
+    this.warningText,
     this.titleColor,
     this.subtitleColor,
     this.confirmGradientColors,
@@ -188,9 +196,11 @@ class _PinVerificationDialogContentState
       // OTP validated - now show mobile number dialog
       final mobileNumber = await MobileNumberDialog.show(
         context: context,
-        title: 'Enter New Mobile Number',
+        title: 'New master mobile number',
         subtitle: 'Enter your new 10-digit mobile number',
-        confirmButtonText: 'Confirm',
+        confirmButtonText: 'Next',
+        showWarning: true, // ✅ Always show warning in mobile number dialog
+        warningText: widget.warningText, // ✅ Pass warning text
       );
 
       // If mobile number is entered, return all data
@@ -302,7 +312,7 @@ class _PinVerificationDialogContentState
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: isDark
-                          ? [AppColors.containerDark, AppColors.containerLight]
+                          ? [AppColors.black, AppColors.black]
                           : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -334,6 +344,38 @@ class _PinVerificationDialogContentState
                       decoration: _canResend ? TextDecoration.underline : null,
                     ),
                     textAlign: TextAlign.start,
+                  ),
+                ),
+              ],
+
+              // ✅ Warning Container (Show in OTP step, hide in PIN step)
+              if (_isOtpStep && widget.warningText != null) ...[
+                SizedBox(height: responsive.hp(2)),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    vertical: responsive.hp(1.5),
+                    horizontal: responsive.wp(4),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.red800,
+                        AppColors.red500,
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                  ),
+                  child: AppText.custom(
+                    widget.warningText!,
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: responsive.fontSize(13),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.start,
+                    maxLines: 4,
                   ),
                 ),
               ],

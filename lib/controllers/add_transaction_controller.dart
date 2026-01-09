@@ -85,6 +85,12 @@ class AddTransactionController extends GetxController {
       debugPrint('🔧 Initialized in EDIT mode');
       debugPrint('   - Transaction ID: $transactionId');
     } else {
+      // ✅ In ADD mode, check for defaultTransactionType argument
+      final defaultType = args?['defaultTransactionType'] as String?;
+      if (defaultType != null && (defaultType == 'IN' || defaultType == 'OUT')) {
+        selectedType.value = defaultType;
+        debugPrint('🔧 Pre-selected transaction type: $defaultType');
+      }
       debugPrint('🔧 Initialized in ADD mode');
     }
 

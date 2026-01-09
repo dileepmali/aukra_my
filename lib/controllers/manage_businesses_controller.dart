@@ -33,6 +33,15 @@ class ManageBusinessesController extends GetxController {
       filteredMerchants.value = merchants;
 
       debugPrint('✅ Loaded ${merchants.length} merchants');
+      debugPrint('📊 Business Counts:');
+      debugPrint('   - Main Account Count: $mainAccountCount');
+      debugPrint('   - Other Accounts Count: $otherAccountsCount');
+      debugPrint('   - Total Count: $totalCount');
+
+      // Log each merchant's isMainAccount status
+      for (var merchant in merchants) {
+        debugPrint('   📌 ${merchant.businessName}: isMainAccount=${merchant.isMainAccount}');
+      }
     } catch (e) {
       debugPrint('❌ Error fetching merchants: $e');
       AdvancedErrorService.showError(
