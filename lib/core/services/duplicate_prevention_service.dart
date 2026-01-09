@@ -32,8 +32,8 @@ class DuplicatePrevention {
   /// Set of recently completed transactions (for short-term duplicate detection)
   static final Map<String, DateTime> _recentTransactions = {};
 
-  /// How long to remember completed transactions (default: 5 minutes)
-  static const Duration _rememberedDuration = Duration(minutes: 5);
+  /// How long to remember completed transactions (default: 30 seconds)
+  static const Duration _rememberedDuration = Duration(seconds: 30);
 
   /// Check if a transaction is currently pending
   ///

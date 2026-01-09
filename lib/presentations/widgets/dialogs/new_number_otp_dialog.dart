@@ -20,6 +20,7 @@ class NewNumberOtpDialog {
     String title = 'Verify New Number',
     String? subtitle,
     String? confirmButtonText,
+    String? warningText, // ✅ Custom warning text
     Color? titleColor,
     Color? subtitleColor,
     List<Color>? confirmGradientColors,
@@ -33,6 +34,7 @@ class NewNumberOtpDialog {
         title: title,
         subtitle: subtitle,
         confirmButtonText: confirmButtonText,
+        warningText: warningText,
         titleColor: titleColor,
         subtitleColor: subtitleColor,
         confirmGradientColors: confirmGradientColors,
@@ -47,6 +49,7 @@ class _NewNumberOtpDialogContent extends StatefulWidget {
   final String title;
   final String? subtitle;
   final String? confirmButtonText;
+  final String? warningText;
   final Color? titleColor;
   final Color? subtitleColor;
   final List<Color>? confirmGradientColors;
@@ -57,6 +60,7 @@ class _NewNumberOtpDialogContent extends StatefulWidget {
     required this.title,
     this.subtitle,
     this.confirmButtonText,
+    this.warningText,
     this.titleColor,
     this.subtitleColor,
     this.confirmGradientColors,
@@ -300,35 +304,37 @@ class _NewNumberOtpDialogContentState
                   ),
                 ),
 
-                // Warning Container
-                SizedBox(height: responsive.hp(2)),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: responsive.hp(1.5),
-                    horizontal: responsive.wp(4),
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.red800,
-                        AppColors.red500,
-                      ],
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
+                // ✅ Warning Container (Only show if warningText is provided)
+                if (widget.warningText != null) ...[
+                  SizedBox(height: responsive.hp(2)),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: responsive.hp(1.5),
+                      horizontal: responsive.wp(4),
                     ),
-                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-                  ),
-                  child: AppText.custom(
-                    'You will be signed out from current device & all other devices.',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: responsive.fontSize(14),
-                      fontWeight: FontWeight.w500,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.red800,
+                          AppColors.red500,
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                     ),
-                    textAlign: TextAlign.start,
-                    maxLines: 2,
+                    child: AppText.custom(
+                      widget.warningText!,
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: responsive.fontSize(13),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.start,
+                      maxLines: 4,
+                    ),
                   ),
-                ),
+                ],
 
                 // Error message
                 if (errorMessage != null) ...[

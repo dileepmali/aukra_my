@@ -8,6 +8,8 @@ import '../core/untils/error_types.dart';
 import '../models/merchant_model.dart';
 import '../core/services/duplicate_prevention_service.dart';
 import '../core/utils/secure_logger.dart';
+import 'manage_businesses_controller.dart';
+import 'ledger_controller.dart';
 
 class ShopDetailController extends GetxController {
   final RxBool isLoading = false.obs;
@@ -548,6 +550,158 @@ class ShopDetailController extends GetxController {
     }
   }
 
+  /// Update merchant details - PUT /api/merchant/{merchantId}
+  Future<bool> updateMerchantDetails(MerchantModel merchant) async {
+    // 🛡️ SECURITY: Duplicate merchant update prevention
+    final duplicateKey = DuplicatePrevention.generateKey(
+      operation: 'update_merchant',
+      params: {
+        'businessName': merchant.businessName,
+        'address': merchant.address,
+      },
+    );
+
+    if (DuplicatePrevention.isPending(duplicateKey)) {
+      SecureLogger.warning('Duplicate merchant update detected and prevented');
+      AdvancedErrorService.showError(
+        'Merchant update already in progress. Please wait.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.validation,
+      );
+      return false;
+    }
+
+    if (DuplicatePrevention.wasRecentlyCompleted(duplicateKey)) {
+      final timeSince = DuplicatePrevention.getTimeSinceCompleted(duplicateKey);
+      SecureLogger.warning('Recently completed merchant update detected: ${timeSince?.inSeconds}s ago');
+
+      AdvancedErrorService.showError(
+        'Merchant details were just updated. Please wait a moment.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.validation,
+      );
+      return false;
+    }
+
+    // Mark as pending
+    DuplicatePrevention.markPending(duplicateKey);
+
+    try {
+      isLoading.value = true;
+      SecureLogger.divider('UPDATE MERCHANT');
+      SecureLogger.info('Updating merchant details...');
+
+      // Get merchant ID from storage
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found. Please register first.');
+      }
+
+      SecureLogger.info('Merchant ID: $merchantId');
+
+      // Prepare update payload using toUpdateJson()
+      final payload = merchant.toUpdateJson();
+
+      debugPrint('');
+      debugPrint('📡 ========== UPDATE API PAYLOAD ==========');
+      debugPrint('🆔 Merchant ID: $merchantId');
+      debugPrint('📦 Payload: ${payload.toString()}');
+      debugPrint('📋 Fields to update: ${payload.keys.toList()}');
+      payload.forEach((key, value) {
+        debugPrint('   [$key] = "$value" (${value.runtimeType})');
+      });
+      debugPrint('==========================================');
+      debugPrint('');
+
+      // Verify token exists
+      final token = await AuthStorage.getValidToken();
+      if (token == null) {
+        throw Exception('Authentication token missing or expired');
+      }
+
+      // Make PUT API call
+      debugPrint('📡 Calling PUT api/merchant/$merchantId...');
+      await _apiFetcher.request(
+        url: 'api/merchant/$merchantId',
+        method: 'PUT',
+        body: payload,
+        requireAuth: true,
+      );
+
+      debugPrint('📥 API Response: ${_apiFetcher.data}');
+      debugPrint('❌ API Error: ${_apiFetcher.errorMessage}');
+
+      if (_apiFetcher.errorMessage == null && _apiFetcher.data != null) {
+        debugPrint('✅ Merchant details updated successfully');
+
+        // Update storage with new data from response
+        if (_apiFetcher.data is Map) {
+          final responseData = _apiFetcher.data;
+
+          // Update businessName if returned
+          if (responseData['businessName'] != null) {
+            await AuthStorage.saveBusinessName(responseData['businessName'].toString());
+          } else if (merchant.businessName.isNotEmpty) {
+            await AuthStorage.saveBusinessName(merchant.businessName);
+          }
+
+          // Update address if returned
+          if (responseData['address'] != null) {
+            await AuthStorage.saveMerchantAddress(responseData['address'].toString());
+          } else if (merchant.address.isNotEmpty) {
+            await AuthStorage.saveMerchantAddress(merchant.address);
+          }
+
+          // Update pinCode if returned
+          if (responseData['pinCode'] != null && responseData['pinCode'].toString().isNotEmpty) {
+            await AuthStorage.saveMerchantPinCode(responseData['pinCode'].toString());
+          } else if (merchant.pinCode.isNotEmpty) {
+            await AuthStorage.saveMerchantPinCode(merchant.pinCode);
+          }
+
+          debugPrint('');
+          debugPrint('✅ ========== MERCHANT DATA UPDATED ==========');
+          debugPrint('   businessName: ${responseData['businessName'] ?? merchant.businessName}');
+          debugPrint('   address: ${responseData['address'] ?? merchant.address}');
+          debugPrint('   city: ${merchant.city}');
+          debugPrint('   area: ${merchant.area}');
+          debugPrint('   state: ${merchant.state}');
+          debugPrint('   pinCode: ${responseData['pinCode'] ?? merchant.pinCode}');
+          debugPrint('✅ Storage updated successfully!');
+          debugPrint('==============================================');
+          debugPrint('');
+        }
+
+        AdvancedErrorService.showSuccess(
+          'Merchant details updated successfully',
+          type: SuccessType.snackbar,
+        );
+
+        // ✅ CRITICAL: Notify other screens to refresh their data
+        _notifyMerchantDataUpdated();
+
+        // Mark as completed (removePending automatically adds to recent transactions)
+        DuplicatePrevention.removePending(duplicateKey);
+        return true;
+      } else {
+        String errorMessage = _apiFetcher.errorMessage ?? 'Failed to update merchant details';
+        debugPrint('❌ Update failed: $errorMessage');
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating merchant details: $e');
+      AdvancedErrorService.showError(
+        'Failed to update merchant details: $e',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.network,
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
+      DuplicatePrevention.removePending(duplicateKey);
+    }
+  }
+
   /// Fetch existing merchant data - Storage first, then GET api/merchant fallback
   Future<void> _fetchExistingMerchant() async {
     try {
@@ -685,6 +839,113 @@ class ShopDetailController extends GetxController {
     } catch (e) {
       debugPrint('❌ Error fetching existing merchant: $e');
       // Don't throw - this is a fallback, merchant already exists anyway
+    }
+  }
+
+  /// Notify all screens that merchant data has been updated
+  /// This triggers refresh on ProfileScreen, ManageBusinessScreen, etc.
+  void _notifyMerchantDataUpdated() {
+    debugPrint('');
+    debugPrint('🔔 ========== NOTIFYING DATA UPDATE ==========');
+
+    try {
+      // ✅ Try to refresh ManageBusinessesController if it exists
+      if (Get.isRegistered<ManageBusinessesController>()) {
+        final businessController = Get.find<ManageBusinessesController>();
+        debugPrint('   ✅ Refreshing ManageBusinessesController...');
+        businessController.fetchMerchants();
+      } else {
+        debugPrint('   ⚠️ ManageBusinessesController not registered');
+      }
+    } catch (e) {
+      debugPrint('   ⚠️ Could not refresh ManageBusinessesController: $e');
+    }
+
+    // ✅ NEW: Refresh LedgerController to update business name in app bar
+    try {
+      if (Get.isRegistered<LedgerController>()) {
+        final ledgerController = Get.find<LedgerController>();
+        debugPrint('   ✅ Refreshing LedgerController...');
+        ledgerController.fetchMerchantDetails();
+      } else {
+        debugPrint('   ⚠️ LedgerController not registered');
+      }
+    } catch (e) {
+      debugPrint('   ⚠️ Could not refresh LedgerController: $e');
+    }
+
+    // ✅ Broadcast update event for any listening screens
+    // This allows ProfileScreen to rebuild using Get.find pattern
+    debugPrint('   📡 Broadcasting merchant_data_updated event...');
+
+    debugPrint('✅ All screens notified of data update');
+    debugPrint('==============================================');
+    debugPrint('');
+  }
+
+  /// Helper method to update merchant details from UI screens
+  /// Takes businessName or address (or both) and calls PUT API
+  Future<bool> updateMerchantFromScreen({
+    String? businessName,
+    String? address,
+  }) async {
+    try {
+      debugPrint('');
+      debugPrint('🔄 ========== UPDATING MERCHANT FROM SCREEN ==========');
+
+      // Load current merchant data from storage
+      final merchantData = await AuthStorage.getMerchantData();
+      final phone = await AuthStorage.getPhoneNumber();
+
+      if (merchantData == null || phone == null) {
+        debugPrint('❌ No merchant data found in storage');
+        AdvancedErrorService.showError(
+          'Merchant data not found. Please login again.',
+          severity: ErrorSeverity.high,
+          category: ErrorCategory.validation,
+        );
+        return false;
+      }
+
+      // Create updated merchant model with new values
+      final updatedMerchant = MerchantModel(
+        merchantName: merchantData['merchantName']?.toString() ?? '',
+        businessName: businessName ?? merchantData['businessName']?.toString() ?? '',
+        mobileNumber: phone,
+        address: address ?? merchantData['address']?.toString() ?? '',
+        city: merchantData['city']?.toString() ?? '',
+        area: merchantData['area']?.toString() ?? '',
+        state: merchantData['state']?.toString() ?? '',
+        country: merchantData['country']?.toString() ?? 'INDIA',
+        pinCode: merchantData['pinCode']?.toString() ?? '',
+        masterMobileNumber: merchantData['masterMobileNumber']?.toString() ?? phone,
+      );
+
+      debugPrint('📦 Updated Merchant Model:');
+      debugPrint('   businessName: ${updatedMerchant.businessName}');
+      debugPrint('   address: ${updatedMerchant.address}');
+
+      // Call PUT API
+      final success = await updateMerchantDetails(updatedMerchant);
+
+      if (success) {
+        debugPrint('✅ Update successful from screen');
+      } else {
+        debugPrint('❌ Update failed from screen');
+      }
+
+      debugPrint('==============================================');
+      debugPrint('');
+
+      return success;
+    } catch (e) {
+      debugPrint('❌ Error in updateMerchantFromScreen: $e');
+      AdvancedErrorService.showError(
+        'Failed to update merchant details: $e',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.network,
+      );
+      return false;
     }
   }
 }

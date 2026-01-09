@@ -19,6 +19,8 @@ class MobileNumberDialog {
     String subtitle = 'Enter your 10-digit mobile number',
     String? initialNumber,
     String? confirmButtonText,
+    bool showWarning = false, // ✅ Show warning container
+    String? warningText, // ✅ Custom warning text (different for each screen)
     Color? titleColor,
     Color? subtitleColor,
     List<Color>? confirmGradientColors,
@@ -32,6 +34,8 @@ class MobileNumberDialog {
         subtitle: subtitle,
         initialNumber: initialNumber,
         confirmButtonText: confirmButtonText,
+        showWarning: showWarning,
+        warningText: warningText,
         titleColor: titleColor,
         subtitleColor: subtitleColor,
         confirmGradientColors: confirmGradientColors,
@@ -46,6 +50,8 @@ class _MobileNumberDialogContent extends StatefulWidget {
   final String subtitle;
   final String? initialNumber;
   final String? confirmButtonText;
+  final bool showWarning;
+  final String? warningText;
   final Color? titleColor;
   final Color? subtitleColor;
   final List<Color>? confirmGradientColors;
@@ -56,6 +62,8 @@ class _MobileNumberDialogContent extends StatefulWidget {
     required this.subtitle,
     this.initialNumber,
     this.confirmButtonText,
+    this.showWarning = false,
+    this.warningText,
     this.titleColor,
     this.subtitleColor,
     this.confirmGradientColors,
@@ -255,6 +263,38 @@ class _MobileNumberDialogContentState
                     },
                   ),
                 ),
+
+                // ✅ Warning Container (Conditional)
+                if (widget.showWarning && widget.warningText != null) ...[
+                  SizedBox(height: responsive.hp(2)),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: responsive.hp(1.5),
+                      horizontal: responsive.wp(4),
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.red800,
+                          AppColors.red500,
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                    ),
+                    child: AppText.custom(
+                      widget.warningText!,
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: responsive.fontSize(13),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.start,
+                      maxLines: 4,
+                    ),
+                  ),
+                ],
 
                 // Error message
                 if (errorMessage != null) ...[

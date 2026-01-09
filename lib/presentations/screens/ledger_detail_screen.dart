@@ -291,7 +291,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         );
       }),
       floatingActionButton: _buildAddEntryButton(responsive, isDark),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -637,56 +637,152 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
   ) {
     final controller = Get.find<LedgerDetailController>();
     return Container(
-      width: responsive.wp(40),
+      width: double.infinity,
       height: 56,
+      margin: EdgeInsets.all(responsive.wp(3)),
+
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.splaceSecondary2,
-            AppColors.splaceSecondary1
+            AppColors.containerDark,
+            AppColors.containerDark
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            final detail = controller.ledgerDetail.value;
-            final result = await Get.toNamed(
-              AppRoutes.addTransaction,
-              arguments: {
-                'ledgerId': controller.ledgerId,
-                'customerName': detail?.partyName ?? 'Customer',
-                'customerLocation': detail?.address ?? 'Location',
-                'accountType': detail?.partyType ?? 'CUSTOMER', // CUSTOMER, SUPPLIER, or EMPLOYEE
-              },
-            );
+        border: Border.all(color: isDark ? AppColors.driver : AppColorsLight.black),
+        borderRadius: BorderRadius.circular(responsive.borderRadiusExtraLarge2),
 
-            // Refresh data if transaction was successful
-            if (result == true) {
-              await controller.refreshAll();
-            }
-          },
-          borderRadius: BorderRadius.circular(responsive.borderRadiusMedium),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add, color: AppColors.white, size: responsive.iconSizeLarge),
-              SizedBox(width: responsive.spacing(8)),
-              AppText.custom(
-                'Add Entry',
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: responsive.fontSize(18),
-                  fontWeight: FontWeight.w600,
+      ),
+      child: Row(
+        children: [
+          // IN Button (Left Side)
+          Expanded(
+            child: InkWell(
+              onTap: () async {
+                final detail = controller.ledgerDetail.value;
+                final result = await Get.toNamed(
+                  AppRoutes.addTransaction,
+                  arguments: {
+                    'ledgerId': controller.ledgerId,
+                    'customerName': detail?.partyName ?? 'Customer',
+                    'customerLocation': detail?.address ?? 'Location',
+                    'accountType': detail?.partyType ?? 'CUSTOMER',
+                    'defaultTransactionType': 'IN', // Pre-select IN
+                  },
+                );
+
+                if (result == true) {
+                  await controller.refreshAll();
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                height: 65,
+                margin: EdgeInsets.all(responsive.wp(2)),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primeryamount,
+                      AppColors.primeryamount
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusExtraLarge1),
+
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      AppIcons.arrowInIc,
+                      width: responsive.iconSizeLarge,
+                      height: responsive.iconSizeLarge,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    SizedBox(width: responsive.spacing(8)),
+                    AppText.custom(
+                      'IN',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: responsive.fontSize(18),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+
+          // OUT Button (Right Side)
+          Expanded(
+            child: InkWell(
+              onTap: () async {
+                final detail = controller.ledgerDetail.value;
+                final result = await Get.toNamed(
+                  AppRoutes.addTransaction,
+                  arguments: {
+                    'ledgerId': controller.ledgerId,
+                    'customerName': detail?.partyName ?? 'Customer',
+                    'customerLocation': detail?.address ?? 'Location',
+                    'accountType': detail?.partyType ?? 'CUSTOMER',
+                    'defaultTransactionType': 'OUT', // Pre-select OUT
+                  },
+                );
+
+                if (result == true) {
+                  await controller.refreshAll();
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                height: 65,
+                margin: EdgeInsets.all(responsive.wp(2)),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.red500,
+                      AppColors.red500
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusExtraLarge1),
+
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      AppIcons.arrowOutIc,
+                      width: responsive.iconSizeLarge,
+                      height: responsive.iconSizeLarge,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    SizedBox(width: responsive.spacing(8)),
+                    AppText.custom(
+                      'OUT',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: responsive.fontSize(18),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        ],
       ),
     );
   }

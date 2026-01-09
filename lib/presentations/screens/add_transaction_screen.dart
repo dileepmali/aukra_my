@@ -19,6 +19,7 @@ import '../widgets/custom_single_border_color.dart';
 import '../widgets/text_filed/custom_text_field.dart';
 import '../widgets/bottom_sheets/image_picker_bottom_sheet.dart';
 import '../widgets/dialogs/pin_verification_dialog.dart';
+import '../widgets/dialogs/image_preview_dialog.dart';
 import '../../buttons/app_button.dart';
 import '../../buttons/dialog_botton.dart';
 import '../../buttons/row_app_bar.dart';
@@ -640,14 +641,28 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                   margin: EdgeInsets.only(right: responsive.wp(3)),
                   child: Stack(
                     children: [
-                      // Image thumbnail
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-                        child: Image.file(
-                          File(image.path),
-                          width: responsive.wp(20),
-                          height: responsive.hp(8),
-                          fit: BoxFit.cover,
+                      // Image thumbnail - Clickable to show full image
+                      GestureDetector(
+                        onTap: () {
+                          // Pass all image paths and current index for navigation
+                          final imagePaths = controller.selectedImages
+                              .map((img) => img.path)
+                              .toList();
+
+                          ImagePreviewDialog.show(
+                            context: context,
+                            imagePaths: imagePaths,
+                            initialIndex: index,
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                          child: Image.file(
+                            File(image.path),
+                            width: responsive.wp(20),
+                            height: responsive.hp(8),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       // Remove button (Bottom Right)

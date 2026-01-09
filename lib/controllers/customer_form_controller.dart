@@ -483,6 +483,9 @@ class CustomerFormController extends GetxController {
 
       // Get merchant ID from storage
       final merchantId = await AuthStorage.getMerchantId();
+      debugPrint('🔑 ========== MERCHANT ID CHECK ==========');
+      debugPrint('   merchantId from storage: $merchantId');
+
       if (merchantId == null) {
         AdvancedErrorService.showError(
           'Merchant ID not found. Please login again.',
@@ -492,6 +495,11 @@ class CustomerFormController extends GetxController {
         isLoading.value = false;
         return;
       }
+
+      // Also check what merchant data is stored
+      final merchantData = await AuthStorage.getMerchantData();
+      debugPrint('   Stored merchant data: $merchantData');
+      debugPrint('========================================');
 
       // Parse numeric values with defaults
       final creditLimit = double.tryParse(

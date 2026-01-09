@@ -111,6 +111,7 @@ extension AdvancedResponsiveHelperPart4 on AdvancedResponsiveHelper {
   double get borderRadiusLarge => 12.0;
   double get borderRadiusExtraLarge => 16.0;
   double get borderRadiusExtraLarge1 => 20.0;
+  double get borderRadiusExtraLarge2 => 30.0;
   double get borderRadiusCircular => 100.0;
 
 
