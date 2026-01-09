@@ -22,6 +22,8 @@ class AppImages {
   static const String fourIm = 'assets/images/secure_private.jpg'; // Using splash_logo as fallback
 
   static const String foundErrorIm = 'assets/images/found_error.png'; // Using splash_logo as fallback
+  static const String splashMainIm = 'assets/images/splash_im.jpg'; // Using splash_logo as fallback
+  static const String AukraIm = 'assets/images/Auk₹a.png'; // Using splash_logo as fallback
 
 
   // Icons - using available SVG icons from icons folder instead of non-existent PNGs

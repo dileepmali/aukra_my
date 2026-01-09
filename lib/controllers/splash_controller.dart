@@ -44,7 +44,7 @@ class SplashController extends GetxController {
       }
 
       // Check token validity and navigate accordingly
-      await _checkAuthenticationAndNavigate();
+      // await _checkAuthenticationAndNavigate(); // TODO: Uncomment after testing splash screen
     } catch (e) {
       isLoading.value = false;
       errorMessage.value = e.toString();

@@ -8,6 +8,7 @@ import '../../app/constants/app_icons.dart';
 import '../../app/constants/app_images.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_fonts.dart';
+import '../../app/themes/app_text.dart';
 import '../../controllers/splash_controller.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
@@ -47,19 +48,17 @@ class _SplashScreenState extends State<SplashScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          gradient: SweepGradient(
-            colors: [
-              AppColors.splaceSecondary1,
-              AppColors.splaceSecondary2,
-              AppColors.splaceSecondary1,
-              AppColors.splaceSecondary2,
-              AppColors.splaceSecondary1,
-              AppColors.splaceSecondary2,
-              AppColors.splaceSecondary1,
-            ],
-            startAngle: 0.0,
-            endAngle: 3.14 * 2,
-            transform: GradientRotation(2.7)
+          gradient: LinearGradient(
+              colors: [
+                AppColors.splaceSecondary1,
+                AppColors.splaceSecondary1,
+                AppColors.splaceSecondary1,
+                AppColors.splaceSecondary1,
+                AppColors.splaceSecondary2,
+                AppColors.splaceSecondary2,
+              ],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topRight,
           ),
         ),
         child: Stack(
@@ -67,37 +66,42 @@ class _SplashScreenState extends State<SplashScreen> {
             // 🌅 Rounded Lines with SVG Icons
             _buildRoundedLinesWithIcons(responsive),
 
-            // Main Content
+            // Horizontal Line
+            Center(
+              child: Container(
+                width: double.infinity,
+                height: 1,
+                decoration: BoxDecoration(
+                  color:AppColors.splashArcColor3,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ),
+
+            // Center Images
             Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                     child: Image.asset(
-                      AppImages.splashLogo,
-                      height: responsive.orientation == Orientation.portrait
-                          ? responsive.hp(13)
-                          : responsive.hp(14),
-                      fit: BoxFit.cover,
+                      AppImages.splashMainIm,
+                      width: responsive.wp(35),
+                      height: responsive.wp(35),
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  SizedBox(height: responsive.hp(0.05)),
-                  Text(
-                    'AnantSpace',
-                    style: AppFonts.displayMedium(
-                      color: AppColors.anantSpaceColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  SizedBox(height: responsive.hp(0)),
+                  Image.asset(
+                    AppImages.AukraIm,
+                    width: responsive.wp(35),
+                    fit: BoxFit.contain,
                   ),
-                  Text(
-                    'Your data, your space',
-                    textAlign: TextAlign.center,
-                    style: AppFonts.headlineMedium(
-                      color: AppColors.anantSpaceColor,
-                      fontWeight: FontWeight.w400,
-                    ),
+                  SizedBox(height: responsive.hp(2)),
+                  AppText.headlineMedium(
+                    'Infinity Income Advance Income',
+                    color: AppColors.white,
+                    letterSpacing: 1.5,
                   ),
                 ],
               ),
@@ -109,36 +113,52 @@ class _SplashScreenState extends State<SplashScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(height: responsive.spaceMD),
-                    // SVG Pictures above text
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          AppIcons.lionIc,
-                          width: responsive.wp(6),
-                          height: responsive.wp(6),
-                        ),
-                        SizedBox(width: responsive.wp(3)),
-                        SvgPicture.asset(
-                          AppIcons.indianFlagIc,
-                          width: responsive.wp(6),
-                          height: responsive.wp(6),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: responsive.hp(1)),
                     Text.rich(
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: 'A product of AnantKaya, proudly make in INDIA',
+                            text: 'Product of ',
                             style: AppFonts.headlineLarge(
-                              color: AppColors.buttonTextColor,
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Anantkaya',
+                            style: AppFonts.headlineLarge(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                            ).copyWith(
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.white,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' Solucation Pvt.Ltd.',
+                            style: AppFonts.headlineLarge(
+                              color: AppColors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
+                    ),
+                    SizedBox(height: responsive.hp(2)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppText.headlineSmall(
+                          'Proudly made in Bharat',
+                          color: AppColors.white,
+                          minFontSize: 10,
+                        ),
+                        SizedBox(width: responsive.wp(2)),
+                        SvgPicture.asset(
+                          AppIcons.indianFlagIc,
+                          width: responsive.wp(5),
+                          height: responsive.wp(5),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -169,10 +189,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Responsive radius calculations
     final outerRadius = responsive.orientation == Orientation.portrait
-        ? size.width * 0.75
+        ? size.width * 0.89
         : size.width * 0.45;
     final middleRadius = responsive.orientation == Orientation.portrait
-        ? size.width * 0.55
+        ? size.width * 0.61
         : size.width * 0.35;
 
     return Stack(
@@ -181,7 +201,7 @@ class _SplashScreenState extends State<SplashScreen> {
         ..._buildIconsForRing(
           center: center,
           radius: outerRadius,
-          icons: [AppIcons.folderIc],
+          icons: [AppIcons.bookIc],
           angles: [7 * pi / 2],
           responsive: responsive,
         ),
@@ -191,15 +211,15 @@ class _SplashScreenState extends State<SplashScreen> {
           center: center,
           radius: middleRadius,
           icons: [
-            AppIcons.galleryIc,
-            AppIcons.galleryIc,
+            AppIcons.calendarIc,
+            AppIcons.shopIc,
             AppIcons.folderIc,
-            AppIcons.videoIc,
+            AppIcons.buyProIc,
           ],
           angles: [
-            4.1,           // Gallery 1 - top-right
+            4.2,           // Gallery 1 - top-right
             pi / 3.3,      // Gallery 2 - right
-            pi * 0.7,      // Folder - left side (more left)
+            pi * 0.62,      // Folder - left side (more left)
             2.5 * pi / 1.5 // Video - bottom
           ],
           responsive: responsive,
@@ -233,7 +253,7 @@ class _SplashScreenState extends State<SplashScreen> {
           top: y - iconSize / 1.3,
           child: SvgPicture.asset(
             icons[i],
-            color: Colors.white70,
+            color: Colors.white,
             width: iconSize * 1.3,
             height: iconSize * 1.3,
           ),
@@ -259,63 +279,100 @@ class ResponsiveRoundedLinesPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
 
-    // Responsive radius calculations
-    final outerRadius = responsive.orientation == Orientation.portrait
+    // Outer oval - balanced size
+    final outerWidth = responsive.orientation == Orientation.portrait
+        ? size.width * 1.5
+        : size.width * 0.60;
+    final outerHeight = responsive.orientation == Orientation.portrait
+        ? size.height * 0.80
+        : size.height * 0.50;
+
+    // Middle oval - balanced size
+    final middleWidth = responsive.orientation == Orientation.portrait
+        ? size.width * 1.2
+        : size.width * 0.45;
+    final middleHeight = responsive.orientation == Orientation.portrait
+        ? size.height * 0.55
+        : size.height * 0.38;
+
+    // Outer ring (oval)
+    _drawOvalRing(
+      canvas,
+      center,
+      outerWidth,
+      outerHeight,
+     AppColors.splashArcColor3,
+      responsive.wp(0.5),
+    );
+
+    // Middle ring (oval)
+    _drawOvalRing(
+      canvas,
+      center,
+      middleWidth,
+      middleHeight,
+      AppColors.splashArcColor3,
+      responsive.wp(0.5),
+    );
+
+    // NEW: 180 degree arcs (semi-circles) - width = height for perfect circle
+    final arc1Size = responsive.orientation == Orientation.portrait
         ? size.width * 0.75
         : size.width * 0.45;
-    final middleRadius = responsive.orientation == Orientation.portrait
-        ? size.width * 0.55
+
+    final arc2Size = responsive.orientation == Orientation.portrait
+        ? size.width * 0.50
         : size.width * 0.35;
-    final innerRadius = responsive.orientation == Orientation.portrait
-        ? size.width * 0.30
-        : size.width * 0.22;
 
-    // Outer ring
-    _drawRing(
+    // Outer 180 degree semi-circle - RED
+    _drawHalfArc(
       canvas,
       center,
-      outerRadius,
-      Color(0xFFFFFFFC).withOpacity(0.1),
-      responsive.wp(0.5),
+      arc1Size,
+      arc1Size,
+      AppColors.splashArcColor2.withOpacity(0.4),
     );
 
-    // Middle ring
-    _drawRing(
+    // Inner 180 degree semi-circle - BLACK
+    _drawHalfArc(
       canvas,
       center,
-      middleRadius,
-      Color(0xFFFFFFFC).withOpacity(0.1),
-      responsive.wp(0.5),
-    );
-
-    // Inner ring
-    _drawRing(
-      canvas,
-      center,
-      innerRadius,
-      Color(0xFFFFFFFC).withOpacity(0.1),
-      responsive.wp(0.5),
+      arc2Size,
+      arc2Size,
+      AppColors.splashArcColor2.withOpacity(0.7),
     );
   }
 
-  void _drawRing(Canvas canvas, Offset center, double radius, Color color, double strokeWidth) {
-    // Draw ring with glow effect
+  // Full 360 degree oval ring
+  void _drawOvalRing(Canvas canvas, Offset center, double width, double height, Color color, double strokeWidth) {
+    final rect = Rect.fromCenter(center: center, width: width, height: height);
+
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
-    // Add glow/shadow effect to rings
     final glowPaint = Paint()
       ..color = Colors.white.withOpacity(0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 2
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8);
 
-    // Draw glow first
-    canvas.drawCircle(center, radius, glowPaint);
-    // Draw ring on top
-    canvas.drawCircle(center, radius, paint);
+    // Draw full oval (360 degree)
+    canvas.drawOval(rect, glowPaint);
+    canvas.drawOval(rect, paint);
+  }
+
+  // 180 degree half arc with single color fill
+  void _drawHalfArc(Canvas canvas, Offset center, double width, double height, Color color) {
+    final rect = Rect.fromCenter(center: center, width: width, height: height);
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Draw FULL filled arc
+    canvas.drawArc(rect, pi, pi, true, paint);
   }
 
   @override

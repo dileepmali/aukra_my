@@ -15,6 +15,9 @@ class AppColors {
   static const Color green800 = Color(0xFF166534); // Green gradient end
   static const Color blue700 = Color(0xFF1e3a8a); // rgba(30, 58, 138, 1)
   static const Color blue900 = Color(0xFF1d4ed8); // rgba(29, 78, 216, 1)
+  static const Color splashArcColor = Color(0x1938B721); // Splash arc color with transparency
+  static const Color splashArcColor2 = Color(0xFF1A3AB7); // Splash arc color 2
+  static const Color splashArcColor3 = Color(0x33FFFFFF); // White with 20% opacity
 
 
   static const Color containerColor = Color(0x0FFFFFFF);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:aukra_anantkaya_space/presentations/routes/app_routes.dart';
 import 'package:aukra_anantkaya_space/presentations/routes/route_generator.dart';
 import 'package:flutter/material.dart';
@@ -15,20 +16,29 @@ import 'core/services/contact_cache_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize dotenv (load .env file)
+  // ⚡ CRITICAL ONLY: Minimal blocking initialization
   await dotenv.load(fileName: ".env");
 
-  // Initialize GetStorage
-  await GetStorage.init();
-
-  // ✅ Initialize Hive for contact caching (ULTRA FAST subsequent loads)
-  await ContactCacheService.init();
-
-  // Initialize controllers
+  // ⚡ Controllers MUST be registered before runApp (synchronous, fast)
   Get.put(LocalizationController(), permanent: true);
   Get.put(ThemeController(), permanent: true);
 
+  // 🚀 RUN APP IMMEDIATELY - Don't block on heavy services
   runApp(const MyApp());
+
+  // ⚡ BACKGROUND SERVICES: Initialize after app is running
+  // These run in background while splash screen is visible
+  unawaited(_initializeBackgroundServices());
+}
+
+/// Initialize non-critical services in background
+/// This runs AFTER runApp() so splash screen is already visible
+Future<void> _initializeBackgroundServices() async {
+  // Initialize GetStorage (fast, but non-blocking)
+  await GetStorage.init();
+
+  // Initialize Hive for contact caching
+  await ContactCacheService.init();
 }
 
 class MyApp extends StatelessWidget {
