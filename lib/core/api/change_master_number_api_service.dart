@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../models/change_number_model.dart';
+import '../../models/change_master_number_model.dart';
 import 'global_api_function.dart';
+import 'auth_storage.dart';
 
-/// Professional API Service for Change Number Feature
-/// Handles all 4 API endpoints for changing user's login mobile number
-class ChangeNumberApiService {
+/// Professional API Service for Change Master Number Feature
+/// Handles all 4 API endpoints for changing merchant's master/admin mobile number
+class ChangeMasterNumberApiService {
   final ApiFetcher _apiFetcher = ApiFetcher();
 
   /// API 1: Send OTP to current mobile number
-  /// Endpoint: PUT /api/user/mobile/initiate-update/sendOtp
+  /// Endpoint: PUT /api/merchant/{merchantId}/admin-mobile/initiate-update/sendOtp
   Future<SendOtpResponse?> sendOtpToCurrentNumber({
     required String securityKey,
   }) async {
@@ -16,10 +17,17 @@ class ChangeNumberApiService {
       debugPrint('📤 API 1: Sending OTP to current number...');
       debugPrint('   Security Key: ${securityKey.replaceAll(RegExp(r'.'), '*')}');
 
+      // Get merchant ID from auth storage
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) {
+        debugPrint('❌ Merchant ID not found');
+        return null;
+      }
+
       final request = SendOtpToCurrentRequest(securityKey: securityKey);
 
       await _apiFetcher.request(
-        url: 'api/user/mobile/initiate-update/sendOtp',
+        url: 'api/merchant/$merchantId/admin-mobile/initiate-update/sendOtp',
         method: 'PUT',
         body: request.toJson(),
         requireAuth: true,
@@ -39,7 +47,7 @@ class ChangeNumberApiService {
   }
 
   /// API 2: Verify current mobile number OTP and get sessionId
-  /// Endpoint: PUT /api/user/mobile/initiate-update
+  /// Endpoint: PUT /api/merchant/admin-mobile/initiate-update
   Future<VerifyCurrentOtpResponse?> verifyCurrentNumberOtp({
     required String otp,
   }) async {
@@ -50,7 +58,7 @@ class ChangeNumberApiService {
       final request = VerifyCurrentOtpRequest(otp: otp);
 
       await _apiFetcher.request(
-        url: 'api/user/mobile/initiate-update',
+        url: 'api/merchant/admin-mobile/initiate-update',
         method: 'PUT',
         body: request.toJson(),
         requireAuth: true,
@@ -71,7 +79,7 @@ class ChangeNumberApiService {
   }
 
   /// API 3: Send OTP to new mobile number
-  /// Endpoint: PUT /api/user/mobile/initiate-update/{sessionId}/new-mobile
+  /// Endpoint: PUT /api/merchant/admin-mobile/initiate-update/{sessionId}/new-mobile
   Future<SendOtpResponse?> sendOtpToNewNumber({
     required String sessionId,
     required String mobileNumber,
@@ -84,7 +92,7 @@ class ChangeNumberApiService {
       final request = SendOtpToNewRequest(mobileNumber: mobileNumber);
 
       await _apiFetcher.request(
-        url: 'api/user/mobile/initiate-update/$sessionId/new-mobile',
+        url: 'api/merchant/admin-mobile/initiate-update/$sessionId/new-mobile',
         method: 'PUT',
         body: request.toJson(),
         requireAuth: true,
@@ -104,7 +112,7 @@ class ChangeNumberApiService {
   }
 
   /// API 4: Verify new mobile number OTP and complete change
-  /// Endpoint: PUT /api/user/mobile/initiate-update/{sessionId}/verify-otp
+  /// Endpoint: PUT /api/merchant/admin-mobile/initiate-update/{sessionId}/verify-otp
   Future<VerifyNewOtpResponse?> verifyNewNumberOtp({
     required String sessionId,
     required String mobileNumber,
@@ -122,7 +130,7 @@ class ChangeNumberApiService {
       );
 
       await _apiFetcher.request(
-        url: 'api/user/mobile/initiate-update/$sessionId/verify-otp',
+        url: 'api/merchant/admin-mobile/initiate-update/$sessionId/verify-otp',
         method: 'PUT',
         body: request.toJson(),
         requireAuth: true,
@@ -145,10 +153,10 @@ class ChangeNumberApiService {
   String? get errorMessage => _apiFetcher.errorMessage;
 
   /// Parse error response
-  ChangeNumberErrorResponse? parseErrorResponse(dynamic errorData) {
+  ChangeMasterNumberErrorResponse? parseErrorResponse(dynamic errorData) {
     try {
       if (errorData is Map<String, dynamic>) {
-        return ChangeNumberErrorResponse.fromJson(errorData);
+        return ChangeMasterNumberErrorResponse.fromJson(errorData);
       }
       return null;
     } catch (e) {

@@ -11,7 +11,6 @@ import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
-import '../../core/utils/formatters.dart';
 import '../../models/merchant_list_model.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
@@ -226,7 +225,7 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                     ),
                     SizedBox(height: responsive.hp(0.2)),
                     Obx(() => AppText.custom(
-                      '${_controller.totalCount}',
+                      '${_controller.activeCount}',
                       style: TextStyle(
                         color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                         fontSize: responsive.fontSize(32),
@@ -240,7 +239,7 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
 
             SizedBox(width: responsive.wp(2)),
 
-            // Other Accounts Card
+            // Inactive Businesses Card
             Expanded(
               child: Container(
                 padding: EdgeInsets.all(responsive.wp(4)),
@@ -267,7 +266,7 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                     ),
                     SizedBox(height: responsive.hp(0.2)),
                     Obx(() => AppText.custom(
-                      '${_controller.otherAccountsCount}',
+                      '${_controller.inactiveCount}',
                       style: TextStyle(
                         color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                         fontSize: responsive.fontSize(32),
@@ -326,13 +325,15 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
         child: InkWell(
           onTap: () async {
             debugPrint('🏢 Business tapped: ${merchant.businessName} (ID: ${merchant.merchantId})');
+            debugPrint('   Address: ${merchant.formattedAddress}');
+            debugPrint('   Phone: ${merchant.phone}');
+            debugPrint('   isActive: ${merchant.isActive}');
+            debugPrint('   isVerified: ${merchant.isVerified}');
 
-            // Note: MerchantListModel doesn't have address field
-            // BusinessDetailScreen will load address from storage on init
             Get.to(() => BusinessDetailScreen(
               merchantId: merchant.merchantId,
               businessName: merchant.businessName,
-              // address will be loaded from AuthStorage in BusinessDetailScreen
+              address: merchant.formattedAddress,
             ));
           },
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
@@ -356,7 +357,9 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                       ),
                       SizedBox(height: responsive.hp(0.3)),
                       AppText.custom(
-                        Formatters.formatPhoneWithCountryCode(merchant.phone),
+                        merchant.formattedAddress.isNotEmpty
+                            ? merchant.formattedAddress
+                            : 'No address added',
                         style: TextStyle(
                           color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                           fontSize: responsive.fontSize(14),

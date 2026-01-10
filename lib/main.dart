@@ -12,6 +12,7 @@ import 'app/themes/app_themes.dart';
 import 'controllers/localization_controller.dart';
 import 'controllers/theme_controller.dart';
 import 'core/services/contact_cache_service.dart';
+import 'core/services/device_info_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,9 @@ void main() async {
 Future<void> _initializeBackgroundServices() async {
   // Initialize GetStorage (fast, but non-blocking)
   await GetStorage.init();
+
+  // Initialize device info for API headers (real device name, ID, etc.)
+  await DeviceInfoService.init();
 
   // Initialize Hive for contact caching
   await ContactCacheService.init();

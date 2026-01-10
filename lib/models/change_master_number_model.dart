@@ -1,34 +1,34 @@
-/// Model class for Change Number feature
-/// Handles all data related to changing user's login mobile number
-class ChangeNumberModel {
+/// Model class for Change Master Number feature
+/// Handles all data related to changing merchant's master/admin mobile number
+class ChangeMasterNumberModel {
   final String? sessionId;
   final String? currentNumber;
   final String? newNumber;
   final String? pin;
   final String? currentOtp;
   final String? newOtp;
-  final ChangeNumberStatus status;
+  final ChangeMasterNumberStatus status;
 
-  ChangeNumberModel({
+  ChangeMasterNumberModel({
     this.sessionId,
     this.currentNumber,
     this.newNumber,
     this.pin,
     this.currentOtp,
     this.newOtp,
-    this.status = ChangeNumberStatus.initial,
+    this.status = ChangeMasterNumberStatus.initial,
   });
 
-  ChangeNumberModel copyWith({
+  ChangeMasterNumberModel copyWith({
     String? sessionId,
     String? currentNumber,
     String? newNumber,
     String? pin,
     String? currentOtp,
     String? newOtp,
-    ChangeNumberStatus? status,
+    ChangeMasterNumberStatus? status,
   }) {
-    return ChangeNumberModel(
+    return ChangeMasterNumberModel(
       sessionId: sessionId ?? this.sessionId,
       currentNumber: currentNumber ?? this.currentNumber,
       newNumber: newNumber ?? this.newNumber,
@@ -41,12 +41,12 @@ class ChangeNumberModel {
 
   @override
   String toString() {
-    return 'ChangeNumberModel(sessionId: $sessionId, currentNumber: $currentNumber, newNumber: $newNumber, status: $status)';
+    return 'ChangeMasterNumberModel(sessionId: $sessionId, currentNumber: $currentNumber, newNumber: $newNumber, status: $status)';
   }
 }
 
-/// Status enum for change number process
-enum ChangeNumberStatus {
+/// Status enum for change master number process
+enum ChangeMasterNumberStatus {
   initial,
   sendingOtpToCurrent,
   otpSentToCurrent,
@@ -61,7 +61,6 @@ enum ChangeNumberStatus {
 
 /// API Request Models
 
-/// API 1: Send OTP to current number request
 class SendOtpToCurrentRequest {
   final String securityKey;
 
@@ -70,7 +69,6 @@ class SendOtpToCurrentRequest {
   Map<String, dynamic> toJson() => {'securityKey': securityKey};
 }
 
-/// API 2: Verify current OTP request
 class VerifyCurrentOtpRequest {
   final String otp;
 
@@ -79,7 +77,6 @@ class VerifyCurrentOtpRequest {
   Map<String, dynamic> toJson() => {'otp': otp};
 }
 
-/// API 3: Send OTP to new number request
 class SendOtpToNewRequest {
   final String mobileNumber;
 
@@ -88,7 +85,6 @@ class SendOtpToNewRequest {
   Map<String, dynamic> toJson() => {'mobileNumber': mobileNumber};
 }
 
-/// API 4: Verify new OTP request
 class VerifyNewOtpRequest {
   final String mobileNumber;
   final String otp;
@@ -143,18 +139,19 @@ class VerifyNewOtpResponse {
 }
 
 /// Error Response Model
-class ChangeNumberErrorResponse {
+
+class ChangeMasterNumberErrorResponse {
   final int statusCode;
   final String message;
   final List<FieldError>? errors;
 
-  ChangeNumberErrorResponse({
+  ChangeMasterNumberErrorResponse({
     required this.statusCode,
     required this.message,
     this.errors,
   });
 
-  factory ChangeNumberErrorResponse.fromJson(Map<String, dynamic> json) {
+  factory ChangeMasterNumberErrorResponse.fromJson(Map<String, dynamic> json) {
     List<FieldError>? fieldErrors;
     if (json['errors'] != null) {
       fieldErrors = (json['errors'] as List)
@@ -162,7 +159,7 @@ class ChangeNumberErrorResponse {
           .toList();
     }
 
-    return ChangeNumberErrorResponse(
+    return ChangeMasterNumberErrorResponse(
       statusCode: json['statusCode'] ?? 400,
       message: json['message'] ?? 'An error occurred',
       errors: fieldErrors,

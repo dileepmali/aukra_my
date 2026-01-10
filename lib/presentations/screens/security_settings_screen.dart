@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../app/constants/app_icons.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_colors_light.dart';
@@ -16,7 +17,11 @@ import '../../buttons/app_button.dart';
 import '../widgets/dialogs/pin_verification_dialog.dart';
 import '../widgets/dialogs/new_number_otp_dialog.dart';
 import '../../core/api/auth_storage.dart';
+import '../../core/api/user_profile_api_service.dart';
 import '../../core/utils/formatters.dart';
+import '../../models/user_profile_model.dart';
+import '../../core/services/device_info_service.dart';
+import '../widgets/dialogs/logout_confirmation_dialog.dart';
 
 class SecuritySettingsScreen extends StatefulWidget {
   const SecuritySettingsScreen({super.key});
@@ -28,6 +33,45 @@ class SecuritySettingsScreen extends StatefulWidget {
 class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   bool _biometricEnabled = false;
   bool _pinEnabled = true;
+
+  // Active devices
+  final UserProfileApiService _apiService = UserProfileApiService();
+  List<UserProfileModel> _devices = [];
+  bool _isLoadingDevices = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadActiveDevices();
+  }
+
+  Future<void> _loadActiveDevices() async {
+    setState(() => _isLoadingDevices = true);
+
+    final devices = await _apiService.getActiveDevices();
+
+    // Debug: Print current device ID and all device IDs from API
+    debugPrint('');
+    debugPrint('📱 ========== DEVICE ID COMPARISON ==========');
+    debugPrint('🔑 Current Device ID (Local): ${DeviceInfoService.deviceId}');
+    debugPrint('📋 Devices from API: ${devices?.length ?? 0}');
+    if (devices != null) {
+      for (var i = 0; i < devices.length; i++) {
+        final d = devices[i];
+        final isMatch = d.deviceId == DeviceInfoService.deviceId;
+        debugPrint('   [$i] deviceId: ${d.deviceId} | name: ${d.deviceName} | match: $isMatch');
+      }
+    }
+    debugPrint('=============================================');
+    debugPrint('');
+
+    if (mounted) {
+      setState(() {
+        _devices = devices ?? [];
+        _isLoadingDevices = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,9 +312,140 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         ),
                       ],
 
-                      // Show Logout from all device button if this is Active device option
+                      // Show Active devices list and Logout button
                       if (option['hasButton'] == true) ...[
-                        SizedBox(height: responsive.hp(3)),
+                        SizedBox(height: responsive.hp(2)),
+
+                        // Device list
+                        if (_isLoadingDevices)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                            child: Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                                ),
+                              ),
+                            ),
+                          )
+                        else if (_devices.isEmpty)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                            child: AppText.custom(
+                              'No active devices',
+                              style: TextStyle(
+                                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                                fontSize: responsive.fontSize(14),
+                              ),
+                            ),
+                          )
+                        else
+                          ...List.generate(_devices.length, (deviceIndex) {
+                            final device = _devices[deviceIndex];
+                            final isCurrentDevice = device.deviceId == DeviceInfoService.deviceId;
+
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: responsive.hp(1.5)),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: responsive.wp(3),
+                                  vertical: responsive.hp(1.5),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.black,
+                                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // Left side: Device name and address
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          AppText.custom(
+                                            device.deviceName ?? 'Unknown Device',
+                                            style: TextStyle(
+                                              color: AppColors.white,
+                                              fontSize: responsive.fontSize(16),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          if (device.address != null && device.address!.isNotEmpty) ...[
+                                            SizedBox(height: responsive.hp(0.3)),
+                                            AppText.custom(
+                                              device.address!,
+                                              style: TextStyle(
+                                                color: AppColors.textDisabled,
+                                                fontSize: responsive.fontSize(13),
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+
+                                    SizedBox(width: responsive.wp(2)),
+
+                                    // Right side: Current device or Logout
+                                    if (isCurrentDevice)
+                                      AppText.custom(
+                                        'Current device',
+                                        style: TextStyle(
+                                          color: AppColors.textDisabled,
+                                          fontSize: responsive.fontSize(12),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      )
+                                    else
+                                      GestureDetector(
+                                        onTap: () async {
+                                          debugPrint('🚪 Logout device: ${device.sessionId}');
+                                          if (device.sessionId != null) {
+                                            // Show confirmation dialog
+                                            final success = await showLogoutConfirmationDialog(
+                                              context,
+                                              logoutType: LogoutType.specificDevice,
+                                              sessionId: device.sessionId,
+                                              deviceName: device.deviceName,
+                                            );
+
+                                            if (success == true) {
+                                              Get.snackbar(
+                                                'Success',
+                                                'Device logged out successfully',
+                                                snackPosition: SnackPosition.BOTTOM,
+                                              );
+                                              _loadActiveDevices(); // Refresh list
+                                            }
+                                          }
+                                        },
+                                        child: AppText.custom(
+                                          'Logout',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: responsive.fontSize(14),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+
+                        SizedBox(height: responsive.hp(2)),
+
+                        // Logout from all devices button
                         AppButton(
                           text: 'Logout from all device',
                           height: responsive.hp(6),
@@ -284,16 +459,21 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           ),
                           gradientColors: isDark
                               ? [
-                            AppColors.containerLight,
-                            AppColors.containerDark,
+                                  AppColors.containerLight,
+                                  AppColors.containerDark,
                                 ]
                               : [
                                   AppColorsLight.gradientColor1,
                                   AppColorsLight.gradientColor2,
                                 ],
-                          onPressed: () {
+                          onPressed: () async {
                             debugPrint('🚪 Logout from all device button tapped');
-                            // TODO: Implement logout from all devices API call
+
+                            // Show confirmation dialog
+                            await showLogoutConfirmationDialog(
+                              context,
+                              logoutType: LogoutType.allDevices,
+                            );
                           },
                         ),
                       ],

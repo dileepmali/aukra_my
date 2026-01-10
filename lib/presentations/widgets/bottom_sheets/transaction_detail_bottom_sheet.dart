@@ -18,6 +18,7 @@ import '../../routes/app_routes.dart';
 import '../../../core/api/ledger_transaction_api.dart';
 import '../../../core/services/error_service.dart';
 import '../../../core/untils/error_types.dart';
+import '../../../controllers/ledger_controller.dart';
 
 class TransactionDetailBottomSheet extends StatelessWidget {
   final int? transactionId;
@@ -339,7 +340,7 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                 primaryButtonText: 'Edit',
                 onPrimaryPressed: () async {
                   // Show PIN verification dialog for Exit/Edit
-                  final result = await PinVerificationDialog.show(
+                  final pinResult = await PinVerificationDialog.show(
                     context: context,
                     title: 'Enter Security Pin',
                     subtitle: 'Enter your 4-digit pin to edit transaction',
@@ -347,11 +348,12 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                   );
 
                   // If PIN is entered (not null), proceed with edit
-                  if (result != null && result['pin'] != null) {
+                  if (pinResult != null && pinResult['pin'] != null) {
+                    // Close bottom sheet first
                     Navigator.pop(context);
 
                     // Navigate to Add Transaction screen in edit mode
-                    final result = await Get.toNamed(
+                    final navigationResult = await Get.toNamed(
                       AppRoutes.addTransaction,
                       arguments: {
                         'transactionId': transactionId,
@@ -365,10 +367,21 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                       },
                     );
 
-                    // If update was successful, call onEdit callback
-                    if (result == true) {
+                    // If update was successful, call onEdit callback to refresh data
+                    if (navigationResult == true) {
                       debugPrint('✅ Transaction updated successfully - triggering refresh');
+                      // Call onEdit callback to refresh LedgerDetailController
                       onEdit?.call();
+
+                      // Also refresh LedgerController (main list) if it exists
+                      try {
+                        final ledgerController = Get.find<LedgerController>();
+                        debugPrint('🔄 Also refreshing LedgerController (main list)...');
+                        await ledgerController.refreshAll();
+                        debugPrint('✅ LedgerController refreshed successfully');
+                      } catch (e) {
+                        debugPrint('⚠️ LedgerController not found, skipping main list refresh');
+                      }
                     }
                   }
                 },
@@ -436,8 +449,20 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                         customDuration: Duration(seconds: 2),
                       );
 
-                      // Call onDelete callback if provided
+                      debugPrint('✅ Transaction deleted successfully - triggering refresh');
+
+                      // Call onDelete callback to refresh LedgerDetailController
                       onDelete?.call();
+
+                      // Also refresh LedgerController (main list) if it exists
+                      try {
+                        final ledgerController = Get.find<LedgerController>();
+                        debugPrint('🔄 Also refreshing LedgerController (main list)...');
+                        await ledgerController.refreshAll();
+                        debugPrint('✅ LedgerController refreshed successfully');
+                      } catch (e) {
+                        debugPrint('⚠️ LedgerController not found, skipping main list refresh');
+                      }
                     } catch (e) {
                       debugPrint('❌ Delete Transaction Error: $e');
 

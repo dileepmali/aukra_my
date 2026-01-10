@@ -212,7 +212,7 @@ class _EditAddressDialogContentState extends State<_EditAddressDialogContent> {
                             AppColorsLight.splaceSecondary2
                           ],
                     confirmTextColor:
-                        isDark ? AppColors.buttonTextColor : AppColorsLight.black,
+                        isDark ? AppColors.white : AppColorsLight.white,
                     cancelTextColor:
                         isDark ? AppColors.white : AppColorsLight.black,
                     enableSweepGradient: true,

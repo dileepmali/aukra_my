@@ -1081,9 +1081,14 @@ class LedgerDashboardScreen extends StatelessWidget {
     // Format date for subtitle using Formatters utility (time first, then date)
     final formattedDate = Formatters.formatStringToTimeAndDate(transaction.transactionDate);
 
+    // Use note/description as title, fallback to "No note added" if empty (same as ledger_detail_screen.dart)
+    final noteTitle = (transaction.description != null && transaction.description.toString().trim().isNotEmpty)
+        ? transaction.description.toString()
+        : 'No note added';
+
     return ListItemWidget(
       itemMargin: EdgeInsets.symmetric(horizontal: responsive.wp(4),vertical: responsive.hp(0.2)),
-      title: partyName,
+      title: noteTitle,
       subtitle: formattedDate,
       subtitleColor: AppColors.white,
       backgroundColor: isDark

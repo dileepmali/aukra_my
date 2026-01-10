@@ -5,12 +5,17 @@ import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_colors_light.dart';
 import '../../app/themes/app_text.dart';
 import '../../core/api/auth_storage.dart';
+import '../../core/api/merchant_list_api.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/services/error_service.dart';
+import '../../core/untils/error_types.dart';
 import '../../controllers/shop_detail_controller.dart';
+import '../../controllers/change_master_number_controller.dart';
+import '../../models/merchant_list_model.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/list_item_widget.dart';
@@ -18,9 +23,11 @@ import '../widgets/dialogs/edit_business_name_dialog.dart';
 import '../widgets/dialogs/edit_address_dialog.dart';
 import '../widgets/dialogs/pin_verification_dialog.dart';
 import '../widgets/dialogs/new_number_otp_dialog.dart';
+import '../widgets/dialogs/mobile_number_dialog.dart';
 import '../widgets/bottom_sheets/business_type_bottom_sheet.dart';
 import '../widgets/bottom_sheets/category_bottom_sheet.dart';
 import '../widgets/bottom_sheets/manager_bottom_sheet.dart';
+import '../routes/app_routes.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final int merchantId;
@@ -42,52 +49,142 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   late String _businessName;
   late String _address;
   String _masterMobile = 'Loading...';
-  String _masterMobileRaw = ''; // Store unmasked number for dialog
-  String _businessType = 'Retail Store';
-  String _category = 'General';
-  String _manager = 'Manager name';
+  String _masterMobileRaw = '';
+  String _businessType = 'Not specified';
+  String _category = 'Not specified';
+  String _manager = 'Not assigned';
+  String _email = '';
+  String _phone = '';
+  bool _isActive = true;
+  bool _isVerified = false;
+  bool _isLoading = true;
+
+  // Full merchant data from API
+  MerchantListModel? _currentMerchant;
+  final MerchantListApi _merchantApi = MerchantListApi();
   final ShopDetailController _shopController = Get.put(ShopDetailController());
+
+  // Controller for changing master mobile number
+  late ChangeMasterNumberController _changeNumberController;
 
   @override
   void initState() {
     super.initState();
     _businessName = widget.businessName;
     _address = widget.address ?? 'Business address will be shown here';
+    _changeNumberController = Get.put(ChangeMasterNumberController(), tag: 'master_mobile_${widget.merchantId}');
     _loadMerchantData();
+  }
+
+  @override
+  void dispose() {
+    Get.delete<ChangeMasterNumberController>(tag: 'master_mobile_${widget.merchantId}');
+    super.dispose();
   }
 
   Future<void> _loadMerchantData() async {
     try {
-      final merchantData = await AuthStorage.getMerchantData();
-      final phone = await AuthStorage.getPhoneNumber();
+      debugPrint('');
+      debugPrint('🏢 ========== BUSINESS DETAIL: Loading Data ==========');
+      debugPrint('   Merchant ID: ${widget.merchantId}');
 
-      if (merchantData != null && mounted) {
+      // Fetch fresh data from API
+      final merchants = await _merchantApi.getAllMerchants();
+      debugPrint('✅ Fetched ${merchants.length} merchants from API');
+
+      // Find current merchant by merchantId
+      MerchantListModel? currentMerchant;
+      for (var merchant in merchants) {
+        if (merchant.merchantId == widget.merchantId) {
+          currentMerchant = merchant;
+          debugPrint('✅ Found merchant by ID: ${merchant.merchantId}');
+          break;
+        }
+      }
+
+      if (currentMerchant != null && mounted) {
         setState(() {
-          _businessName = merchantData['businessName']?.toString() ?? widget.businessName;
-          _address = merchantData['address']?.toString() ?? widget.address ?? 'Business address will be shown here';
+          _currentMerchant = currentMerchant;
+          _businessName = currentMerchant!.businessName.isNotEmpty
+              ? currentMerchant.businessName
+              : widget.businessName;
 
-          // ✅ Load master mobile number from storage
-          String? masterPhone = merchantData['masterMobileNumber']?.toString() ?? phone;
+          // Address from API
+          _address = currentMerchant.formattedAddress.isNotEmpty
+              ? currentMerchant.formattedAddress
+              : widget.address ?? 'No address added';
 
-          if (masterPhone != null && masterPhone.isNotEmpty) {
-            _masterMobileRaw = masterPhone; // Store raw number
-            // ✅ Use Formatters to mask the phone number
+          // Master mobile (adminMobileNumber from API)
+          String? masterPhone = currentMerchant.adminMobileNumber ?? currentMerchant.phone;
+          if (masterPhone.isNotEmpty) {
+            _masterMobileRaw = masterPhone;
             _masterMobile = Formatters.formatMaskedPhone(masterPhone);
           } else {
             _masterMobile = 'Not available';
             _masterMobileRaw = '';
           }
 
-          debugPrint('🏢 ========== BUSINESS DETAIL DATA LOADED ==========');
+          // Phone number
+          _phone = currentMerchant.phone;
+
+          // Business Type from API
+          _businessType = currentMerchant.businessType ?? 'Not specified';
+
+          // Category from API
+          _category = currentMerchant.category ?? 'Not specified';
+
+          // Email from API
+          _email = currentMerchant.emailId ?? '';
+
+          // Status flags
+          _isActive = currentMerchant.isActive;
+          _isVerified = currentMerchant.isVerified;
+
+          _isLoading = false;
+
+          debugPrint('');
+          debugPrint('✅ BUSINESS DETAIL: Data Loaded from API');
           debugPrint('   Business Name: $_businessName');
           debugPrint('   Address: $_address');
-          debugPrint('   Master Mobile Raw: $_masterMobileRaw');
-          debugPrint('   Master Mobile Masked: $_masterMobile');
+          debugPrint('   Master Mobile: $_masterMobile');
+          debugPrint('   Phone: $_phone');
+          debugPrint('   Business Type: $_businessType');
+          debugPrint('   Category: $_category');
+          debugPrint('   Email: $_email');
+          debugPrint('   isActive: $_isActive');
+          debugPrint('   isVerified: $_isVerified');
           debugPrint('====================================================');
+          debugPrint('');
         });
+      } else {
+        debugPrint('⚠️ Merchant not found in API, using fallback data');
+        // Fallback to storage
+        final merchantData = await AuthStorage.getMerchantData();
+        final phone = await AuthStorage.getPhoneNumber();
+
+        if (mounted) {
+          setState(() {
+            if (merchantData != null) {
+              _businessName = merchantData['businessName']?.toString() ?? widget.businessName;
+              _address = merchantData['address']?.toString() ?? widget.address ?? 'No address added';
+
+              String? masterPhone = merchantData['masterMobileNumber']?.toString() ?? phone;
+              if (masterPhone != null && masterPhone.isNotEmpty) {
+                _masterMobileRaw = masterPhone;
+                _masterMobile = Formatters.formatMaskedPhone(masterPhone);
+              }
+            }
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       debugPrint('❌ Error loading merchant data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -104,9 +201,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       if (newName != null && newName.isNotEmpty && newName != _businessName) {
         debugPrint('✅ New business name entered: $newName');
 
-        // Call controller method to update
+        // Call controller method to update with merchantId from this screen
         final success = await _shopController.updateMerchantFromScreen(
           businessName: newName,
+          merchantId: widget.merchantId,
         );
 
         if (success) {
@@ -117,55 +215,137 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         }
       }
     } else if (title == 'Master mobile') {
-      // ✅ Complete flow: PIN → OTP (old) → New Number → OTP (new) → Update
+      // ✅ Complete flow using admin-mobile APIs:
+      // API 1: PIN → Send OTP to current admin mobile
+      // API 2: Verify OTP → Get sessionId
+      // API 3: Enter new mobile → Send OTP to new number
+      // API 4: Verify new OTP → Complete change
+
       debugPrint('');
       debugPrint('🔐 ========== MASTER MOBILE CHANGE FLOW ==========');
       debugPrint('📱 Current Master Mobile (masked): $_masterMobile');
       debugPrint('📱 Current Master Mobile (raw): $_masterMobileRaw');
 
-      // STEP 1: Show PIN verification dialog (NO WARNING)
-      debugPrint('📍 STEP 1: Showing PIN verification dialog...');
+      // Reset controller for fresh flow
+      _changeNumberController.reset();
+      _changeNumberController.setCurrentNumber(_masterMobileRaw);
+
+      // STEP 1: Show PIN dialog and call API 1 (Send OTP to current number)
+      debugPrint('');
+      debugPrint('📍 STEP 1: Enter PIN to send OTP to current admin mobile...');
+
       final pinResult = await PinVerificationDialog.show(
         context: context,
         title: 'Enter Security Pin',
         subtitle: 'Enter your 4-digit pin to get OTP on',
         maskedPhoneNumber: _masterMobile,
-        requireOtp: true,
+        requireOtp: false,
         confirmButtonText: 'Send OTP',
-        showWarning: false, // ✅ NO warning in first dialog
+        showWarning: false,
         warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
       );
 
       if (pinResult == null) {
-        debugPrint('❌ User cancelled PIN verification');
+        debugPrint('❌ User cancelled PIN entry');
         return;
       }
 
-      debugPrint('✅ STEP 1-3 Complete: PIN & OTP verified, new mobile entered');
-      debugPrint('   PIN: ${pinResult['pin']}');
-      debugPrint('   OTP: ${pinResult['otp']}');
-      debugPrint('   New Mobile: ${pinResult['mobile']}');
-
-      final newMobile = pinResult['mobile'];
-      if (newMobile == null || newMobile.isEmpty) {
-        debugPrint('❌ No new mobile number provided');
+      final pin = pinResult['pin'];
+      if (pin == null || pin.isEmpty) {
+        debugPrint('❌ No PIN provided');
         return;
       }
 
-      debugPrint('');
-      debugPrint('📍 STEP 4: Showing OTP verification for new number...');
-      debugPrint('   New Number: $newMobile');
+      debugPrint('✅ PIN entered: ****');
 
-      // Format new number for display
-      final formattedNewMobile = Formatters.formatPhoneWithCountryCode('+91$newMobile');
+      // API 1: Send OTP to current admin mobile
+      debugPrint('📡 API 1: Sending OTP to current admin mobile...');
+      final otpSentToCurrent = await _changeNumberController.sendOtpToCurrentNumber(pin);
+
+      if (!otpSentToCurrent) {
+        debugPrint('❌ API 1 Failed: Could not send OTP to current number');
+        return;
+      }
+
+      debugPrint('✅ API 1 Success: OTP sent to current admin mobile');
 
       if (!mounted) return;
+
+      // STEP 2: Show OTP dialog for current number and call API 2
+      debugPrint('');
+      debugPrint('📍 STEP 2: Verify OTP received on current admin mobile...');
+
+      final currentOtp = await NewNumberOtpDialog.show(
+        context: context,
+        newPhoneNumber: _masterMobile,
+        title: 'Enter OTP',
+        subtitle: 'Enter OTP received on your current admin mobile\n$_masterMobile',
+        confirmButtonText: 'Verify',
+        warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
+      );
+
+      if (currentOtp == null) {
+        debugPrint('❌ User cancelled current OTP verification');
+        return;
+      }
+
+      debugPrint('📡 API 2: Verifying current admin mobile OTP...');
+      final currentOtpVerified = await _changeNumberController.verifyCurrentNumberOtp(currentOtp);
+
+      if (!currentOtpVerified) {
+        debugPrint('❌ API 2 Failed: Invalid OTP for current number');
+        return;
+      }
+
+      debugPrint('✅ API 2 Success: OTP verified, session created');
+      debugPrint('   Session ID: ${_changeNumberController.sessionId}');
+
+      if (!mounted) return;
+
+      // STEP 3: Show dialog to enter new mobile number
+      debugPrint('');
+      debugPrint('📍 STEP 3: Enter new admin mobile number...');
+
+      final newMobile = await MobileNumberDialog.show(
+        context: context,
+        title: 'Enter New Mobile',
+        subtitle: 'Enter the new admin mobile number',
+        confirmButtonText: 'Send OTP',
+        showWarning: true,
+        warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
+      );
+
+      if (newMobile == null || newMobile.isEmpty) {
+        debugPrint('❌ User cancelled or no new mobile provided');
+        return;
+      }
+
+      debugPrint('✅ New mobile entered: ${newMobile.substring(0, 2)}****${newMobile.substring(newMobile.length - 2)}');
+
+      // API 3: Send OTP to new mobile number
+      debugPrint('📡 API 3: Sending OTP to new mobile number...');
+      final otpSentToNew = await _changeNumberController.sendOtpToNewNumber(newMobile);
+
+      if (!otpSentToNew) {
+        debugPrint('❌ API 3 Failed: Could not send OTP to new number');
+        return;
+      }
+
+      debugPrint('✅ API 3 Success: OTP sent to new mobile');
+
+      if (!mounted) return;
+
+      // STEP 4: Show OTP dialog for new number and call API 4
+      debugPrint('');
+      debugPrint('📍 STEP 4: Verify OTP received on new mobile...');
+
+      final formattedNewMobile = Formatters.formatPhoneWithCountryCode('+91$newMobile');
 
       final newNumberOtp = await NewNumberOtpDialog.show(
         context: context,
         newPhoneNumber: formattedNewMobile,
         title: 'Enter OTP',
-        subtitle: 'Enter secure pin received on your mobile number\n$formattedNewMobile',
+        subtitle: 'Enter OTP received on your new mobile\n$formattedNewMobile',
         confirmButtonText: 'Confirm',
         warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
       );
@@ -175,23 +355,36 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         return;
       }
 
-      debugPrint('✅ STEP 4 Complete: New number OTP verified');
-      debugPrint('   OTP: $newNumberOtp');
+      debugPrint('📡 API 4: Verifying new mobile OTP and completing change...');
+      final changeSuccess = await _changeNumberController.verifyNewNumberOtp(newNumberOtp);
 
-      // STEP 5: Call PUT API to update master mobile
-      debugPrint('');
-      debugPrint('📍 STEP 5: Updating master mobile via PUT API...');
-
-      final success = await _updateMasterMobile(newMobile);
-
-      if (success) {
-        debugPrint('✅ STEP 5 Complete: Master mobile updated successfully');
+      if (changeSuccess) {
+        debugPrint('✅ API 4 Success: Master mobile changed successfully!');
         debugPrint('');
         debugPrint('🎉 ========== FLOW COMPLETED SUCCESSFULLY ==========');
 
-        await _loadMerchantData();
+        AdvancedErrorService.showSuccess(
+          'Master mobile changed! Please login with new number.',
+          type: SuccessType.snackbar,
+        );
+
+        debugPrint('⏳ Waiting 4 seconds before logout...');
+        debugPrint('📱 User should login with new number: $newMobile');
+
+        // Wait 4 seconds before logout
+        await Future.delayed(const Duration(seconds: 4));
+
+        // Logout user - ownership transferred to new number
+        debugPrint('🔐 Logging out user...');
+        await AuthStorage.logout(clearControllers: false);
+
+        // Navigate to select language screen
+        if (mounted) {
+          debugPrint('🚀 Navigating to Select Language screen...');
+          Get.offAllNamed(AppRoutes.selectLanguage);
+        }
       } else {
-        debugPrint('❌ STEP 5 Failed: Could not update master mobile');
+        debugPrint('❌ API 4 Failed: Could not complete master mobile change');
       }
 
       debugPrint('====================================================');
@@ -206,8 +399,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       if (newAddress != null && newAddress.isNotEmpty && newAddress != _address) {
         debugPrint('✅ New address entered: $newAddress');
 
+        // Call controller method to update with merchantId from this screen
         final success = await _shopController.updateMerchantFromScreen(
           address: newAddress,
+          merchantId: widget.merchantId,
         );
 
         if (success) {
@@ -264,30 +459,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     }
   }
 
-  Future<bool> _updateMasterMobile(String newMasterMobile) async {
-    try {
-      debugPrint('🔄 Updating master mobile number...');
-      debugPrint('   New Master Mobile: $newMasterMobile');
-
-      final merchantData = await AuthStorage.getMerchantData();
-      if (merchantData == null) {
-        debugPrint('❌ No merchant data found');
-        return false;
-      }
-
-      await AuthStorage.saveMasterMobileNumber(newMasterMobile);
-      debugPrint('✅ Master mobile saved to storage');
-
-      // TODO: Call PUT API to update masterMobileNumber on backend
-      // await _shopController.updateMerchantFromScreen(masterMobileNumber: newMasterMobile)
-
-      return true;
-    } catch (e) {
-      debugPrint('❌ Error updating master mobile: $e');
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final responsive = AdvancedResponsiveHelper(context);
@@ -328,14 +499,27 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildBusinessDetails(responsive, isDark),
-            SizedBox(height: responsive.hp(10)),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                strokeWidth: 1,
+              ),
+            )
+          : RefreshIndicator(
+              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+              backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+              onRefresh: _loadMerchantData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildBusinessDetails(responsive, isDark),
+                    SizedBox(height: responsive.hp(10)),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -354,7 +538,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       {
         'icon': AppIcons.locationIc,
         'title': 'Address',
-        'subtitle': _address,
+        'subtitle': _address.isNotEmpty ? _address : 'No address added',
       },
       {
         'icon': AppIcons.shopIc,

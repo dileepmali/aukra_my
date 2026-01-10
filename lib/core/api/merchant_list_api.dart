@@ -35,10 +35,27 @@ class MerchantListApi {
         throw Exception('No data received from server');
       }
 
+      debugPrint('📥 Merchants Response Type: ${_apiFetcher.data.runtimeType}');
       debugPrint('📥 Merchants Response: ${_apiFetcher.data}');
 
-      // Parse response as list
-      final List<dynamic> merchantsJson = _apiFetcher.data as List<dynamic>;
+      // Parse response - handle both direct list and wrapped in 'data' key
+      List<dynamic> merchantsJson;
+
+      if (_apiFetcher.data is List) {
+        // Direct list response
+        merchantsJson = _apiFetcher.data as List<dynamic>;
+      } else if (_apiFetcher.data is Map && _apiFetcher.data['data'] != null) {
+        // Response wrapped in 'data' key
+        debugPrint('📦 Response wrapped in data key');
+        merchantsJson = _apiFetcher.data['data'] as List<dynamic>;
+      } else if (_apiFetcher.data is Map && _apiFetcher.data['merchants'] != null) {
+        // Response wrapped in 'merchants' key
+        debugPrint('📦 Response wrapped in merchants key');
+        merchantsJson = _apiFetcher.data['merchants'] as List<dynamic>;
+      } else {
+        debugPrint('❌ Unexpected response format: ${_apiFetcher.data.runtimeType}');
+        throw Exception('Unexpected API response format');
+      }
 
       // Convert to list of MerchantListModel
       final List<MerchantListModel> merchants = merchantsJson
@@ -47,12 +64,23 @@ class MerchantListApi {
 
       debugPrint('✅ Fetched ${merchants.length} merchants successfully');
 
-      // Log merchant details
+      // Log merchant details with all relevant fields
       for (var merchant in merchants) {
         debugPrint('   - ${merchant.businessName} (ID: ${merchant.merchantId})');
         debugPrint('     Phone: ${merchant.formattedPhone}');
+        debugPrint('     Admin Mobile: ${merchant.adminMobileNumber}');
+        debugPrint('     Mobile Number: ${merchant.mobileNumber}');
+        debugPrint('     Address: ${merchant.formattedAddress}');
+        debugPrint('     Business Type: ${merchant.businessType}');
+        debugPrint('     Category: ${merchant.category}');
         debugPrint('     Main Account: ${merchant.isMainAccount}');
         debugPrint('     Access: ${merchant.action}');
+      }
+
+      // Log raw JSON for debugging
+      debugPrint('📋 Raw JSON response:');
+      for (var json in merchantsJson) {
+        debugPrint('   Raw: $json');
       }
 
       return merchants;

@@ -92,6 +92,12 @@ class ManageBusinessesController extends GetxController {
   /// Get total count
   int get totalCount => allMerchants.length;
 
+  /// Get count of active businesses (isActive = true)
+  int get activeCount => allMerchants.where((m) => m.isActive).length;
+
+  /// Get count of inactive businesses (isActive = false)
+  int get inactiveCount => allMerchants.where((m) => !m.isActive).length;
+
   @override
   void onClose() {
     debugPrint('🗑️ ManageBusinessesController disposed');

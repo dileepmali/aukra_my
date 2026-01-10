@@ -551,7 +551,8 @@ class ShopDetailController extends GetxController {
   }
 
   /// Update merchant details - PUT /api/merchant/{merchantId}
-  Future<bool> updateMerchantDetails(MerchantModel merchant) async {
+  /// Pass merchantId explicitly when updating a different merchant (e.g., from ManageBusinesses screen)
+  Future<bool> updateMerchantDetails(MerchantModel merchant, {int? merchantId}) async {
     // 🛡️ SECURITY: Duplicate merchant update prevention
     final duplicateKey = DuplicatePrevention.generateKey(
       operation: 'update_merchant',
@@ -591,20 +592,21 @@ class ShopDetailController extends GetxController {
       SecureLogger.divider('UPDATE MERCHANT');
       SecureLogger.info('Updating merchant details...');
 
-      // Get merchant ID from storage
-      final merchantId = await AuthStorage.getMerchantId();
-      if (merchantId == null) {
+      // Use passed merchantId OR fallback to storage
+      // IMPORTANT: When updating from BusinessDetailScreen, merchantId is passed explicitly
+      final actualMerchantId = merchantId ?? await AuthStorage.getMerchantId();
+      if (actualMerchantId == null) {
         throw Exception('Merchant ID not found. Please register first.');
       }
 
-      SecureLogger.info('Merchant ID: $merchantId');
+      SecureLogger.info('Merchant ID: $actualMerchantId (passed: ${merchantId != null})');
 
       // Prepare update payload using toUpdateJson()
       final payload = merchant.toUpdateJson();
 
       debugPrint('');
       debugPrint('📡 ========== UPDATE API PAYLOAD ==========');
-      debugPrint('🆔 Merchant ID: $merchantId');
+      debugPrint('🆔 Merchant ID: $actualMerchantId');
       debugPrint('📦 Payload: ${payload.toString()}');
       debugPrint('📋 Fields to update: ${payload.keys.toList()}');
       payload.forEach((key, value) {
@@ -620,9 +622,9 @@ class ShopDetailController extends GetxController {
       }
 
       // Make PUT API call
-      debugPrint('📡 Calling PUT api/merchant/$merchantId...');
+      debugPrint('📡 Calling PUT api/merchant/$actualMerchantId...');
       await _apiFetcher.request(
-        url: 'api/merchant/$merchantId',
+        url: 'api/merchant/$actualMerchantId',
         method: 'PUT',
         body: payload,
         requireAuth: true,
@@ -885,9 +887,11 @@ class ShopDetailController extends GetxController {
 
   /// Helper method to update merchant details from UI screens
   /// Takes businessName or address (or both) and calls PUT API
+  /// IMPORTANT: Pass merchantId when updating a different merchant (e.g., from ManageBusinesses)
   Future<bool> updateMerchantFromScreen({
     String? businessName,
     String? address,
+    int? merchantId,
   }) async {
     try {
       debugPrint('');
@@ -924,9 +928,10 @@ class ShopDetailController extends GetxController {
       debugPrint('📦 Updated Merchant Model:');
       debugPrint('   businessName: ${updatedMerchant.businessName}');
       debugPrint('   address: ${updatedMerchant.address}');
+      debugPrint('   merchantId: $merchantId (passed from screen)');
 
-      // Call PUT API
-      final success = await updateMerchantDetails(updatedMerchant);
+      // Call PUT API with merchantId if provided
+      final success = await updateMerchantDetails(updatedMerchant, merchantId: merchantId);
 
       if (success) {
         debugPrint('✅ Update successful from screen');

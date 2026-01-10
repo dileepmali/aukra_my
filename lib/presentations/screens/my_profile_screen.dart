@@ -8,20 +8,22 @@ import '../../app/themes/app_colors_light.dart';
 import '../../app/themes/app_text.dart';
 import '../../buttons/app_button.dart';
 import '../../core/api/auth_storage.dart';
+import '../../core/api/merchant_list_api.dart';
+import '../../core/api/user_profile_api_service.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../../core/utils/formatters.dart';
 import '../../controllers/localization_controller.dart';
+import '../../models/merchant_list_model.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
-import '../widgets/custom_border_widget.dart';
 import '../widgets/custom_single_border_color.dart';
 import '../widgets/list_item_widget.dart';
 import '../widgets/dialogs/logout_confirmation_dialog.dart';
 import '../widgets/dialogs/edit_profile_name_dialog.dart';
-import '../language/select_language_screen.dart'; // ✅ NEW: Import SelectLanguageScreen
+import '../language/select_language_screen.dart';
 import 'manage_businesses_screen.dart';
 import 'policy_terms_screen.dart';
 import 'about_us_screen.dart';
@@ -35,12 +37,17 @@ class MyProfileScreen extends StatefulWidget {
 }
 
 class _MyProfileScreenState extends State<MyProfileScreen> {
-  String _merchantName = '';
-  String _businessName = ''; // ✅ NEW: Store business name separately
+  String _username = '';  // User profile name from /api/user/profile
+  String _businessName = '';
   String _mobileNumber = '';
   int? _merchantId;
   bool _isLoading = true;
   LocalizationController? _localizationController;
+
+  // Full merchant data from API
+  MerchantListModel? _currentMerchant;
+  final MerchantListApi _merchantApi = MerchantListApi();
+  final UserProfileApiService _userProfileApi = UserProfileApiService();
 
   @override
   void initState() {
@@ -50,7 +57,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     } catch (e) {
       debugPrint('⚠️ LocalizationController not found: $e');
     }
-    _loadMerchantData();
+    _loadAllData();
 
     // ✅ Listen for when screen comes back into view (after navigation)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,7 +70,45 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // ✅ Reload data when screen is visible again (e.g., after pop from manage business)
-    _loadMerchantData();
+    _loadAllData();
+  }
+
+  /// Load both user profile and merchant data
+  Future<void> _loadAllData() async {
+    await Future.wait([
+      _loadUserProfile(),
+      _loadMerchantData(),
+    ]);
+  }
+
+  /// Load user profile (username) from /api/user/profile
+  Future<void> _loadUserProfile() async {
+    try {
+      debugPrint('');
+      debugPrint('🔵 ========== PROFILE SCREEN: Loading User Profile ==========');
+
+      final profiles = await _userProfileApi.getUserProfile();
+
+      if (profiles != null && profiles.isNotEmpty) {
+        // Get the first profile (current user)
+        final userProfile = profiles.first;
+        debugPrint('✅ User Profile loaded:');
+        debugPrint('   userId: ${userProfile.userId}');
+        debugPrint('   deviceName: ${userProfile.deviceName}');
+
+        // Note: The username might be in a different field based on API response
+        // For now, using deviceName as fallback if no username field
+        setState(() {
+          // If API has username field, use it
+          // Otherwise keep existing _username or use deviceName
+          if (_username.isEmpty && userProfile.deviceName != null) {
+            _username = userProfile.deviceName!;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading user profile: $e');
+    }
   }
 
   Future<void> _loadMerchantData() async {
@@ -71,52 +116,104 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       debugPrint('');
       debugPrint('🔵 ========== PROFILE SCREEN: Loading Merchant Data ==========');
 
-      // ✅ Load all merchant data from storage
-      final merchantData = await AuthStorage.getMerchantData();
+      // Get phone number from storage for matching
       final phone = await AuthStorage.getPhoneNumber();
-      final merchantId = await AuthStorage.getMerchantId();
+      final storedMerchantId = await AuthStorage.getMerchantId();
 
-      debugPrint('📊 Data from Storage:');
-      debugPrint('   merchantData (full): $merchantData');
-      debugPrint('   phone: $phone');
-      debugPrint('   merchantId: $merchantId');
-      debugPrint('');
+      debugPrint('📱 Stored phone: $phone');
+      debugPrint('🆔 Stored merchantId: $storedMerchantId');
+
+      // Fetch fresh data from API
+      debugPrint('📡 Fetching merchants from API...');
+      final merchants = await _merchantApi.getAllMerchants();
+
+      debugPrint('✅ Fetched ${merchants.length} merchants from API');
+
+      // Find current user's merchant - use main account or first merchant
+      MerchantListModel? currentMerchant;
+
+      if (merchants.isNotEmpty) {
+        // First, try to find main account
+        try {
+          currentMerchant = merchants.firstWhere((m) => m.isMainAccount);
+          debugPrint('✅ Found main account: ${currentMerchant.businessName}');
+        } catch (e) {
+          // If no main account found, use first merchant
+          currentMerchant = merchants.first;
+          debugPrint('✅ Using first merchant: ${currentMerchant.businessName}');
+        }
+      }
 
       setState(() {
-        if (merchantData != null) {
-          // ✅ Use merchantName (person's name) for profile
-          _merchantName = merchantData['merchantName']?.toString() ?? 'Aukra';
+        if (currentMerchant != null) {
+          _currentMerchant = currentMerchant;
+          _merchantId = currentMerchant.merchantId;
+          _businessName = currentMerchant.businessName;
+          _mobileNumber = currentMerchant.phone;
 
-          // ✅ Store businessName separately (shop name)
-          _businessName = merchantData['businessName']?.toString() ?? '';
+          // Only set username from merchant if not already set from user profile API
+          if (_username.isEmpty) {
+            _username = currentMerchant.businessName.isNotEmpty
+                ? currentMerchant.businessName
+                : 'Aukra';
+          }
 
-          _merchantId = merchantData['merchantId'] as int?;
-
-          debugPrint('✅ Profile Display Values:');
-          debugPrint('   Merchant Name (Person): $_merchantName');
-          debugPrint('   Business Name (Shop): $_businessName');
-          debugPrint('   Merchant ID: $_merchantId');
+          debugPrint('');
+          debugPrint('✅ PROFILE: Current Merchant Data:');
+          debugPrint('   merchantId: ${currentMerchant.merchantId}');
+          debugPrint('   businessName: ${currentMerchant.businessName}');
+          debugPrint('   phone: ${currentMerchant.phone}');
+          debugPrint('   action: ${currentMerchant.action}');
+          debugPrint('   isMainAccount: ${currentMerchant.isMainAccount}');
+          debugPrint('   isActive: ${currentMerchant.isActive}');
+          debugPrint('   isVerified: ${currentMerchant.isVerified}');
+          debugPrint('   isOnboarded: ${currentMerchant.isOnboarded}');
+          debugPrint('   category: ${currentMerchant.category}');
+          debugPrint('   businessType: ${currentMerchant.businessType}');
+          debugPrint('   emailId: ${currentMerchant.emailId}');
+          debugPrint('   adminMobileNumber: ${currentMerchant.adminMobileNumber}');
+          if (currentMerchant.address != null) {
+            debugPrint('   address: ${currentMerchant.address!.fullAddress}');
+          }
+          debugPrint('');
         } else {
-          debugPrint('⚠️ No merchantData in storage - using defaults');
-          _merchantName = 'Aukra';
+          debugPrint('⚠️ No matching merchant found in API response');
+          // Fallback to storage data
+          if (_username.isEmpty) _username = 'Aukra';
           _businessName = '';
+          _mobileNumber = phone ?? '';
         }
 
-        _mobileNumber = phone ?? '';
         _isLoading = false;
       });
 
       debugPrint('');
       debugPrint('✅ PROFILE SCREEN: Data Loaded Successfully');
-      debugPrint('   CircularAvatar will show: ${_getInitials(_merchantName)}');
-      debugPrint('   Name displayed: $_merchantName');
+      debugPrint('   CircularAvatar will show: ${_getInitials(_username)}');
+      debugPrint('   Username displayed: $_username');
       debugPrint('   Mobile: $_mobileNumber');
       debugPrint('   Business: $_businessName');
       debugPrint('========================================================');
       debugPrint('');
     } catch (e) {
       debugPrint('❌ Error loading merchant data: $e');
+
+      // Fallback to storage on API error
+      final phone = await AuthStorage.getPhoneNumber();
+      final merchantData = await AuthStorage.getMerchantData();
+
       setState(() {
+        if (merchantData != null) {
+          if (_username.isEmpty) {
+            _username = merchantData['merchantName']?.toString() ?? 'Aukra';
+          }
+          _businessName = merchantData['businessName']?.toString() ?? '';
+          _merchantId = merchantData['merchantId'] as int?;
+        } else {
+          if (_username.isEmpty) _username = 'Aukra';
+          _businessName = '';
+        }
+        _mobileNumber = phone ?? '';
         _isLoading = false;
       });
     }
@@ -137,33 +234,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           showBorder: true,
           customHeight: responsive.hp(12),
           customPadding: EdgeInsets.symmetric(horizontal: responsive.wp(2)),
-          leadingWidget: Row(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Icon(
-                  Icons.arrow_back,
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  size: responsive.iconSizeLarge,
-                ),
-              ),
-              SizedBox(width: responsive.wp(3),),
-              Builder(
-                builder: (context) {
-                  return AppText.custom(
-                    'My Profile',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    minFontSize: 12,
-                    letterSpacing: 1.1,
-                  );
-                },
-              ),
-            ],
+          leadingWidget: AppText.custom(
+            'My Profile',
+            style: TextStyle(
+              color: isDark ? Colors.white : AppColorsLight.textPrimary,
+              fontSize: responsive.fontSize(20),
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            minFontSize: 12,
+            letterSpacing: 1.1,
           ),
 
         ),
@@ -177,7 +257,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           : RefreshIndicator(
               color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
               backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
-              onRefresh: _loadMerchantData,
+              onRefresh: _loadAllData,
               child: Column(
                 children: [
                   _buildHeaderCard(responsive, isDark),
@@ -204,7 +284,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     AdvancedResponsiveHelper responsive,
     bool isDark,
   ) {
-    final merchantInitials = _getInitials(_merchantName);
+    final userInitials = _getInitials(_username);
 
     return Stack(
       children: [
@@ -227,7 +307,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 ? AppColors.containerDark
                     : AppColorsLight.splaceSecondary1,
                 child: AppText.custom(
-                  merchantInitials,
+                  userInitials,
                   style: TextStyle(
                     color: AppColors.white,
                     fontSize: responsive.fontSize(20),
@@ -244,7 +324,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppText.custom(
-                      _merchantName.isEmpty ? 'Aukra' : _merchantName,
+                      _username.isEmpty ? 'Aukra' : _username,
                       style: TextStyle(
                         color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                         fontSize: responsive.fontSize(18),
@@ -270,19 +350,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               GestureDetector(
                 onTap: () async {
                   debugPrint('✏️ Edit profile tapped');
-                  // Show edit profile name dialog
+                  // Show edit profile name dialog (API call is handled inside dialog)
                   final newName = await EditProfileNameDialog.show(
                     context: context,
-                    currentName: _merchantName,
+                    currentName: _username,
                   );
 
                   if (newName != null && newName.isNotEmpty) {
-                    debugPrint('✅ New name entered: $newName');
+                    debugPrint('✅ Profile name updated via API: $newName');
                     setState(() {
-                      _merchantName = newName;
+                      _username = newName;
                     });
-                    // TODO: Save to backend/storage
-                    // await AuthStorage.updateMerchantName(newName);
+                    // Don't call _loadMerchantData() - it would overwrite _username
                   }
                 },
                 child: Container(
@@ -310,6 +389,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
   Widget _buildProfileOptions(AdvancedResponsiveHelper responsive, bool isDark) {
+    // Get backup phone from API data
+    final backupPhone = _currentMerchant?.backupPhoneNumber;
+
     final profileOptions = [
       {
         'icon': AppIcons.mobileIc,
@@ -323,7 +405,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       {
         'icon': AppIcons.shopIc,
         'title': 'Manage businesses',
-        'subtitle': _businessName.isNotEmpty ? _businessName : 'No business name', // ✅ Show businessName instead of merchantName
+        'subtitle': _businessName.isNotEmpty ? _businessName : 'No business name',
         'onTap': () {
           debugPrint('🏢 Navigating to manage businesses screen...');
           Get.to(() => const ManageBusinessesScreen());
@@ -344,17 +426,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'subtitle': _localizationController?.currentLanguageDisplayName ?? 'English',
         'onTap': () {
           debugPrint('🌐 Navigating to language selection screen from profile...');
-          // ✅ Navigate to SelectLanguageScreen with fromProfile = true
           Get.to(() => const SelectLanguageScreen(fromProfile: true));
         },
       },
       {
         'icon': AppIcons.mobileIc,
         'title': 'Recovery mobile',
-        'subtitle': 'Not added',
-        'onTap': () => debugPrint('Help & Support tapped'),
+        'subtitle': backupPhone != null && backupPhone.isNotEmpty
+            ? Formatters.formatPhoneWithCountryCode(backupPhone)
+            : 'Not added',
+        'onTap': () => debugPrint('Recovery mobile tapped'),
       },
-
       {
         'icon': AppIcons.messageIc,
         'title': 'Help center',

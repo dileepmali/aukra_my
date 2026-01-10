@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'auth_storage.dart';
 import '../utils/secure_logger.dart';
+import '../services/device_info_service.dart';
 
 class ApiFetcher extends ChangeNotifier {
   bool isLoading = false;
@@ -55,14 +56,14 @@ class ApiFetcher extends ChangeNotifier {
         SecureLogger.log('Auth Token: ${token.substring(0, 20)}...', sensitive: true);
       }
 
-      // Merge headers safely with device info
+      // Merge headers safely with real device info
       final requestHeaders = {
         "Content-Type": "application/json",
-        "deviceName": "Flutter",  // You can get real device name using device_info_plus package
-        "deviceType": "ANDROID",  // Can be dynamic: Platform.isAndroid ? "ANDROID" : "IOS"
-        "deviceId": "flutter_dev_001",  // Generate unique device ID
-        "deviceVersion": "1.0.5",  // Your app version
-        "appVersion": "ASAWA",  // Your app name/version
+        "deviceName": DeviceInfoService.deviceName,
+        "deviceType": DeviceInfoService.deviceType,
+        "deviceId": DeviceInfoService.deviceId,
+        "deviceVersion": DeviceInfoService.deviceVersion,
+        "appVersion": "1.0.0",
         if (token != null) "Authorization": "Bearer $token",
         ...?headers,
       };

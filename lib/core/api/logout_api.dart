@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../utils/secure_logger.dart';
+import '../services/device_info_service.dart';
 import 'auth_storage.dart';
 
 class LogoutApi {
@@ -39,15 +40,15 @@ class LogoutApi {
         };
       }
 
-      // Prepare headers
+      // Prepare headers with real device info
       final headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
-        "deviceName": "Flutter",
-        "deviceType": "ANDROID",
-        "deviceId": "flutter_dev_001",
-        "deviceVersion": "1.0.5",
-        "appVersion": "ASAWA",
+        "deviceName": DeviceInfoService.deviceName,
+        "deviceType": DeviceInfoService.deviceType,
+        "deviceId": DeviceInfoService.deviceId,
+        "deviceVersion": DeviceInfoService.deviceVersion,
+        "appVersion": "1.0.0",
       };
 
       SecureLogger.log('Headers prepared', sensitive: true);

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'auth_storage.dart';
+import '../services/device_info_service.dart';
 
 class ImageUploadApi {
   String get baseUri => '${dotenv.env['API_BASE_URL'] ?? "https://api.anantkhata.com"}/';
@@ -19,14 +20,14 @@ class ImageUploadApi {
       final url = '${baseUri}api/upload'; // Adjust endpoint as per your API
       final request = http.MultipartRequest('POST', Uri.parse(url));
 
-      // Add headers
+      // Add headers with real device info
       request.headers.addAll({
         'Authorization': 'Bearer $token',
-        'deviceName': 'Flutter',
-        'deviceType': 'ANDROID',
-        'deviceId': 'flutter_dev_001',
-        'deviceVersion': '1.0.5',
-        'appVersion': 'ASAWA',
+        'deviceName': DeviceInfoService.deviceName,
+        'deviceType': DeviceInfoService.deviceType,
+        'deviceId': DeviceInfoService.deviceId,
+        'deviceVersion': DeviceInfoService.deviceVersion,
+        'appVersion': '1.0.0',
       });
 
       // Add image file

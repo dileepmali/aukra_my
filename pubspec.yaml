@@ -75,6 +75,9 @@ dependencies:
   # Native splash screen
   flutter_native_splash: ^2.4.4
 
+  # Device info for getting real device name
+  device_info_plus: ^10.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
