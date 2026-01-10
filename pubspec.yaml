@@ -72,6 +72,9 @@ dependencies:
   # Security - PIN hashing and encryption
   crypto: ^3.0.3
 
+  # Native splash screen
+  flutter_native_splash: ^2.4.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

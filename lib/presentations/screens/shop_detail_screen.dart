@@ -53,8 +53,6 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
   final GlobalKey ownerPhoneFieldKey = GlobalKey();
   final GlobalKey otpFieldKey = GlobalKey();
 
-  Worker? _phoneWorker; // Track the worker to dispose it later
-
   @override
   void initState() {
     super.initState();
@@ -68,60 +66,8 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
     debugPrint('🔍 ShopDetailScreen: Controller initialized');
     debugPrint('📱 ShopDetailScreen: Current registered phone: ${controller.registeredPhone.value}');
 
-    // Auto-fill owner phone number with registered number
-    // Use ever() to reactively fill when phone loads
-    _phoneWorker = ever(controller.registeredPhone, (phone) {
-      debugPrint('🔔 ShopDetailScreen: registeredPhone changed to: $phone');
-      if (mounted && phone.isNotEmpty) {
-        // Remove any formatting and set the raw number
-        String rawNumber = phone.replaceAll(RegExp(r'[^0-9]'), '');
-        debugPrint('🔍 ShopDetailScreen: Raw number extracted: $rawNumber (length: ${rawNumber.length})');
-
-        // If number starts with 91 and is 12 digits (91 + 10 digits), remove 91 prefix
-        if (rawNumber.length == 12 && rawNumber.startsWith('91')) {
-          rawNumber = rawNumber.substring(2); // Remove first 2 digits (91)
-          debugPrint('🔧 ShopDetailScreen: Removed 91 prefix, new number: $rawNumber');
-        }
-
-        if (rawNumber.length == 10) {
-          debugPrint('✅ ShopDetailScreen: Auto-filling owner phone with: $rawNumber');
-          ownerPhoneController.text = rawNumber;
-        } else {
-          debugPrint('⚠️ ShopDetailScreen: Number length is not 10 (${rawNumber.length}), skipping auto-fill');
-        }
-      } else {
-        debugPrint('⚠️ ShopDetailScreen: Phone is empty or widget not mounted');
-      }
-    });
-
-    // Also try immediate fill if phone is already loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      debugPrint('🔍 ShopDetailScreen: PostFrameCallback - checking for immediate fill');
-      // Wait a bit for controller to load phone
-      await Future.delayed(Duration(milliseconds: 500));
-
-      if (mounted && controller.registeredPhone.value.isNotEmpty) {
-        String rawNumber = controller.registeredPhone.value.replaceAll(RegExp(r'[^0-9]'), '');
-        debugPrint('🔍 ShopDetailScreen: Found registered phone immediately: $rawNumber (length: ${rawNumber.length})');
-
-        // If number starts with 91 and is 12 digits (91 + 10 digits), remove 91 prefix
-        if (rawNumber.length == 12 && rawNumber.startsWith('91')) {
-          rawNumber = rawNumber.substring(2); // Remove first 2 digits (91)
-          debugPrint('🔧 ShopDetailScreen: Removed 91 prefix immediately, new number: $rawNumber');
-        }
-
-        if (rawNumber.length == 10) {
-          debugPrint('✅ ShopDetailScreen: Auto-filling owner phone immediately: $rawNumber');
-          setState(() {
-            ownerPhoneController.text = rawNumber;
-          });
-        } else {
-          debugPrint('⚠️ ShopDetailScreen: Number length is not 10 (${rawNumber.length}) in immediate check');
-        }
-      } else {
-        debugPrint('⚠️ ShopDetailScreen: No phone found in immediate check');
-      }
-    });
+    // Owner phone field will be empty - user will enter manually
+    // Registered Mobile Number field auto-fills from controller.registeredPhone
 
     // Register back button interceptor
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -146,7 +92,6 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
   @override
   void dispose() {
     BackButtonService.remove(interceptorName: 'shop_detail_interceptor');
-    _phoneWorker?.dispose(); // Dispose the worker
     nameController.dispose();
     shopNameController.dispose();
     locationController.dispose();
@@ -800,14 +745,10 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
       rawOwner = rawOwner.substring(2);
     }
 
-    // ✅ Validate owner phone number format (must be 10 digits)
-    if (rawOwner.isEmpty || rawOwner.length != 10) {
-      AdvancedErrorService.showError(
-        AppStrings.getLocalizedString(context, (localizations) => localizations.pleaseEnterValidMobileNumber),
-        severity: ErrorSeverity.medium,
-        category: ErrorCategory.validation,
-      );
-      return;
+    // ✅ CASE 1: If owner field is empty, use registered number as owner
+    if (rawOwner.isEmpty) {
+      rawOwner = rawRegistered;
+      debugPrint('📱 Owner field empty - Using registered number as owner: $rawOwner');
     }
 
     bool isOwnerDifferent = rawOwner != rawRegistered;

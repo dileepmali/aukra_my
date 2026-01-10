@@ -18,6 +18,11 @@ class AppColors {
   static const Color splashArcColor = Color(0x1938B721); // Splash arc color with transparency
   static const Color splashArcColor2 = Color(0xFF1A3AB7); // Splash arc color 2
   static const Color splashArcColor3 = Color(0x33FFFFFF); // White with 20% opacity
+  static const Color splashBlurShape = Color(0xFF1A2AB1); // Blur shape color for splash
+  static const Color splashBlurShape2 = Color(0xFF1ACAF2); // Blur shape color 2 for splash
+  static const Color splashBlurShape3 = Color(0xFF1A78D0); // Blur shape color 3 for splash
+  static const Color splashBlurShape4 = Color(0xFF1A80D4); // Blur shape color 4 for splash
+  static const Color splashBlurShape5 = Color(0xFF1A8CD9); // Blur shape color 5 for splash
 
 
   static const Color containerColor = Color(0x0FFFFFFF);

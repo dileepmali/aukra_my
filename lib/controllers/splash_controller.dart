@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../core/api/auth_storage.dart';
+import '../core/api/global_api_function.dart';
 import '../presentations/language/select_language_screen.dart';
 import '../presentations/routes/app_routes.dart';
 
@@ -44,7 +45,7 @@ class SplashController extends GetxController {
       }
 
       // Check token validity and navigate accordingly
-      // await _checkAuthenticationAndNavigate(); // TODO: Uncomment after testing splash screen
+      await _checkAuthenticationAndNavigate(); // TODO: Uncomment after testing splash screen
     } catch (e) {
       isLoading.value = false;
       errorMessage.value = e.toString();

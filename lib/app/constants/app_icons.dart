@@ -30,6 +30,8 @@ class AppIcons {
   static const String plusIc = 'assets/icons/Plus.svg';
   static const String dropdownIc = 'assets/icons/Dropdown button.svg';
   static const String searchIIc = 'assets/icons/search.svg';
+  static const String shoppingCartIc = 'assets/icons/assets/icons/shopping_cart.svg.svg';
+  static const String briefcaseIc = 'assets/icons/briefcase.svg';
 
   // Additional available assets
   static const String arrowSquareRightIc = 'assets/icons/arrow_square_right.svg';

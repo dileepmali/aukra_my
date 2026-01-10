@@ -50,12 +50,10 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
               colors: [
-                AppColors.splaceSecondary1,
-                AppColors.splaceSecondary1,
-                AppColors.splaceSecondary1,
-                AppColors.splaceSecondary1,
-                AppColors.splaceSecondary2,
-                AppColors.splaceSecondary2,
+                AppColors.splashBlurShape,
+                AppColors.splashBlurShape,
+                AppColors.splashBlurShape5,
+                AppColors.splashBlurShape4,
               ],
             begin: Alignment.bottomCenter,
             end: Alignment.topRight,
@@ -80,30 +78,32 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // Center Images
             Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    child: Image.asset(
+              child: Padding(
+                padding:  EdgeInsets.only(top: responsive.hp(8)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+
+                  children: [
+                    Image.asset(
                       AppImages.splashMainIm,
-                      width: responsive.wp(35),
-                      height: responsive.wp(35),
+                      width: responsive.wp(50),
+                      height: responsive.wp(45),
                       fit: BoxFit.contain,
                     ),
-                  ),
-                  SizedBox(height: responsive.hp(0)),
-                  Image.asset(
-                    AppImages.AukraIm,
-                    width: responsive.wp(35),
-                    fit: BoxFit.contain,
-                  ),
-                  SizedBox(height: responsive.hp(2)),
-                  AppText.headlineMedium(
-                    'Infinity Income Advance Income',
-                    color: AppColors.white,
-                    letterSpacing: 1.5,
-                  ),
-                ],
+                    SizedBox(height: responsive.hp(0)),
+                    Image.asset(
+                      AppImages.AukraIm,
+                      width: responsive.wp(35),
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: responsive.hp(2)),
+                    AppText.headlineMedium(
+                      'Infinity Income Advance Income',
+                      color: AppColors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ],
+                ),
               ),
             ),
             Positioned.fill(
@@ -213,8 +213,8 @@ class _SplashScreenState extends State<SplashScreen> {
           icons: [
             AppIcons.calendarIc,
             AppIcons.shopIc,
-            AppIcons.folderIc,
-            AppIcons.buyProIc,
+            AppIcons.shoppingCartIc,
+            AppIcons.briefcaseIc,
           ],
           angles: [
             4.2,           // Gallery 1 - top-right
@@ -317,11 +317,11 @@ class ResponsiveRoundedLinesPainter extends CustomPainter {
 
     // NEW: 180 degree arcs (semi-circles) - width = height for perfect circle
     final arc1Size = responsive.orientation == Orientation.portrait
-        ? size.width * 0.75
+        ? size.width * 0.85
         : size.width * 0.45;
 
     final arc2Size = responsive.orientation == Orientation.portrait
-        ? size.width * 0.50
+        ? size.width * 0.60
         : size.width * 0.35;
 
     // Outer 180 degree semi-circle - RED
@@ -330,7 +330,7 @@ class ResponsiveRoundedLinesPainter extends CustomPainter {
       center,
       arc1Size,
       arc1Size,
-      AppColors.splashArcColor2.withOpacity(0.4),
+      AppColors.splashArcColor2.withOpacity(0.3),
     );
 
     // Inner 180 degree semi-circle - BLACK
@@ -339,7 +339,7 @@ class ResponsiveRoundedLinesPainter extends CustomPainter {
       center,
       arc2Size,
       arc2Size,
-      AppColors.splashArcColor2.withOpacity(0.7),
+      AppColors.splashArcColor2.withOpacity(0.4),
     );
   }
 
