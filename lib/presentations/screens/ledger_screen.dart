@@ -360,10 +360,10 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
-                    // For customers:
-                    // OUT = You gave them goods/money, they owe you = Blue (Receivable)
-                    // IN = They gave you money/returned goods, you owe them = Red (Payable/Credit)
-                    final isPositive = customer.transactionType == 'OUT';
+                    // 🔥 FIX: Color based on balance value, not transactionType
+                    // Positive balance = Blue (they owe you)
+                    // Negative balance = Red (you owe them)
+                    final isPositive = customer.currentBalance >= 0;
 
                     return ListItemWidget(
                       title: customer.name.isNotEmpty ? customer.name : 'Customer #${index + 1}',
@@ -474,10 +474,10 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
-                    // For suppliers:
-                    // OUT = You gave them money, they owe you = Blue (Receivable)
-                    // IN = They gave you goods, you owe them = Red (Payable)
-                    final isPositive = supplier.transactionType == 'OUT';
+                    // 🔥 FIX: Color based on balance value, not transactionType
+                    // Positive balance = Blue (they owe you)
+                    // Negative balance = Red (you owe them)
+                    final isPositive = supplier.currentBalance >= 0;
 
                     return ListItemWidget(
                       title: supplier.name.isNotEmpty ? supplier.name : 'Supplier #${index + 1}',
@@ -589,10 +589,10 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
-                    // For employers:
-                    // OUT = You gave them salary/advance, they owe you work = Blue (Receivable)
-                    // IN = They worked, you owe them salary = Red (Payable)
-                    final isPositive = employer.transactionType == 'OUT';
+                    // 🔥 FIX: Color based on balance value, not transactionType
+                    // Positive balance = Blue (they owe you)
+                    // Negative balance = Red (you owe them)
+                    final isPositive = employer.currentBalance >= 0;
 
                     return ListItemWidget(
                       title: employer.name.isNotEmpty ? employer.name : 'Employer #${index + 1}',

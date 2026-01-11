@@ -60,7 +60,7 @@ class LedgerModel {
   }
 
   // Convert to JSON for UPDATE API (PUT)
-  // Excludes: id, openingBalance, transactionType, merchantId, partyType
+  // Excludes: id, openingBalance, transactionType, merchantId, partyType, mobileNumber
   Map<String, dynamic> toUpdateJson() {
     return {
       'name': name,
@@ -68,7 +68,7 @@ class LedgerModel {
       'creditDay': creditDay,
       'interestType': interestType,
       'interestRate': interestRate,
-      'mobileNumber': mobileNumber,
+      // 🔥 FIX: mobileNumber removed - backend doesn't accept it for updates
       'area': area,
       'address': address,
       'pinCode': pinCode,

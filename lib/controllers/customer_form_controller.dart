@@ -239,7 +239,7 @@ class CustomerFormController extends GetxController {
     final text = creditDaysController.text.trim();
     if (text.isNotEmpty) {
       // Remove any existing "Day" or "Days" text
-      final numericText = text.replaceAll(RegExp(r'\s*(Day|Days)\s*', caseSensitive: false), '');
+      final numericText = text.replaceAll(RegExp(r'\s*Days?\s*', caseSensitive: false), '').trim();
       final days = int.tryParse(numericText);
 
       if (days != null && days > 0) {
@@ -356,6 +356,78 @@ class CustomerFormController extends GetxController {
       return;
     }
 
+    // 🛡️ DUPLICATE CHECK: Check if person already exists in another category
+    if (!isEditMode) {
+      try {
+        final ledgerController = Get.find<LedgerController>();
+
+        // 🔍 DEBUG: Log all ledgers and their names
+        final nameToCheck = nameController.text.trim().toLowerCase();
+        debugPrint('🔍 ========== DUPLICATE CHECK START ==========');
+        debugPrint('   Name to check: "$nameToCheck"');
+        debugPrint('   Total ledgers in memory: ${ledgerController.allLedgers.length}');
+        for (var l in ledgerController.allLedgers) {
+          debugPrint('   📋 ${l.name} | Type: ${l.partyType}');
+        }
+        debugPrint('🔍 ========== DUPLICATE CHECK END ==========');
+
+        // Check if name already exists in any ledger
+        final existingLedger = ledgerController.allLedgers.firstWhereOrNull(
+          (ledger) => ledger.name.toLowerCase() == nameToCheck,
+        );
+
+        if (existingLedger != null) {
+          // Get current party type being added
+          final currentPartyType = (partyType ?? 'customer').toUpperCase();
+          final existingPartyType = existingLedger.partyType.toUpperCase();
+
+          // Convert party types to user-friendly names
+          String existingTypeName;
+          switch (existingPartyType) {
+            case 'CUSTOMER':
+              existingTypeName = 'Customer';
+              break;
+            case 'SUPPLIER':
+              existingTypeName = 'Supplier';
+              break;
+            case 'EMPLOYEE':
+              existingTypeName = 'Employee';
+              break;
+            default:
+              existingTypeName = existingPartyType;
+          }
+
+          String currentTypeName;
+          switch (currentPartyType) {
+            case 'CUSTOMER':
+              currentTypeName = 'Customer';
+              break;
+            case 'SUPPLIER':
+              currentTypeName = 'Supplier';
+              break;
+            case 'EMPLOYEE':
+            case 'EMPLOYER':
+              currentTypeName = 'Employee';
+              break;
+            default:
+              currentTypeName = currentPartyType;
+          }
+
+          // Show warning - person already exists
+          debugPrint('⚠️ Duplicate detected: ${existingLedger.name} already exists as $existingTypeName');
+          AdvancedErrorService.showError(
+            'Already added as $existingTypeName',
+            severity: ErrorSeverity.medium,
+            category: ErrorCategory.validation,
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not check for duplicates: $e');
+        // Continue with submission if duplicate check fails
+      }
+    }
+
     // Validate pin code (should be 6 digits)
     if (pinController.text.trim().isNotEmpty) {
       final pin = pinController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
@@ -406,7 +478,7 @@ class CustomerFormController extends GetxController {
       // In edit mode, show comparison dialog first
       if (isEditMode && originalData != null) {
         // Parse credit days by removing "Day" or "Days" suffix
-        final creditDayText = creditDaysController.text.trim().replaceAll(RegExp(r'\s*(Day|Days)\s*', caseSensitive: false), '');
+        final creditDayText = creditDaysController.text.trim().replaceAll(RegExp(r'\s*Days?\s*', caseSensitive: false), '').trim();
         debugPrint('🔍 Parsing Credit Days:');
         debugPrint('   Raw text: "${creditDaysController.text.trim()}"');
         debugPrint('   After removing suffix: "$creditDayText"');
@@ -508,8 +580,14 @@ class CustomerFormController extends GetxController {
           0.0;
 
       // Parse credit days by removing "Day" or "Days" suffix
-      final creditDayText = creditDaysController.text.trim().replaceAll(RegExp(r'\s*(Day|Days)\s*', caseSensitive: false), '');
+      final rawCreditDays = creditDaysController.text.trim();
+      // 🔥 FIX: Use Days? (optional s) instead of (Day|Days) to avoid leaving "s" behind
+      final creditDayText = rawCreditDays.replaceAll(RegExp(r'\s*Days?\s*', caseSensitive: false), '').trim();
+      debugPrint('🔍 Credit Days Parsing:');
+      debugPrint('   Raw: "$rawCreditDays"');
+      debugPrint('   After regex: "$creditDayText"');
       final creditDay = int.tryParse(creditDayText) ?? 0;
+      debugPrint('   Parsed: $creditDay');
 
       final interestRate = double.tryParse(
             interestRateController.text.trim(),

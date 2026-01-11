@@ -87,22 +87,25 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       debugPrint('');
       debugPrint('🔵 ========== PROFILE SCREEN: Loading User Profile ==========');
 
-      final profiles = await _userProfileApi.getUserProfile();
+      // ✅ Use the new single profile API method
+      final userProfile = await _userProfileApi.getUserProfileSingle();
 
-      if (profiles != null && profiles.isNotEmpty) {
-        // Get the first profile (current user)
-        final userProfile = profiles.first;
+      if (userProfile != null) {
         debugPrint('✅ User Profile loaded:');
         debugPrint('   userId: ${userProfile.userId}');
-        debugPrint('   deviceName: ${userProfile.deviceName}');
+        debugPrint('   username: ${userProfile.username}');
+        debugPrint('   mobileNumber: ${userProfile.mobileNumber}');
 
-        // Note: The username might be in a different field based on API response
-        // For now, using deviceName as fallback if no username field
         setState(() {
-          // If API has username field, use it
-          // Otherwise keep existing _username or use deviceName
-          if (_username.isEmpty && userProfile.deviceName != null) {
-            _username = userProfile.deviceName!;
+          // ✅ Use username field from API (this is the user's display name)
+          if (userProfile.username != null && userProfile.username!.isNotEmpty) {
+            _username = userProfile.username!;
+            debugPrint('✅ Username set from API: $_username');
+          }
+          // ✅ Also update mobile number from user profile if available
+          if (userProfile.mobileNumber != null && userProfile.mobileNumber!.isNotEmpty) {
+            _mobileNumber = userProfile.mobileNumber!;
+            debugPrint('✅ Mobile number set from API: $_mobileNumber');
           }
         });
       }
@@ -149,9 +152,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           _currentMerchant = currentMerchant;
           _merchantId = currentMerchant.merchantId;
           _businessName = currentMerchant.businessName;
-          _mobileNumber = currentMerchant.phone;
 
-          // Only set username from merchant if not already set from user profile API
+          // ✅ Only update mobile number from merchant if not already set from user profile
+          if (_mobileNumber.isEmpty) {
+            _mobileNumber = currentMerchant.phone;
+          }
+
+          // ✅ Only set username from merchant if not already set from user profile API
+          // User profile API is the primary source for username
           if (_username.isEmpty) {
             _username = currentMerchant.businessName.isNotEmpty
                 ? currentMerchant.businessName

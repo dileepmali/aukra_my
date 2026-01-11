@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../core/api/auth_storage.dart';
 import '../core/api/global_api_function.dart';
+import '../core/api/user_profile_api_service.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import '../models/merchant_model.dart';
@@ -24,6 +25,7 @@ class ShopDetailController extends GetxController {
 
   Timer? _resendTimer;
   final ApiFetcher _apiFetcher = ApiFetcher();
+  final UserProfileApiService _userProfileApi = UserProfileApiService();
   String ownerPhone = '';
 
   @override
@@ -482,10 +484,12 @@ class ShopDetailController extends GetxController {
             debugPrint('   pinCode: ${responseData['pinCode'] ?? merchant.pinCode}');
             debugPrint('   masterMobileNumber: ${responseData['masterMobileNumber'] ?? merchant.masterMobileNumber}');
             debugPrint('✅ All data saved to storage successfully!');
-            debugPrint('✅ Profile screen will show: $finalMerchantName');
-            debugPrint('✅ Manage business will show: $finalBusinessName');
             debugPrint('========================================================');
             debugPrint('');
+
+            // ✅ NEW: Update user profile with merchantName (username)
+            // This ensures profile screen shows the correct name
+            await _updateUserProfileName(finalMerchantName);
 
             return true;
           } else {
@@ -951,6 +955,39 @@ class ShopDetailController extends GetxController {
         category: ErrorCategory.network,
       );
       return false;
+    }
+  }
+
+  /// ✅ NEW: Update user profile name (username) via PUT /api/user/profile
+  /// This ensures the name entered in shop_detail_screen shows in my_profile_screen
+  Future<void> _updateUserProfileName(String name) async {
+    try {
+      if (name.isEmpty) {
+        debugPrint('⚠️ Cannot update profile - name is empty');
+        return;
+      }
+
+      debugPrint('');
+      debugPrint('👤 ========== UPDATING USER PROFILE NAME ==========');
+      debugPrint('   Name to set: $name');
+      debugPrint('   Calling PUT /api/user/profile...');
+
+      final response = await _userProfileApi.updateProfileName(name: name);
+
+      if (response != null && response.success) {
+        debugPrint('✅ User profile name updated successfully!');
+        debugPrint('   username is now: $name');
+        debugPrint('   Profile screen will show: $name');
+      } else {
+        debugPrint('⚠️ Failed to update user profile name');
+        debugPrint('   Error: ${_userProfileApi.errorMessage}');
+      }
+
+      debugPrint('===================================================');
+      debugPrint('');
+    } catch (e) {
+      debugPrint('❌ Error updating user profile name: $e');
+      // Don't throw - this is a secondary operation, merchant creation already succeeded
     }
   }
 }

@@ -76,6 +76,57 @@ class UserProfileApiService {
 
   /// Get user profile data
   /// GET /api/user/profile
+  /// Returns single UserProfileModel (API returns single object with username, mobileNumber, etc.)
+  Future<UserProfileModel?> getUserProfileSingle() async {
+    try {
+      debugPrint('');
+      debugPrint('🔵 ========== GET USER PROFILE (SINGLE) ==========');
+
+      await _apiFetcher.request(
+        url: 'api/user/profile',
+        method: 'GET',
+        requireAuth: true,
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          throw Exception('Request timeout. Please try again.');
+        },
+      );
+
+      // Check for errors
+      if (_apiFetcher.errorMessage != null) {
+        debugPrint('❌ API Error: ${_apiFetcher.errorMessage}');
+        return null;
+      }
+
+      if (_apiFetcher.data == null) {
+        debugPrint('⚠️ No profile data received');
+        return null;
+      }
+
+      debugPrint('📥 Response Type: ${_apiFetcher.data.runtimeType}');
+      debugPrint('📥 Response: ${_apiFetcher.data}');
+
+      // ✅ Handle single object response (API returns single user profile)
+      if (_apiFetcher.data is Map<String, dynamic>) {
+        final profile = UserProfileModel.fromJson(_apiFetcher.data as Map<String, dynamic>);
+        debugPrint('✅ User Profile loaded:');
+        debugPrint('   username: ${profile.username}');
+        debugPrint('   mobileNumber: ${profile.mobileNumber}');
+        debugPrint('   userId: ${profile.userId}');
+        return profile;
+      }
+
+      debugPrint('⚠️ Unexpected response format');
+      return null;
+    } catch (e) {
+      debugPrint('❌ Error fetching user profile: $e');
+      return null;
+    }
+  }
+
+  /// Get user profile data (Legacy - returns list for device sessions)
+  /// GET /api/user/profile
   Future<List<UserProfileModel>?> getUserProfile() async {
     try {
       debugPrint('');
@@ -106,7 +157,15 @@ class UserProfileApiService {
       debugPrint('📥 Response Type: ${_apiFetcher.data.runtimeType}');
       debugPrint('📥 Response: ${_apiFetcher.data}');
 
-      // Parse response - handle list response
+      // ✅ Handle single object response (wrap in list for compatibility)
+      if (_apiFetcher.data is Map<String, dynamic>) {
+        final profile = UserProfileModel.fromJson(_apiFetcher.data as Map<String, dynamic>);
+        debugPrint('✅ User Profile loaded (single object):');
+        debugPrint('   username: ${profile.username}');
+        return [profile];
+      }
+
+      // Handle list response
       if (_apiFetcher.data is List) {
         final List<dynamic> profilesJson = _apiFetcher.data as List<dynamic>;
         final profiles = profilesJson

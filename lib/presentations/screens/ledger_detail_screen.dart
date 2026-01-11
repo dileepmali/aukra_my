@@ -474,15 +474,14 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
         child: Builder(
           builder: (context) {
-            // Filter out deleted transactions
-            final activeTransactions = history.data.where((t) => !t.isDelete).toList();
+            // 🔥 FIX: Don't filter deleted transactions - show them with underline instead
+            final allTransactions = history.data;
 
             debugPrint('🎨 ========== UI RENDERING - TRANSACTION LIST ==========');
             debugPrint('📊 Total transactions from API: ${history.data.length}');
             debugPrint('🗑️ Deleted transactions: ${history.data.where((t) => t.isDelete).length}');
-            debugPrint('✅ Active transactions to render: ${activeTransactions.length}');
-            debugPrint('📋 All Transaction IDs: ${history.data.map((t) => 'ID:${t.id}(deleted:${t.isDelete})').toList()}');
-            debugPrint('📋 Active Transaction IDs: ${activeTransactions.map((t) => t.id).toList()}');
+            debugPrint('✅ All transactions to render: ${allTransactions.length}');
+            debugPrint('📋 Transaction IDs: ${allTransactions.map((t) => 'ID:${t.id}(deleted:${t.isDelete})').toList()}');
             debugPrint('================================================');
 
             return ListView.builder(
@@ -490,9 +489,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
               padding: EdgeInsets.only(
                 bottom: responsive.hp(10),
               ),
-              itemCount: activeTransactions.length,
+              itemCount: allTransactions.length,
               itemBuilder: (context, index) {
-                final transaction = activeTransactions[index];
+                final transaction = allTransactions[index];
                 debugPrint('   Rendering item $index: Transaction ID ${transaction.id} (isDelete: ${transaction.isDelete})');
                 return _buildTransactionItem(
                   transaction,
@@ -528,6 +527,11 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         ? transaction.description.toString()
         : 'No note added';
 
+    // 🔥 FIX: Use isDelete for underline, not transaction type
+    // Amount color: IN = Blue, OUT = RED (unchanged)
+    // Underline: Only for DELETED transactions
+    final isDeleted = transaction.isDelete;
+
     return ListItemWidget(
       title: noteTitle,
       subtitle: formattedDate,
@@ -536,14 +540,12 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         width: responsive.iconSizeMedium,
         height: responsive.iconSizeMedium,
         colorFilter: ColorFilter.mode(
-          isPositive
-              ? AppColors.white
-              : Colors.white,
+          AppColors.white,
           BlendMode.srcIn,
         ),
       ),
       subtitleSuffix: AppText.custom(
-        'Bal. - ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
+        'Bal. ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
         style: TextStyle(
           color: isPositive
               ? AppColors.textDisabled
@@ -554,12 +556,13 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
       ),
       subtitleFontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       amount: formattedAmount,
-      isPositiveAmount: isPositive,
+      isPositiveAmount: isPositive,  // IN = Blue, OUT = RED ✅
       showBorder: true,
-      titleDecoration: isPositive ? null : TextDecoration.lineThrough,
-      titleColor: isPositive
-          ? null
-          : (isDark ? AppColors.textSecondary : AppColorsLight.textSecondary),
+      // 🔥 FIX: Underline ONLY for deleted transactions
+      titleDecoration: isDeleted ? TextDecoration.lineThrough : null,
+      titleColor: isDeleted
+          ? (isDark ? AppColors.textSecondary : AppColorsLight.textSecondary)
+          : null,
       onTap: () => _showTransactionDetails(
         transaction,
         partyName,

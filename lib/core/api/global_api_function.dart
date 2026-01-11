@@ -97,10 +97,19 @@ class ApiFetcher extends ChangeNotifier {
               .timeout(timeout);
           break;
         case "DELETE":
-          // Delete usually shouldn't have a body
-          response = await http
-              .delete(Uri.parse(fullUrl), headers: requestHeaders)
-              .timeout(timeout);
+          // Some DELETE endpoints require body (e.g., securityKey)
+          if (body != null) {
+            // Use http.Request for DELETE with body
+            final request = http.Request('DELETE', Uri.parse(fullUrl));
+            request.headers.addAll(requestHeaders);
+            request.body = jsonEncode(body);
+            final streamedResponse = await request.send().timeout(timeout);
+            response = await http.Response.fromStream(streamedResponse);
+          } else {
+            response = await http
+                .delete(Uri.parse(fullUrl), headers: requestHeaders)
+                .timeout(timeout);
+          }
           break;
         default:
           response =
@@ -131,13 +140,38 @@ class ApiFetcher extends ChangeNotifier {
         final errorBody = _tryDecode(response.body);
         String errorMsg = "Server Error: ${response.statusCode}";
 
-        if (errorBody is Map && errorBody['message'] != null) {
-          errorMsg = errorBody['message'];
-        } else if (response.reasonPhrase != null) {
-          errorMsg += " → ${response.reasonPhrase}";
+        // Handle specific HTTP error codes with user-friendly messages
+        switch (response.statusCode) {
+          case 502:
+            errorMsg = "Server temporarily unavailable. Please try again.";
+            break;
+          case 503:
+            errorMsg = "Service unavailable. Please try again later.";
+            break;
+          case 504:
+            errorMsg = "Server timeout. Please try again.";
+            break;
+          case 500:
+            errorMsg = "Internal server error. Please try again.";
+            break;
+          case 401:
+            errorMsg = "Session expired. Please login again.";
+            break;
+          case 403:
+            errorMsg = "Access denied.";
+            break;
+          case 404:
+            errorMsg = "Resource not found.";
+            break;
+          default:
+            if (errorBody is Map && errorBody['message'] != null) {
+              errorMsg = errorBody['message'];
+            } else if (response.reasonPhrase != null) {
+              errorMsg += " → ${response.reasonPhrase}";
+            }
         }
 
-        SecureLogger.error('API Error: $errorMsg');
+        SecureLogger.error('API Error: $errorMsg (${response.statusCode})');
 
         errorMessage = errorMsg;
         data = errorBody; // Keep error data for detailed error handling

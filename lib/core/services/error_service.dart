@@ -95,7 +95,8 @@ class AdvancedErrorService {
     }
 
     // 3. Add to queue if another error is processing
-    if (_isProcessing) {
+    // 🔥 FIX: Validation errors should ALWAYS show immediately (skip queue)
+    if (_isProcessing && category != ErrorCategory.validation) {
       _errorQueue.add(ErrorModel(
         key: errorKey,
         severity: severity,
@@ -105,6 +106,11 @@ class AdvancedErrorService {
         screen: screen,
       ));
       return;
+    }
+
+    // 🔥 FIX: For validation errors, reset processing flag to allow immediate display
+    if (category == ErrorCategory.validation) {
+      _isProcessing = false;
     }
 
     // 4. Process error immediately
@@ -429,6 +435,19 @@ class AdvancedErrorService {
         print('❌ No overlay state available');
         return;
       }
+
+      // 🔥 FIX: Remove previous error overlay before showing new one
+      // This ensures validation errors always show, even on repeated clicks
+      try {
+        if (_errorOverlayEntry != null) {
+          _errorOverlayEntry!.remove();
+          _errorOverlayEntry = null;
+          print('✅ Previous error overlay removed');
+        }
+      } catch (e) {
+        print('⚠️ Error removing previous overlay: $e');
+      }
+
       final overlayEntry = OverlayEntry(
         builder: (context) => Positioned(
           top: MediaQuery.of(context).padding.top + 50, // Error toast stays at 50
@@ -496,9 +515,19 @@ class AdvancedErrorService {
 
       overlayState.insert(overlayEntry);
 
+      // 🔥 FIX: Save reference for removal on next error
+      _errorOverlayEntry = overlayEntry;
+
       // Auto remove after duration
       Future.delayed(customDuration ?? Duration(milliseconds: 3000), () {
-        overlayEntry.remove();
+        try {
+          overlayEntry.remove();
+          if (_errorOverlayEntry == overlayEntry) {
+            _errorOverlayEntry = null;
+          }
+        } catch (e) {
+          // Already removed, ignore
+        }
       });
 
       print('✅ Error toast shown successfully with custom overlay');
@@ -1004,6 +1033,9 @@ class AdvancedErrorService {
 
   // Progress overlay entry reference for removal
   static OverlayEntry? _progressOverlayEntry;
+
+  // 🔥 NEW: Error overlay entry reference for removal (ensures new error replaces old)
+  static OverlayEntry? _errorOverlayEntry;
 
   /// Show progress snackbar with custom overlay (same as error/success toast)
   static void _showProgressSnackbar() {

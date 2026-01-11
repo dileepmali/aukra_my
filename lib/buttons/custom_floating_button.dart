@@ -86,16 +86,16 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
     final responsive = AdvancedResponsiveHelper(context);
 
     // ✅ FIX: Pre-calculate size to avoid layout shifts
-    final buttonSize = 62.0;
+    final buttonSize = 52.0;
 
-    final iconSize = responsive.iconSizeLarge;
+    final iconSize = responsive.iconSizeMedium;
 
     return RepaintBoundary(
       // ✅ FIX: RepaintBoundary prevents unnecessary repaints during navigation
       child: BorderColor(
         isSelected: true,
         child: Container(
-          width: responsive.wp(45),
+          width: responsive.wp(35),
           height: buttonSize,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
@@ -131,7 +131,7 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
                     _getButtonText(),
                     color:  AppColors.white,
                     maxLines: 1,
-                    minFontSize: 15,
+                    minFontSize: 12,
                   ),
                 ],
               ),

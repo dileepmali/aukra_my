@@ -784,124 +784,84 @@ class LedgerDashboardScreen extends StatelessWidget {
 
   /// Recent Transactions Section
   Widget _buildRecentTransactionsSection(BuildContext context, LedgerDashboardController controller, bool isDark, AdvancedResponsiveHelper responsive) {
-    return Stack(
-      children:[
-        Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.top)),
-        Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left : responsive.wp(3),right: responsive.wp(2)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AppText.custom(
-                    'Recent Transactions',
-                    style: TextStyle(
-                      fontSize: responsive.fontSize(18),
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textSecondary : AppColorsLight.textPrimary,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Navigate to all transactions
-                      Get.back(); // Go back to ledger detail which shows all transactions
-                    },
-                    child: AppText.custom(
-                      'View All',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(18),
-                        color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+    return Obx(() {
+      final transactionList = controller.transactions.value;
+
+      // If no transactions, hide entire section
+      if (transactionList == null || transactionList.data.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      // Filter out deleted transactions and get top 5 recent ones
+      final activeTransactions = transactionList.data
+          .where((t) => !t.isDelete)
+          .toList();
+
+      // Take only top 5 (newest first)
+      final recentTransactions = activeTransactions.take(5).toList();
+
+      // If no active transactions, hide entire section
+      if (recentTransactions.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      // Show section only when there are transactions
+      return Stack(
+        children: [
+          Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.top)),
+          Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: responsive.wp(3), right: responsive.wp(2)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AppText.custom(
+                        'Recent Transactions',
+                        style: TextStyle(
+                          fontSize: responsive.fontSize(18),
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.textSecondary : AppColorsLight.textPrimary,
+                        ),
                       ),
-                    ),
+                      TextButton(
+                        onPressed: () {
+                          // Navigate to all transactions
+                          Get.back(); // Go back to ledger detail which shows all transactions
+                        },
+                        child: AppText.custom(
+                          'View All',
+                          style: TextStyle(
+                            fontSize: responsive.fontSize(18),
+                            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                SizedBox(height: responsive.hp(1)),
+
+                // Show transaction list
+                Column(
+                  children: recentTransactions.map((transaction) {
+                    return _buildTransactionItem(
+                      transaction,
+                      controller.partyName ?? '',
+                      responsive,
+                      isDark,
+                      context,
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-            SizedBox(height: responsive.hp(1)),
-
-            // Show top 5 recent transactions
-            Obx(() {
-              final transactionList = controller.transactions.value;
-
-              if (transactionList == null || transactionList.data.isEmpty) {
-                return Container(
-                  padding: EdgeInsets.all(responsive.wp(0)),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.containerDark : AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: AppText.custom(
-                      'No transactions found',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(14),
-                        color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }
-
-              // Filter out deleted transactions and get top 5 recent ones
-              final activeTransactions = transactionList.data
-                  .where((t) => !t.isDelete)
-                  .toList();
-
-              // Take only top 5 (newest first)
-              final recentTransactions = activeTransactions.take(5).toList();
-
-              if (recentTransactions.isEmpty) {
-                return Container(
-                  // margin: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.containerDark : AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColorsLight.border,
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: AppText.custom(
-                      'No recent transactions',
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(14),
-                        color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }
-
-              return Column(
-                children: recentTransactions.map((transaction) {
-                  return _buildTransactionItem(
-                    transaction,
-                    controller.partyName ?? '',
-                    responsive,
-                    isDark,
-                    context,
-                  );
-                }).toList(),
-              );
-            }),
-          ],
-        ),
-      ),
-
-
-
-      ]
-    );
+          ),
+        ],
+      );
+    });
   }
   
   /// Build Credit Limit Usage Pie Chart - Shows how much credit limit is used

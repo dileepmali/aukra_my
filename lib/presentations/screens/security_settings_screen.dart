@@ -32,7 +32,7 @@ class SecuritySettingsScreen extends StatefulWidget {
 
 class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   bool _biometricEnabled = false;
-  bool _pinEnabled = true;
+  bool _pinEnabled = false;
 
   // Active devices
   final UserProfileApiService _apiService = UserProfileApiService();
@@ -355,7 +355,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                   vertical: responsive.hp(1.5),
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.black,
+                                  color: isDark ? AppColors.black.withOpacity(0.5) : AppColorsLight.blue,
                                   borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                                 ),
                                 child: Row(

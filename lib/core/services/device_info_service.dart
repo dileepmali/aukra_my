@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 /// Service to get real device information
 class DeviceInfoService {
   static final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
-  // Cached values
+  // Cached value
   static String? _deviceName;
   static String? _deviceType;
   static String? _deviceId;

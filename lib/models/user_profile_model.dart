@@ -1,4 +1,5 @@
-/// User Profile Model for /api/use/profile API
+/// User Profile Model for /api/user/profile API
+/// Handles both user profile data and device session data
 class UserProfileModel {
   final String? userId;
   final String? sessionId;
@@ -24,6 +25,15 @@ class UserProfileModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  // ✅ NEW: User profile fields from /api/user/profile
+  final String? username;           // User's display name (e.g., "Dileep Mali")
+  final String? mobileNumber;       // User's mobile number
+  final String? recoveryMobileNumber; // Recovery mobile number
+  final String? countryCode;        // Country code (e.g., "+91")
+  final DateTime? lastLoginDate;    // Last login timestamp
+  final String? updateBySessionId;  // Session that last updated
+  final int? merchantId;            // Associated merchant ID
+
   UserProfileModel({
     this.userId,
     this.sessionId,
@@ -48,6 +58,14 @@ class UserProfileModel {
     this.deviceVersion,
     this.createdAt,
     this.updatedAt,
+    // ✅ NEW fields
+    this.username,
+    this.mobileNumber,
+    this.recoveryMobileNumber,
+    this.countryCode,
+    this.lastLoginDate,
+    this.updateBySessionId,
+    this.merchantId,
   });
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
@@ -85,6 +103,16 @@ class UserProfileModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'] as String)
           : null,
+      // ✅ NEW: Parse user profile fields
+      username: json['username'] as String?,
+      mobileNumber: json['mobileNumber'] as String?,
+      recoveryMobileNumber: json['recoveryMobileNumber'] as String?,
+      countryCode: json['countryCode'] as String?,
+      lastLoginDate: json['lastLoginDate'] != null
+          ? DateTime.tryParse(json['lastLoginDate'] as String)
+          : null,
+      updateBySessionId: json['updateBySessionId'] as String?,
+      merchantId: json['merchantId'] as int?,
     );
   }
 
@@ -113,6 +141,14 @@ class UserProfileModel {
       'deviceVersion': deviceVersion,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      // ✅ NEW fields
+      'username': username,
+      'mobileNumber': mobileNumber,
+      'recoveryMobileNumber': recoveryMobileNumber,
+      'countryCode': countryCode,
+      'lastLoginDate': lastLoginDate?.toIso8601String(),
+      'updateBySessionId': updateBySessionId,
+      'merchantId': merchantId,
     };
   }
 
@@ -140,6 +176,14 @@ class UserProfileModel {
     String? deviceVersion,
     DateTime? createdAt,
     DateTime? updatedAt,
+    // ✅ NEW fields
+    String? username,
+    String? mobileNumber,
+    String? recoveryMobileNumber,
+    String? countryCode,
+    DateTime? lastLoginDate,
+    String? updateBySessionId,
+    int? merchantId,
   }) {
     return UserProfileModel(
       userId: userId ?? this.userId,
@@ -165,6 +209,14 @@ class UserProfileModel {
       deviceVersion: deviceVersion ?? this.deviceVersion,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      // ✅ NEW fields
+      username: username ?? this.username,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
+      recoveryMobileNumber: recoveryMobileNumber ?? this.recoveryMobileNumber,
+      countryCode: countryCode ?? this.countryCode,
+      lastLoginDate: lastLoginDate ?? this.lastLoginDate,
+      updateBySessionId: updateBySessionId ?? this.updateBySessionId,
+      merchantId: merchantId ?? this.merchantId,
     );
   }
 }
