@@ -1407,7 +1407,7 @@ class AdvancedErrorService {
       children: [
         // App Logo (left)
         Image.asset(
-          AppImages.desktopAppLogo,
+          AppImages.AukraIm,
           width: responsive.iconSizeExtraLarge1,
           height: responsive.iconSizeExtraLarge1,
         ),
@@ -1557,7 +1557,7 @@ class AdvancedErrorService {
       children: [
         // App Logo (left)
         Image.asset(
-          AppImages.desktopAppLogo,
+          AppImages.AukraIm,
           width: responsive.iconSizeExtraLarge1,
           height: responsive.iconSizeExtraLarge1,
         ),
