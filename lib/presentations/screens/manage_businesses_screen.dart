@@ -16,6 +16,7 @@ import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/text_filed/custom_text_field.dart';
 import 'business_detail_screen.dart';
+import 'shop_detail_screen.dart';
 
 class ManageBusinessesScreen extends StatefulWidget {
   const ManageBusinessesScreen({super.key});
@@ -172,9 +173,14 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
         );
       }),
       floatingActionButton: CustomFloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           debugPrint('➕ Add Business tapped');
-          // TODO: Navigate to add business screen
+          final result = await Get.to(() => const ShopDetailScreen(isAddNewBusiness: true));
+          // Refresh merchant list if new business was added
+          if (result == true) {
+            debugPrint('🔄 New business added - refreshing list');
+            _controller.fetchMerchants();
+          }
         },
         screenType: 'businesses',
         icon: Icons.add,

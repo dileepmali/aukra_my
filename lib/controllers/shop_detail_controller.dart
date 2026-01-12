@@ -272,7 +272,7 @@ class ShopDetailController extends GetxController {
     });
   }
 
-  Future<bool> submitMerchantDetails(MerchantModel merchant) async {
+  Future<bool> submitMerchantDetails(MerchantModel merchant, {bool isAddNewBusiness = false}) async {
     // 🛡️ SECURITY: Duplicate merchant prevention
     final duplicateKey = DuplicatePrevention.generateKey(
       operation: 'create_merchant',
@@ -313,17 +313,21 @@ class ShopDetailController extends GetxController {
       SecureLogger.divider('SUBMIT MERCHANT');
       SecureLogger.info('Submitting merchant details...');
 
-      // ✅ FIRST: Check if merchant already exists
-      SecureLogger.info('Checking if merchant already exists...');
-      await _fetchExistingMerchant();
+      // ✅ FIRST: Check if merchant already exists (Skip if adding new business)
+      if (!isAddNewBusiness) {
+        SecureLogger.info('Checking if merchant already exists...');
+        await _fetchExistingMerchant();
 
-      final existingMerchantId = await AuthStorage.getMerchantId();
-      if (existingMerchantId != null) {
-        SecureLogger.success('Merchant already exists with ID: $existingMerchantId');
-        DuplicatePrevention.removePending(duplicateKey);
-        return true;
+        final existingMerchantId = await AuthStorage.getMerchantId();
+        if (existingMerchantId != null) {
+          SecureLogger.success('Merchant already exists with ID: $existingMerchantId');
+          DuplicatePrevention.removePending(duplicateKey);
+          return true;
+        }
+        SecureLogger.info('No existing merchant found - proceeding with creation...');
+      } else {
+        SecureLogger.info('Adding new business - skipping existing merchant check');
       }
-      SecureLogger.info('No existing merchant found - proceeding with creation...');
 
       final payload = merchant.toJson();
       debugPrint('');
@@ -364,6 +368,8 @@ class ShopDetailController extends GetxController {
       debugPrint('📡 Calling POST api/merchant...');
       debugPrint('🌐 Full URL: ${_apiFetcher.baseUri}api/merchant');
       debugPrint('🔐 Auth Required: true');
+      debugPrint('⏳ WAITING for API response...');
+
       await _apiFetcher.request(
         url: 'api/merchant',
         method: 'POST',
@@ -371,9 +377,13 @@ class ShopDetailController extends GetxController {
         requireAuth: true,
       );
 
+      debugPrint('');
+      debugPrint('🎯 ========== POST API RESPONSE RECEIVED ==========');
       debugPrint('📥 API Response (Full): ${_apiFetcher.data}');
       debugPrint('📥 Response Type: ${_apiFetcher.data.runtimeType}');
       debugPrint('❌ API Error: ${_apiFetcher.errorMessage}');
+      debugPrint('==================================================');
+      debugPrint('');
 
       // Check if merchant already exists (handle both "already exists" and "can't be change" messages)
       if (_apiFetcher.errorMessage != null &&
@@ -421,75 +431,89 @@ class ShopDetailController extends GetxController {
           }
 
           if (merchantId != null) {
-            // ✅ Save all merchant data from POST response
-            await AuthStorage.saveMerchantId(merchantId);
+            // ✅ Only save to storage if this is initial registration (NOT adding new business)
+            if (!isAddNewBusiness) {
+              // ✅ Save all merchant data from POST response
+              await AuthStorage.saveMerchantId(merchantId);
 
-            // ✅ Save merchantName (person's name)
-            // Priority: POST response > Submitted data
-            String finalMerchantName = merchant.merchantName; // Default: what user submitted
-            if (responseData['merchantName'] != null && responseData['merchantName'].toString().isNotEmpty) {
-              finalMerchantName = responseData['merchantName'].toString();
-              debugPrint('✅ Using merchantName from POST response: $finalMerchantName');
+              // ✅ Save merchantName (person's name)
+              // Priority: POST response > Submitted data
+              String finalMerchantName = merchant.merchantName; // Default: what user submitted
+              if (responseData['merchantName'] != null && responseData['merchantName'].toString().isNotEmpty) {
+                finalMerchantName = responseData['merchantName'].toString();
+                debugPrint('✅ Using merchantName from POST response: $finalMerchantName');
+              } else {
+                debugPrint('⚠️ POST response has no merchantName, using submitted value: $finalMerchantName');
+              }
+              await AuthStorage.saveMerchantName(finalMerchantName);
+
+              // ✅ Save businessName (shop name)
+              // Priority: POST response > Submitted data
+              String finalBusinessName = merchant.businessName; // Default: what user submitted
+              if (responseData['businessName'] != null && responseData['businessName'].toString().isNotEmpty) {
+                finalBusinessName = responseData['businessName'].toString();
+                debugPrint('✅ Using businessName from POST response: $finalBusinessName');
+              } else {
+                debugPrint('⚠️ POST response has no businessName, using submitted value: $finalBusinessName');
+              }
+              await AuthStorage.saveBusinessName(finalBusinessName);
+
+              // ✅ Save mobileNumber (registered number)
+              if (responseData['mobileNumber'] != null) {
+                await AuthStorage.saveMerchantMobile(responseData['mobileNumber'].toString());
+              } else {
+                await AuthStorage.saveMerchantMobile(merchant.mobileNumber);
+              }
+
+              // ✅ Save address
+              if (responseData['address'] != null) {
+                await AuthStorage.saveMerchantAddress(responseData['address'].toString());
+              } else {
+                await AuthStorage.saveMerchantAddress(merchant.address);
+              }
+
+              // ✅ Save pinCode (if available in response)
+              if (responseData['pinCode'] != null && responseData['pinCode'].toString().isNotEmpty) {
+                await AuthStorage.saveMerchantPinCode(responseData['pinCode'].toString());
+              } else if (merchant.pinCode.isNotEmpty) {
+                await AuthStorage.saveMerchantPinCode(merchant.pinCode);
+              }
+
+              // ✅ Save masterMobileNumber
+              if (responseData['masterMobileNumber'] != null) {
+                await AuthStorage.saveMasterMobileNumber(responseData['masterMobileNumber'].toString());
+              } else {
+                await AuthStorage.saveMasterMobileNumber(merchant.masterMobileNumber);
+              }
+
+              debugPrint('');
+              debugPrint('🏢 ========== MERCHANT DATA SAVED TO STORAGE ==========');
+              debugPrint('   merchantId: $merchantId');
+              debugPrint('   merchantName (Person): ${responseData['merchantName'] ?? merchant.merchantName}');
+              debugPrint('   businessName (Shop): ${responseData['businessName'] ?? merchant.businessName}');
+              debugPrint('   mobileNumber: ${responseData['mobileNumber'] ?? merchant.mobileNumber}');
+              debugPrint('   address: ${responseData['address'] ?? merchant.address}');
+              debugPrint('   pinCode: ${responseData['pinCode'] ?? merchant.pinCode}');
+              debugPrint('   masterMobileNumber: ${responseData['masterMobileNumber'] ?? merchant.masterMobileNumber}');
+              debugPrint('✅ All data saved to storage successfully!');
+              debugPrint('========================================================');
+              debugPrint('');
+
+              // ✅ Update user profile with merchantName (username)
+              // This ensures profile screen shows the correct name
+              await _updateUserProfileName(merchant.merchantName);
             } else {
-              debugPrint('⚠️ POST response has no merchantName, using submitted value: $finalMerchantName');
+              // ✅ Adding new business - don't save to storage, just log success
+              debugPrint('');
+              debugPrint('🏢 ========== NEW BUSINESS ADDED ==========');
+              debugPrint('   merchantId: $merchantId');
+              debugPrint('   businessName: ${merchant.businessName}');
+              debugPrint('   address: ${merchant.address}');
+              debugPrint('✅ New business created successfully!');
+              debugPrint('⚠️ Storage NOT updated (keeping current merchant context)');
+              debugPrint('============================================');
+              debugPrint('');
             }
-            await AuthStorage.saveMerchantName(finalMerchantName);
-
-            // ✅ Save businessName (shop name)
-            // Priority: POST response > Submitted data
-            String finalBusinessName = merchant.businessName; // Default: what user submitted
-            if (responseData['businessName'] != null && responseData['businessName'].toString().isNotEmpty) {
-              finalBusinessName = responseData['businessName'].toString();
-              debugPrint('✅ Using businessName from POST response: $finalBusinessName');
-            } else {
-              debugPrint('⚠️ POST response has no businessName, using submitted value: $finalBusinessName');
-            }
-            await AuthStorage.saveBusinessName(finalBusinessName);
-
-            // ✅ Save mobileNumber (registered number)
-            if (responseData['mobileNumber'] != null) {
-              await AuthStorage.saveMerchantMobile(responseData['mobileNumber'].toString());
-            } else {
-              await AuthStorage.saveMerchantMobile(merchant.mobileNumber);
-            }
-
-            // ✅ Save address
-            if (responseData['address'] != null) {
-              await AuthStorage.saveMerchantAddress(responseData['address'].toString());
-            } else {
-              await AuthStorage.saveMerchantAddress(merchant.address);
-            }
-
-            // ✅ Save pinCode (if available in response)
-            if (responseData['pinCode'] != null && responseData['pinCode'].toString().isNotEmpty) {
-              await AuthStorage.saveMerchantPinCode(responseData['pinCode'].toString());
-            } else if (merchant.pinCode.isNotEmpty) {
-              await AuthStorage.saveMerchantPinCode(merchant.pinCode);
-            }
-
-            // ✅ Save masterMobileNumber
-            if (responseData['masterMobileNumber'] != null) {
-              await AuthStorage.saveMasterMobileNumber(responseData['masterMobileNumber'].toString());
-            } else {
-              await AuthStorage.saveMasterMobileNumber(merchant.masterMobileNumber);
-            }
-
-            debugPrint('');
-            debugPrint('🏢 ========== MERCHANT DATA SAVED TO STORAGE ==========');
-            debugPrint('   merchantId: $merchantId');
-            debugPrint('   merchantName (Person): $finalMerchantName');
-            debugPrint('   businessName (Shop): $finalBusinessName');
-            debugPrint('   mobileNumber: ${responseData['mobileNumber'] ?? merchant.mobileNumber}');
-            debugPrint('   address: ${responseData['address'] ?? merchant.address}');
-            debugPrint('   pinCode: ${responseData['pinCode'] ?? merchant.pinCode}');
-            debugPrint('   masterMobileNumber: ${responseData['masterMobileNumber'] ?? merchant.masterMobileNumber}');
-            debugPrint('✅ All data saved to storage successfully!');
-            debugPrint('========================================================');
-            debugPrint('');
-
-            // ✅ NEW: Update user profile with merchantName (username)
-            // This ensures profile screen shows the correct name
-            await _updateUserProfileName(finalMerchantName);
 
             return true;
           } else {
@@ -523,7 +547,12 @@ class ShopDetailController extends GetxController {
         throw Exception(detailedError);
       }
     } catch (e) {
-      debugPrint('❌ Error submitting merchant details: $e');
+      debugPrint('');
+      debugPrint('💥 ========== EXCEPTION IN submitMerchantDetails ==========');
+      debugPrint('❌ Error: $e');
+      debugPrint('❌ Error Type: ${e.runtimeType}');
+      debugPrint('===========================================================');
+      debugPrint('');
 
       // Check if error message contains "already exists" or "can't be change"
       final errorStr = e.toString().toLowerCase();
@@ -532,12 +561,18 @@ class ShopDetailController extends GetxController {
           errorStr.contains("cannot be change")) {
         debugPrint('⚠️ Merchant already exists (caught in exception), proceeding anyway');
 
-        // Try to fetch existing merchant data
-        await _fetchExistingMerchant();
+        // ✅ Only fetch existing merchant if NOT adding new business
+        if (!isAddNewBusiness) {
+          await _fetchExistingMerchant();
+        } else {
+          debugPrint('⚠️ isAddNewBusiness=true, skipping _fetchExistingMerchant');
+        }
 
+        debugPrint('🔙 Returning TRUE from catch block (already exists)');
         return true;
       }
 
+      debugPrint('🔙 Returning FALSE from catch block');
       return false;
     } finally {
       // 🛡️ SECURITY: Always reset loading state and remove from pending tracking

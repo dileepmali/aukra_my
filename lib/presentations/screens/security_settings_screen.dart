@@ -519,7 +519,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     return GestureDetector(
       onTap: () => onToggle(!isEnabled),
       child: Container(
-        width: responsive.wp(22),
+        width: responsive.wp(30),
         height: responsive.hp(4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),

@@ -27,7 +27,12 @@ import '../widgets/text_filed/custom_text_field.dart';
 import 'main_screen.dart';
 
 class ShopDetailScreen extends StatefulWidget {
-  const ShopDetailScreen({Key? key}) : super(key: key);
+  final bool isAddNewBusiness;
+
+  const ShopDetailScreen({
+    Key? key,
+    this.isAddNewBusiness = false,
+  }) : super(key: key);
 
   @override
   State<ShopDetailScreen> createState() => _ShopDetailScreenState();
@@ -816,23 +821,46 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
       debugPrint('   Master Phone: $rawOwner');
       debugPrint('   Is Owner Different: $isOwnerDifferent');
       debugPrint('   OTP Included: ${merchant.otp != null}');
+      debugPrint('🚀 isAddNewBusiness flag: ${widget.isAddNewBusiness}');
 
-      final result = await controller.submitMerchantDetails(merchant);
+      debugPrint('⏳ Calling submitMerchantDetails... WAITING for response');
+      final result = await controller.submitMerchantDetails(
+        merchant,
+        isAddNewBusiness: widget.isAddNewBusiness,
+      );
+      debugPrint('✅ submitMerchantDetails completed with result: $result');
 
       if (result) {
-        // ✅ Mark shop details as complete
-        await AuthStorage.markShopDetailsComplete();
-        debugPrint('✅ Shop details marked as complete in storage');
+        debugPrint('🎉 Result is TRUE - proceeding with navigation');
+
+        // ✅ Mark shop details as complete (only for initial registration)
+        if (!widget.isAddNewBusiness) {
+          await AuthStorage.markShopDetailsComplete();
+          debugPrint('✅ Shop details marked as complete in storage');
+        }
 
         AdvancedErrorService.showSuccess(
-          AppStrings.getLocalizedString(context, (localizations) => localizations.detailsSavedSuccessfully),
+          widget.isAddNewBusiness
+              ? 'New business added successfully'
+              : AppStrings.getLocalizedString(context, (localizations) => localizations.detailsSavedSuccessfully),
           type: SuccessType.snackbar,
         );
 
         await Future.delayed(const Duration(milliseconds: 500));
-        // Navigate to main screen
-        Get.offAll(() => const MainScreen());
+
+        // Navigate based on mode
+        debugPrint('🧭 Navigation decision: isAddNewBusiness=${widget.isAddNewBusiness}');
+        if (widget.isAddNewBusiness) {
+          // Go back to ManageBusinessesScreen and refresh
+          debugPrint('🔙 Calling Get.back(result: true)');
+          Get.back(result: true);
+        } else {
+          // Navigate to main screen (first time registration)
+          debugPrint('🏠 Calling Get.offAll(MainScreen)');
+          Get.offAll(() => const MainScreen());
+        }
       } else {
+        debugPrint('❌ Result is FALSE - throwing exception');
         throw Exception('Failed to save merchant details');
       }
     } catch (e) {

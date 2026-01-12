@@ -140,6 +140,7 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
       newPhoneNumber: maskedNewNumber,
       title: 'Enter secure OTP received on your new number',
       subtitle: 'Enter OTP sent to\n$maskedNewNumber',
+      warningText: 'You will be signed out from current device & all other devices.',
     );
 
     if (newOtp == null) {

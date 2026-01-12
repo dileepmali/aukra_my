@@ -110,6 +110,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Scaffold(
           backgroundColor: Colors.transparent,
+          resizeToAvoidBottomInset: false,
           body: Stack(
             children: [
               // Main content
