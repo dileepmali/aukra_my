@@ -558,11 +558,16 @@ class ShopDetailController extends GetxController {
   /// Pass merchantId explicitly when updating a different merchant (e.g., from ManageBusinesses screen)
   Future<bool> updateMerchantDetails(MerchantModel merchant, {int? merchantId}) async {
     // 🛡️ SECURITY: Duplicate merchant update prevention
+    // Include all updateable fields in key so different field updates have unique keys
     final duplicateKey = DuplicatePrevention.generateKey(
       operation: 'update_merchant',
       params: {
+        'merchantId': merchantId?.toString() ?? '',
         'businessName': merchant.businessName,
         'address': merchant.address,
+        'category': merchant.category ?? '',
+        'businessType': merchant.businessType ?? '',
+        'manager': merchant.manager ?? '',
       },
     );
 
@@ -576,17 +581,9 @@ class ShopDetailController extends GetxController {
       return false;
     }
 
-    if (DuplicatePrevention.wasRecentlyCompleted(duplicateKey)) {
-      final timeSince = DuplicatePrevention.getTimeSinceCompleted(duplicateKey);
-      SecureLogger.warning('Recently completed merchant update detected: ${timeSince?.inSeconds}s ago');
-
-      AdvancedErrorService.showError(
-        'Merchant details were just updated. Please wait a moment.',
-        severity: ErrorSeverity.medium,
-        category: ErrorCategory.validation,
-      );
-      return false;
-    }
+    // ✅ Skip "recently completed" check for different field updates
+    // Each unique combination of fields will have its own key
+    // This allows updating category, then businessType, then manager in sequence
 
     // Mark as pending
     DuplicatePrevention.markPending(duplicateKey);
@@ -890,11 +887,14 @@ class ShopDetailController extends GetxController {
   }
 
   /// Helper method to update merchant details from UI screens
-  /// Takes businessName or address (or both) and calls PUT API
+  /// Takes businessName, address, category, businessType, manager (any or all) and calls PUT API
   /// IMPORTANT: Pass merchantId when updating a different merchant (e.g., from ManageBusinesses)
   Future<bool> updateMerchantFromScreen({
     String? businessName,
     String? address,
+    String? category,
+    String? businessType,
+    String? manager,
     int? merchantId,
   }) async {
     try {
@@ -927,11 +927,17 @@ class ShopDetailController extends GetxController {
         country: merchantData['country']?.toString() ?? 'INDIA',
         pinCode: merchantData['pinCode']?.toString() ?? '',
         masterMobileNumber: merchantData['masterMobileNumber']?.toString() ?? phone,
+        category: category,
+        businessType: businessType,
+        manager: manager,
       );
 
       debugPrint('📦 Updated Merchant Model:');
       debugPrint('   businessName: ${updatedMerchant.businessName}');
       debugPrint('   address: ${updatedMerchant.address}');
+      debugPrint('   category: ${updatedMerchant.category}');
+      debugPrint('   businessType: ${updatedMerchant.businessType}');
+      debugPrint('   manager: ${updatedMerchant.manager}');
       debugPrint('   merchantId: $merchantId (passed from screen)');
 
       // Call PUT API with merchantId if provided

@@ -85,8 +85,8 @@ class _NewNumberOtpDialogContentState
   @override
   void initState() {
     super.initState();
-    // Auto focus on OTP field
-    Future.delayed(Duration(milliseconds: 300), () {
+    // Auto focus on OTP field immediately to keep keyboard open
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _otpFocusNode.requestFocus();
     });
     // Start resend timer

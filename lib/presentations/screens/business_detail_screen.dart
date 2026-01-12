@@ -28,6 +28,7 @@ import '../widgets/bottom_sheets/business_type_bottom_sheet.dart';
 import '../widgets/bottom_sheets/category_bottom_sheet.dart';
 import '../widgets/bottom_sheets/manager_bottom_sheet.dart';
 import '../routes/app_routes.dart';
+import '../../core/utils/dialog_transition_helper.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final int merchantId;
@@ -133,6 +134,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           // Category from API
           _category = currentMerchant.category ?? 'Not specified';
 
+          // Manager from API
+          _manager = currentMerchant.manager ?? 'Not assigned';
+
           // Email from API
           _email = currentMerchant.emailId ?? '';
 
@@ -150,6 +154,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           debugPrint('   Phone: $_phone');
           debugPrint('   Business Type: $_businessType');
           debugPrint('   Category: $_category');
+          debugPrint('   Manager: $_manager');
           debugPrint('   Email: $_email');
           debugPrint('   isActive: $_isActive');
           debugPrint('   isVerified: $_isVerified');
@@ -230,6 +235,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       _changeNumberController.reset();
       _changeNumberController.setCurrentNumber(_masterMobileRaw);
 
+      // Prepare for dialog sequence - hide any existing keyboard
+      await DialogTransitionHelper.prepareForDialogSequence(context);
+
       // STEP 1: Show PIN dialog and call API 1 (Send OTP to current number)
       debugPrint('');
       debugPrint('📍 STEP 1: Enter PIN to send OTP to current admin mobile...');
@@ -258,6 +266,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
 
       debugPrint('✅ PIN entered: ****');
 
+      // Wait for keyboard to close before API call
+      await DialogTransitionHelper.waitForDialogTransition();
+
       // API 1: Send OTP to current admin mobile
       debugPrint('📡 API 1: Sending OTP to current admin mobile...');
       final otpSentToCurrent = await _changeNumberController.sendOtpToCurrentNumber(pin);
@@ -270,6 +281,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       debugPrint('✅ API 1 Success: OTP sent to current admin mobile');
 
       if (!mounted) return;
+
+      // Wait for smooth transition before showing next dialog
+      await DialogTransitionHelper.waitForDialogTransition();
 
       // STEP 2: Show OTP dialog for current number and call API 2
       debugPrint('');
@@ -289,6 +303,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         return;
       }
 
+      // Wait for keyboard to close before API call
+      await DialogTransitionHelper.waitForDialogTransition();
+
       debugPrint('📡 API 2: Verifying current admin mobile OTP...');
       final currentOtpVerified = await _changeNumberController.verifyCurrentNumberOtp(currentOtp);
 
@@ -301,6 +318,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       debugPrint('   Session ID: ${_changeNumberController.sessionId}');
 
       if (!mounted) return;
+
+      // Wait for smooth transition before showing next dialog
+      await DialogTransitionHelper.waitForDialogTransition();
 
       // STEP 3: Show dialog to enter new mobile number
       debugPrint('');
@@ -322,6 +342,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
 
       debugPrint('✅ New mobile entered: ${newMobile.substring(0, 2)}****${newMobile.substring(newMobile.length - 2)}');
 
+      // Wait for keyboard to close before API call
+      await DialogTransitionHelper.waitForDialogTransition();
+
       // API 3: Send OTP to new mobile number
       debugPrint('📡 API 3: Sending OTP to new mobile number...');
       final otpSentToNew = await _changeNumberController.sendOtpToNewNumber(newMobile);
@@ -334,6 +357,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       debugPrint('✅ API 3 Success: OTP sent to new mobile');
 
       if (!mounted) return;
+
+      // Wait for smooth transition before showing next dialog
+      await DialogTransitionHelper.waitForDialogTransition();
 
       // STEP 4: Show OTP dialog for new number and call API 4
       debugPrint('');
@@ -354,6 +380,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         debugPrint('❌ User cancelled new number OTP verification');
         return;
       }
+
+      // Wait for keyboard to close before API call
+      await DialogTransitionHelper.waitForDialogTransition();
 
       debugPrint('📡 API 4: Verifying new mobile OTP and completing change...');
       final changeSuccess = await _changeNumberController.verifyNewNumberOtp(newNumberOtp);
@@ -422,9 +451,19 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
 
       if (selectedType != null && selectedType != _businessType) {
         debugPrint('✅ Business Type selected: $selectedType');
-        setState(() {
-          _businessType = selectedType;
-        });
+
+        // Call API to update business type
+        final success = await _shopController.updateMerchantFromScreen(
+          businessType: selectedType,
+          merchantId: widget.merchantId,
+        );
+
+        if (success) {
+          setState(() {
+            _businessType = selectedType;
+          });
+          await _loadMerchantData();
+        }
       }
     } else if (title == 'Category') {
       debugPrint('📁 Category tapped - showing bottom sheet');
@@ -436,9 +475,19 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
 
       if (selectedCategory != null && selectedCategory != _category) {
         debugPrint('✅ Category selected: $selectedCategory');
-        setState(() {
-          _category = selectedCategory;
-        });
+
+        // Call API to update category
+        final success = await _shopController.updateMerchantFromScreen(
+          category: selectedCategory,
+          merchantId: widget.merchantId,
+        );
+
+        if (success) {
+          setState(() {
+            _category = selectedCategory;
+          });
+          await _loadMerchantData();
+        }
       }
     } else if (title == 'Manager') {
       debugPrint('👤 Manager tapped - showing bottom sheet');
@@ -450,9 +499,19 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
 
       if (selectedManager != null && selectedManager != _manager) {
         debugPrint('✅ Manager selected: $selectedManager');
-        setState(() {
-          _manager = selectedManager;
-        });
+
+        // Call API to update manager
+        final success = await _shopController.updateMerchantFromScreen(
+          manager: selectedManager,
+          merchantId: widget.merchantId,
+        );
+
+        if (success) {
+          setState(() {
+            _manager = selectedManager;
+          });
+          await _loadMerchantData();
+        }
       }
     } else {
       debugPrint('$title tapped (no action)');

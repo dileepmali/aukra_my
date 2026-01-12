@@ -55,6 +55,7 @@ class AppIcons {
   static const String fingerprintIc = 'assets/icons/fingerprint.svg';
   static const String mobileIc = 'assets/icons/mobile.svg';
   static const String changeNumberIc = 'assets/icons/chnage_number.svg';
+  static const String recoveryIc = 'assets/icons/recovery_ic.svg';
 
   // Calendar & time icons
   static const String calendarIc = 'assets/icons/Calendar.svg';

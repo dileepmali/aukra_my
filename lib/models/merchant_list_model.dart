@@ -105,6 +105,7 @@ class MerchantListModel {
   final int? id;
   final String? category;
   final String? businessType;
+  final String? manager; // Assigned manager
   final String? emailId;
   final String? mobileNumber;
   final String? backupPhoneNumber;
@@ -131,6 +132,7 @@ class MerchantListModel {
     this.id,
     this.category,
     this.businessType,
+    this.manager,
     this.emailId,
     this.mobileNumber,
     this.backupPhoneNumber,
@@ -182,6 +184,7 @@ class MerchantListModel {
       id: json['id'],
       category: json['category'],
       businessType: json['businessType'],
+      manager: json['manager'],
       emailId: json['emailId'],
       mobileNumber: json['mobileNumber'],
       backupPhoneNumber: json['backupPhoneNumber'],
@@ -212,6 +215,7 @@ class MerchantListModel {
       'id': id,
       'category': category,
       'businessType': businessType,
+      'manager': manager,
       'emailId': emailId,
       'mobileNumber': mobileNumber,
       'backupPhoneNumber': backupPhoneNumber,
@@ -229,6 +233,7 @@ class MerchantListModel {
       'address': address?.toJson(),
     };
   }
+
 
   /// Get formatted phone number with country code
   String get formattedPhone => '$countryCode $phone';
@@ -250,6 +255,9 @@ class MerchantListModel {
 
   /// Get display business type
   String get displayBusinessType => businessType ?? 'Not specified';
+
+  /// Get display manager
+  String get displayManager => manager ?? 'Not assigned';
 
   @override
   String toString() {

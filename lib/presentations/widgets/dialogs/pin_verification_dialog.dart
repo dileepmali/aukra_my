@@ -100,8 +100,8 @@ class _PinVerificationDialogContentState
   @override
   void initState() {
     super.initState();
-    // Auto focus on PIN field
-    Future.delayed(Duration(milliseconds: 300), () {
+    // Auto focus on PIN field immediately to keep keyboard open
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _pinFocusNode.requestFocus();
     });
   }
@@ -170,7 +170,8 @@ class _PinVerificationDialogContentState
           _pinController.clear();
         });
         _startResendTimer();
-        Future.delayed(Duration(milliseconds: 300), () {
+        // Focus OTP field immediately to keep keyboard open
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           _otpFocusNode.requestFocus();
         });
       } else {

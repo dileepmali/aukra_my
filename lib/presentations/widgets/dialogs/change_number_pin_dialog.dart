@@ -13,6 +13,7 @@ import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../buttons/dialog_botton.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
+import '../../../core/utils/dialog_transition_helper.dart';
 import 'mobile_number_dialog.dart';
 
 /// PIN Verification Dialog specifically for Change Number feature
@@ -68,8 +69,8 @@ class _ChangeNumberPinDialogContentState
   void initState() {
     super.initState();
     debugPrint('🔍 Dialog received masked number: ${widget.maskedPhoneNumber}');
-    // Auto focus on PIN field
-    Future.delayed(Duration(milliseconds: 300), () {
+    // Auto focus on PIN field immediately to keep keyboard open
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _pinFocusNode.requestFocus();
     });
   }
@@ -124,7 +125,8 @@ class _ChangeNumberPinDialogContentState
         _pinController.clear();
       });
       _startResendTimer();
-      Future.delayed(Duration(milliseconds: 300), () {
+      // Focus OTP field immediately to keep keyboard open
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         _otpFocusNode.requestFocus();
       });
     } else {
@@ -138,6 +140,11 @@ class _ChangeNumberPinDialogContentState
   Future<void> _verifyCurrentOtp(String otp) async {
     final success = await widget.controller.verifyCurrentNumberOtp(otp);
     if (success) {
+      // Wait for keyboard to close before showing next dialog
+      await DialogTransitionHelper.waitForDialogTransition();
+
+      if (!mounted) return;
+
       // OTP verified, now show mobile number dialog
       final mobileNumber = await MobileNumberDialog.show(
         context: context,

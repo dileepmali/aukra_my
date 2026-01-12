@@ -103,7 +103,7 @@ class ListItemWidget extends StatelessWidget {
               height: height,
               padding: itemPadding ?? EdgeInsets.symmetric(
                 horizontal: responsive.wp(4),
-                vertical: responsive.hp(1.2),
+                vertical: responsive.hp(1.0),
               ), // Optional custom padding, default if not provided
               color: backgroundColor ?? Colors.transparent,
             child: Row(

@@ -87,8 +87,8 @@ class _MobileNumberDialogContentState
     if (widget.initialNumber != null) {
       _mobileController.text = widget.initialNumber!;
     }
-    // Auto focus on mobile field
-    Future.delayed(Duration(milliseconds: 300), () {
+    // Auto focus on mobile field immediately to keep keyboard open
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _mobileFocusNode.requestFocus();
     });
   }

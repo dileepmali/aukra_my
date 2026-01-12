@@ -21,6 +21,7 @@ import '../../core/utils/formatters.dart';
 import '../../controllers/change_number_controller.dart';
 import '../../core/services/error_service.dart';
 import '../../core/untils/error_types.dart';
+import '../../core/utils/dialog_transition_helper.dart';
 import '../routes/app_routes.dart';
 
 class ChangeNumberScreen extends StatefulWidget {
@@ -75,6 +76,9 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
     debugPrint('🔍 Current number: $_currentNumber');
     debugPrint('🔍 Masked number: $maskedNumber');
 
+    // Prepare for dialog sequence - hide any existing keyboard
+    await DialogTransitionHelper.prepareForDialogSequence(context);
+
     // Show PIN dialog with API integration
     final result = await ChangeNumberPinDialog.show(
       context: context,
@@ -124,6 +128,11 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
 
     debugPrint('✅ OTP sent to new number');
 
+    if (!mounted) return;
+
+    // Wait for smooth transition before showing dialog
+    await DialogTransitionHelper.waitForDialogTransition();
+
     // Show OTP dialog for new number
     final maskedNewNumber = Formatters.formatMaskedPhone(_newNumber!);
     final newOtp = await NewNumberOtpDialog.show(
@@ -139,6 +148,9 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
     }
 
     debugPrint('📱 User entered new OTP');
+
+    // Wait for keyboard to close before API call
+    await DialogTransitionHelper.waitForDialogTransition();
 
     // Step 4: Verify new number OTP (API 4)
     final success = await _controller.verifyNewNumberOtp(newOtp);

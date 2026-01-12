@@ -16,6 +16,7 @@ import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../../core/utils/formatters.dart';
 import '../../controllers/localization_controller.dart';
+import '../../controllers/recovery_mobile_controller.dart';
 import '../../models/merchant_list_model.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
@@ -443,7 +444,27 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'subtitle': backupPhone != null && backupPhone.isNotEmpty
             ? Formatters.formatPhoneWithCountryCode(backupPhone)
             : 'Not added',
-        'onTap': () => debugPrint('Recovery mobile tapped'),
+        'onTap': () async {
+          debugPrint('🔐 Recovery mobile tapped');
+          final controller = Get.put(RecoveryMobileController(), tag: 'recovery_mobile');
+
+          final success = await controller.startRecoveryMobileFlow(
+            context: context,
+            currentMobileNumber: _mobileNumber,
+            onSuccess: () {
+              // Refresh data after successful update
+              _loadAllData();
+            },
+          );
+
+          // Cleanup controller
+          Get.delete<RecoveryMobileController>(tag: 'recovery_mobile');
+
+          if (success) {
+            debugPrint('✅ Recovery mobile updated successfully');
+          }
+        },
+        'hasRecoveryData': backupPhone != null && backupPhone.isNotEmpty,
       },
       {
         'icon': AppIcons.messageIc,
@@ -476,6 +497,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       child: Column(
         children: List.generate(profileOptions.length, (index) {
           final option = profileOptions[index];
+          final hasRecoveryData = option['hasRecoveryData'] as bool? ?? false;
+
           return Column(
             children: [
               ListItemWidget(
@@ -483,7 +506,28 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 title: option['title'] as String,
                 subtitle: option['subtitle'] as String,
                 leadingIcon: option['icon'] as String,
-                trailingIcon: AppIcons.arrowRightIc,
+                // Use customTrailing for Recovery mobile when data exists
+                trailingIcon: hasRecoveryData ? null : AppIcons.arrowRightIc,
+                customTrailing: hasRecoveryData
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            AppIcons.recoveryIc,
+                            width: responsive.iconSizeMedium,
+                            height: responsive.iconSizeMedium,
+                            color: isDark ? AppColors.white : AppColorsLight.iconPrimary,
+                          ),
+                          SizedBox(width: responsive.spacing(8)),
+                          SvgPicture.asset(
+                            AppIcons.arrowRightIc,
+                            width: responsive.iconSizeMedium,
+                            height: responsive.iconSizeMedium,
+                            color: isDark ? AppColors.white : AppColorsLight.iconPrimary,
+                          ),
+                        ],
+                      )
+                    : null,
                 onTap: option['onTap'] as VoidCallback,
                 showBorder: false,
               ),

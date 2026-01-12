@@ -18,6 +18,9 @@ import '../widgets/dialogs/pin_verification_dialog.dart';
 import '../widgets/dialogs/new_number_otp_dialog.dart';
 import '../../core/api/auth_storage.dart';
 import '../../core/api/user_profile_api_service.dart';
+import '../../core/api/merchant_list_api.dart';
+import '../../core/services/error_service.dart';
+import '../../core/untils/error_types.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/user_profile_model.dart';
 import '../../core/services/device_info_service.dart';
@@ -36,8 +39,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
   // Active devices
   final UserProfileApiService _apiService = UserProfileApiService();
+  final MerchantListApi _merchantApi = MerchantListApi();
   List<UserProfileModel> _devices = [];
   bool _isLoadingDevices = true;
+  String _merchantAddress = ''; // Merchant's business address
 
   @override
   void initState() {
@@ -48,13 +53,16 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   Future<void> _loadActiveDevices() async {
     setState(() => _isLoadingDevices = true);
 
+    // Load devices and merchant address in parallel
     final devices = await _apiService.getActiveDevices();
+    await _loadMerchantAddress();
 
     // Debug: Print current device ID and all device IDs from API
     debugPrint('');
     debugPrint('📱 ========== DEVICE ID COMPARISON ==========');
     debugPrint('🔑 Current Device ID (Local): ${DeviceInfoService.deviceId}');
     debugPrint('📋 Devices from API: ${devices?.length ?? 0}');
+    debugPrint('🏢 Merchant Address: $_merchantAddress');
     if (devices != null) {
       for (var i = 0; i < devices.length; i++) {
         final d = devices[i];
@@ -70,6 +78,25 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         _devices = devices ?? [];
         _isLoadingDevices = false;
       });
+    }
+  }
+
+  /// Load merchant address from API
+  Future<void> _loadMerchantAddress() async {
+    try {
+      final merchants = await _merchantApi.getAllMerchants();
+      if (merchants.isNotEmpty) {
+        // Find main account or use first merchant
+        final mainMerchant = merchants.firstWhere(
+          (m) => m.isMainAccount,
+          orElse: () => merchants.first,
+        );
+        _merchantAddress = mainMerchant.formattedAddress;
+        debugPrint('✅ Merchant address loaded: $_merchantAddress');
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading merchant address: $e');
+      _merchantAddress = '';
     }
   }
 
@@ -113,13 +140,19 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: responsive.hp(2)),
-            _buildSecurityOptions(responsive, isDark),
-            SizedBox(height: responsive.hp(10)),
-          ],
+      body: RefreshIndicator(
+        color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+        backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+        onRefresh: _loadActiveDevices,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              SizedBox(height: responsive.hp(2)),
+              _buildSecurityOptions(responsive, isDark),
+              SizedBox(height: responsive.hp(10)),
+            ],
+          ),
         ),
       ),
     );
@@ -207,7 +240,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                               option['title'] as String,
                               style: TextStyle(
                                 color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                fontSize: responsive.fontSize(20),
+                                fontSize: responsive.fontSize(18),
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
@@ -316,22 +349,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       if (option['hasButton'] == true) ...[
                         SizedBox(height: responsive.hp(2)),
 
-                        // Device list
-                        if (_isLoadingDevices)
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
-                            child: Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                                ),
-                              ),
-                            ),
-                          )
-                        else if (_devices.isEmpty)
+                        // Device list (no loading indicator - uses pull to refresh)
+                        if (_devices.isEmpty && !_isLoadingDevices)
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
                             child: AppText.custom(
@@ -377,10 +396,11 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          if (device.address != null && device.address!.isNotEmpty) ...[
+                                          // Show merchant business address instead of device address
+                                        if (_merchantAddress.isNotEmpty) ...[
                                             SizedBox(height: responsive.hp(0.3)),
                                             AppText.custom(
-                                              device.address!,
+                                              _merchantAddress,
                                               style: TextStyle(
                                                 color: AppColors.textDisabled,
                                                 fontSize: responsive.fontSize(13),
@@ -400,8 +420,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                       AppText.custom(
                                         'Current device',
                                         style: TextStyle(
-                                          color: AppColors.textDisabled,
-                                          fontSize: responsive.fontSize(12),
+                                          color: isDark ? AppColors.primeryamount : AppColorsLight.blue,
+                                          fontSize: responsive.fontSize(14),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       )
@@ -419,10 +439,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                             );
 
                                             if (success == true) {
-                                              Get.snackbar(
-                                                'Success',
+                                              AdvancedErrorService.showSuccess(
                                                 'Device logged out successfully',
-                                                snackPosition: SnackPosition.BOTTOM,
+                                                type: SuccessType.snackbar,
                                               );
                                               _loadActiveDevices(); // Refresh list
                                             }

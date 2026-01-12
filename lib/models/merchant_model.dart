@@ -11,6 +11,9 @@ class MerchantModel {
   final MerchantLocation? location; // GPS coordinates
   final String masterMobileNumber;
   final String? otp; // Optional - only needed if master number is different
+  final String? category; // Business category
+  final String? businessType; // Type of business
+  final String? manager; // Assigned manager
 
   MerchantModel({
     required this.merchantName,
@@ -25,6 +28,9 @@ class MerchantModel {
     this.location,
     required this.masterMobileNumber,
     this.otp,
+    this.category,
+    this.businessType,
+    this.manager,
   });
 
   // Convert model to JSON for API request (POST - Create merchant)
@@ -103,6 +109,21 @@ class MerchantModel {
       data['location'] = location!.toJson();
     }
 
+    // ✅ Category - only add if provided
+    if (category != null && category!.isNotEmpty) {
+      data['category'] = category;
+    }
+
+    // ✅ Business Type - only add if provided
+    if (businessType != null && businessType!.isNotEmpty) {
+      data['businessType'] = businessType;
+    }
+
+    // ✅ Manager - only add if provided
+    if (manager != null && manager!.isNotEmpty) {
+      data['manager'] = manager;
+    }
+
     return data;
   }
 
@@ -123,6 +144,9 @@ class MerchantModel {
           : null,
       masterMobileNumber: json['masterMobileNumber'] ?? '',
       otp: json['otp'],
+      category: json['category'],
+      businessType: json['businessType'],
+      manager: json['manager'],
     );
   }
 
@@ -140,6 +164,9 @@ class MerchantModel {
     MerchantLocation? location,
     String? masterMobileNumber,
     String? otp,
+    String? category,
+    String? businessType,
+    String? manager,
   }) {
     return MerchantModel(
       merchantName: merchantName ?? this.merchantName,
@@ -154,6 +181,9 @@ class MerchantModel {
       location: location ?? this.location,
       masterMobileNumber: masterMobileNumber ?? this.masterMobileNumber,
       otp: otp ?? this.otp,
+      category: category ?? this.category,
+      businessType: businessType ?? this.businessType,
+      manager: manager ?? this.manager,
     );
   }
 
