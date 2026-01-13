@@ -42,6 +42,7 @@ class TransactionItemModel {
   final String partyName;
   final String partyType; // "CUSTOMER", "SUPPLIER", "EMPLOYEE"
   final String balanceType; // "IN" or "OUT"
+  final List<int>? uploadedKeys; // Image keys uploaded with this transaction
 
   TransactionItemModel({
     required this.id,
@@ -57,6 +58,7 @@ class TransactionItemModel {
     required this.partyName,
     required this.partyType,
     required this.balanceType,
+    this.uploadedKeys,
   });
 
   factory TransactionItemModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,9 @@ class TransactionItemModel {
       partyName: json['partyName'] ?? '',
       partyType: json['partyType'] ?? 'CUSTOMER',
       balanceType: json['balanceType'] ?? 'OUT',
+      uploadedKeys: json['uploadedKeys'] != null
+          ? List<int>.from(json['uploadedKeys'])
+          : null,
     );
   }
 
@@ -92,6 +97,7 @@ class TransactionItemModel {
       'partyName': partyName,
       'partyType': partyType,
       'balanceType': balanceType,
+      if (uploadedKeys != null) 'uploadedKeys': uploadedKeys,
     };
   }
 
@@ -112,6 +118,12 @@ class TransactionItemModel {
 
   /// Check if transaction is positive (IN)
   bool get isPositive => transactionType == 'IN';
+
+  /// Check if transaction has images
+  bool get hasImages => uploadedKeys != null && uploadedKeys!.isNotEmpty;
+
+  /// Get number of images
+  int get imageCount => uploadedKeys?.length ?? 0;
 
   /// Get month name
   static String _getMonthName(int month) {

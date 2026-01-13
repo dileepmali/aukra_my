@@ -17,6 +17,7 @@ class AuthStorage {
   static const _merchantAddressKey = "merchant_address";
   static const _merchantPinCodeKey = "merchant_pincode";
   static const _masterMobileNumberKey = "master_mobile_number";
+  static const _fcmTokenIdKey = "fcm_token_id";
   static final _storage = FlutterSecureStorage();
 
   static Future<void> saveToken(String token) async {
@@ -163,6 +164,27 @@ class AuthStorage {
     await _storage.delete(key: _masterMobileNumberKey);
   }
 
+  // FCM Token ID Methods
+  static Future<void> saveFcmTokenId(int tokenId) async {
+    await _storage.write(key: _fcmTokenIdKey, value: tokenId.toString());
+  }
+
+  static Future<int?> getFcmTokenId() async {
+    final value = await _storage.read(key: _fcmTokenIdKey);
+    return value != null ? int.tryParse(value) : null;
+  }
+
+  static Future<void> clearFcmTokenId() async {
+    await _storage.delete(key: _fcmTokenIdKey);
+  }
+
+  /// Check if user is logged in (has valid token and merchantId)
+  static Future<bool> isLoggedIn() async {
+    final token = await getValidToken();
+    final merchantId = await getMerchantId();
+    return token != null && merchantId != null;
+  }
+
   // ✅ NEW: Get complete merchant data as Map (useful for replacing GET API calls)
   /// Returns complete merchant data from storage (alternative to GET api/merchant)
   /// Returns null if merchantId is not found
@@ -279,6 +301,9 @@ class AuthStorage {
       await clearMerchantAddress();
       await clearMerchantPinCode();
       await clearMasterMobileNumber();
+
+      // Clear FCM token ID
+      await clearFcmTokenId();
 
       // Optionally clear other cached data
       // await _storage.deleteAll();  // अगर सारे keys clear करने हों
