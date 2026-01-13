@@ -9,6 +9,7 @@ import '../models/recovery_mobile_model.dart';
 import '../presentations/widgets/dialogs/pin_verification_dialog.dart';
 import '../presentations/widgets/dialogs/new_number_otp_dialog.dart';
 import '../presentations/widgets/dialogs/mobile_number_dialog.dart';
+import 'privacy_setting_controller.dart';
 
 /// Professional GetX Controller for Recovery Mobile Feature
 /// Manages state and business logic for changing user's recovery/backup mobile number
@@ -224,31 +225,47 @@ class RecoveryMobileController extends GetxController {
     // Prepare for dialog sequence - hide any existing keyboard
     await DialogTransitionHelper.prepareForDialogSequence(context);
 
-    // STEP 1: Show PIN Dialog
+    // STEP 1: Use global PIN check - skip if PIN is disabled
     debugPrint('');
-    debugPrint('📍 STEP 1: Enter Security PIN...');
+    debugPrint('📍 STEP 1: Check Security PIN...');
 
-    final pinResult = await PinVerificationDialog.show(
-      context: context,
-      title: 'Enter Security Pin',
-      subtitle: 'Enter your 4-digit pin to verify',
-      maskedPhoneNumber: maskedNumber,
-      requireOtp: false,
-      confirmButtonText: 'Send OTP',
-    );
+    String? pin;
+    try {
+      final privacyController = Get.find<PrivacySettingController>();
+      final result = await privacyController.requirePinIfEnabled(
+        context,
+        title: 'Enter Security PIN',
+        subtitle: 'Enter your 4-digit PIN to change recovery mobile',
+        confirmButtonText: 'Send OTP',
+      );
 
-    if (pinResult == null) {
-      debugPrint('❌ User cancelled PIN entry');
-      return false;
+      if (result == null) {
+        debugPrint('❌ User cancelled PIN entry or validation failed');
+        return false;
+      }
+
+      pin = result == 'SKIP' ? '' : result;
+    } catch (e) {
+      // Controller not registered, show PIN dialog as fallback
+      debugPrint('⚠️ PrivacySettingController not found, using fallback PIN dialog');
+      final pinResult = await PinVerificationDialog.show(
+        context: context,
+        title: 'Enter Security Pin',
+        subtitle: 'Enter your 4-digit pin to verify',
+        maskedPhoneNumber: maskedNumber,
+        requireOtp: false,
+        confirmButtonText: 'Send OTP',
+      );
+
+      final pinValue = pinResult?['pin'];
+      if (pinResult == null || pinValue == null) {
+        debugPrint('❌ User cancelled PIN entry');
+        return false;
+      }
+      pin = pinValue;
     }
 
-    final pin = pinResult['pin'];
-    if (pin == null || pin.isEmpty) {
-      debugPrint('❌ No PIN provided');
-      return false;
-    }
-
-    debugPrint('✅ PIN entered');
+    debugPrint('✅ PIN verified or skipped');
 
     // Wait for keyboard to close before API call
     await DialogTransitionHelper.waitForDialogTransition();

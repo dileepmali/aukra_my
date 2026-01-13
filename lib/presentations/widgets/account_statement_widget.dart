@@ -85,13 +85,10 @@ class AccountStatementWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   ),
                   alignment: Alignment.center,
-                  child: Obx(() => AppText.custom(
+                  child: Obx(() => AppText.headlineLarge1(
                     controller.getMonthRangeText(),
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: responsive.fontSize(14),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w600,
                   )),
                 ),
               ),

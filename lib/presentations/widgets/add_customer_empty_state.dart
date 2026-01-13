@@ -79,15 +79,12 @@ class AddCustomerEmptyState extends StatelessWidget {
             // Heading
             Align(
               alignment: Alignment.center,
-              child: AppText.custom(
+              child: AppText.displayMedium2(
                 '"$searchQuery" is not found in your contact list',
-                style: TextStyle(
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(19),
-                  fontWeight: FontWeight.w600,
-                ),
+                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w600,
                 textAlign: TextAlign.center,
-                maxLines: 2
+                maxLines: 2,
               ),
             ),
             SizedBox(height: responsive.hp(1)),
@@ -95,17 +92,14 @@ class AddCustomerEmptyState extends StatelessWidget {
             // Description
             Align(
               alignment: Alignment.center,
-              child: AppText.custom(
+              child: AppText.headlineLarge(
                 'Check the name or click below to create a new customer',
-                style: TextStyle(
-                  color: isDark
-                      ? AppColors.white.withOpacity(0.7)
-                      : AppColorsLight.textSecondary,
-                  fontSize: responsive.fontSize(15),
-                  fontWeight: FontWeight.w400,
-                ),
+                color: isDark
+                    ? AppColors.white.withOpacity(0.7)
+                    : AppColorsLight.textSecondary,
+                fontWeight: FontWeight.w400,
                 textAlign: TextAlign.center,
-                maxLines: 2
+                maxLines: 2,
               ),
             ),
             SizedBox(height: responsive.hp(3)),

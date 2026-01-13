@@ -67,13 +67,10 @@ class CustomerStatementScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: responsive.spacing(2)),
-                AppText.custom(
+                AppText.searchbar2(
                   controller.screenTitle,
-                  style: TextStyle(
-                    color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                    fontSize: responsive.fontSize(20),
-                    fontWeight: FontWeight.w600,
-                  ),
+                  color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                  fontWeight: FontWeight.w500,
                   maxLines: 1,
                   minFontSize: 13,
                   letterSpacing: 1.2,
@@ -99,21 +96,15 @@ class CustomerStatementScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AppText.custom(
+                  AppText.searchbar1(
                     'Error loading statement',
-                    style: TextStyle(
-                      color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                      fontSize: responsive.fontSize(16),
-                      fontWeight: FontWeight.w500,
-                    ),
+                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
                   SizedBox(height: responsive.hp(1)),
-                  AppText.custom(
+                  AppText.headlineLarge1(
                     controller.errorMessage.value,
-                    style: TextStyle(
-                      color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                      fontSize: responsive.fontSize(14),
-                    ),
+                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                   ),
                   SizedBox(height: responsive.hp(2)),
                   ElevatedButton(
@@ -128,12 +119,9 @@ class CustomerStatementScreen extends StatelessWidget {
           final statement = controller.statementData.value;
           if (statement == null) {
             return Center(
-              child: AppText.custom(
+              child: AppText.searchbar1(
                 'No data available',
-                style: TextStyle(
-                  color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                  fontSize: responsive.fontSize(16),
-                ),
+                color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
               ),
             );
           }
@@ -205,33 +193,24 @@ class CustomerStatementScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    AppText.custom(
+                    AppText.searchbar(
                       'Net balance',
-                      style: TextStyle(
-                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(19),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                      fontWeight: FontWeight.w400,
                     ),
-                    AppText.custom(
+                    AppText.displaySmall(
                       '₹${Formatters.formatAmountWithCommas(statement.netBalance.abs().toString())}',
-                      style: TextStyle(
-                        color: isPositive
-                            ? AppColors.primeryamount
-                            : AppColors.red500,
-                        fontSize: responsive.fontSize(20),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: isPositive
+                          ? AppColors.primeryamount
+                          : AppColors.red500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ],
                 ),
-                AppText.custom(
+                AppText.headlineLarge1(
                   '${statement.totalCustomers} ${controller.customerLabel}',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                    fontSize: responsive.fontSize(14),
-                    fontWeight: FontWeight.w400,
-                  ),
+                  color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                  fontWeight: FontWeight.w400,
                 ),
               ],
             ),
@@ -306,13 +285,10 @@ class CustomerStatementScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: responsive.hp(0.5)),
-                    AppText.custom(
+                    AppText.headlineMedium(
                       'Total amount in yesterday',
-                      style: TextStyle(
-                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(13),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                      fontWeight: FontWeight.w400,
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     Row(
@@ -326,14 +302,11 @@ class CustomerStatementScreen extends StatelessWidget {
                             height: responsive.iconSizeSmall,
                           ),
                         ),
-                        SizedBox(width: responsive.wp(0.5)),
-                        AppText.custom(
+                        SizedBox(width: responsive.wp(0.8)),
+                        AppText.displaySmall(
                           Formatters.formatAmountWithCommas(statement.yesterdayTotalIn.toString()),
-                          style: TextStyle(
-                            color: AppColors.primeryamount,
-                            fontSize: responsive.fontSize(20),
-                            fontWeight: FontWeight.w600,
-                          ),
+                          color: AppColors.primeryamount,
+                          fontWeight: FontWeight.w600,
                         ),
                       ],
                     ),
@@ -390,13 +363,10 @@ class CustomerStatementScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: responsive.hp(0.5)),
-                    AppText.custom(
+                    AppText.headlineMedium(
                       'Total amount out yesterday',
-                      style: TextStyle(
-                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(13),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                      fontWeight: FontWeight.w400,
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     Row(
@@ -411,13 +381,10 @@ class CustomerStatementScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: responsive.wp(0.9)),
-                        AppText.custom(
+                        AppText.displaySmall(
                           Formatters.formatAmountWithCommas(statement.yesterdayTotalOut.toString()),
-                          style: TextStyle(
-                            color: AppColors.red500,
-                            fontSize: responsive.fontSize(20),
-                            fontWeight: FontWeight.w600,
-                          ),
+                          color: AppColors.red500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ],
                     ),
@@ -442,14 +409,11 @@ class CustomerStatementScreen extends StatelessWidget {
 
       if (customers.isEmpty) {
         return Center(
-          child: AppText.custom(
+          child: AppText.headlineLarge1(
             controller.searchQuery.value.isEmpty
                 ? 'No ${controller.customerLabel} found'
                 : 'No results found for "${controller.searchQuery.value}"',
-            style: TextStyle(
-              color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-              fontSize: responsive.fontSize(14),
-            ),
+            color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
           ),
         );
       }

@@ -109,13 +109,10 @@ class _ManagerBottomSheetState extends State<ManagerBottomSheet> {
                 // Title
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: responsive.wp(5)),
-                  child: AppText.custom(
+                  child: AppText.searchbar2(
                     'Select Manager',
-                    style: TextStyle(
-                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
 
@@ -269,12 +266,10 @@ class _ManagerBottomSheetState extends State<ManagerBottomSheet> {
           child: Row(
             children: [
               Expanded(
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   title,
-                  style: AppFonts.appBarTitleMedium(
-                    color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
+                  color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   maxLines: 2,
                   minFontSize: 10,
                 ),
@@ -331,28 +326,22 @@ class _ManagerBottomSheetState extends State<ManagerBottomSheet> {
             fit: BoxFit.contain,
           ),
           // Empty state title
-          AppText.custom(
+          AppText.displayMedium1(
             'No Results found ',
-            style: TextStyle(
-              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-              fontSize: responsive.fontSize(20),
-              fontWeight: FontWeight.w600,
-            ),
+            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+            fontWeight: FontWeight.w600,
             textAlign: TextAlign.center,
           ),
 
           SizedBox(height: responsive.hp(0.5)),
 
           // Empty state description
-          AppText.custom(
+          AppText.searchbar1(
             'Try adjusting your search or filter to find what your looking for.',
-            style: TextStyle(
-              color: isDark
-                ? AppColors.white.withOpacity(0.6)
-                : AppColorsLight.textSecondary,
-              fontSize: responsive.fontSize(16),
-              fontWeight: FontWeight.w400,
-            ),
+            color: isDark
+              ? AppColors.white.withOpacity(0.6)
+              : AppColorsLight.textSecondary,
+            fontWeight: FontWeight.w400,
             textAlign: TextAlign.start,
             maxLines: 3,
           ),

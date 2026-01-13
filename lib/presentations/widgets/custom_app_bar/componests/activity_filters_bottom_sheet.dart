@@ -359,12 +359,10 @@ class _ActivityFiltersBottomSheetState extends State<ActivityFiltersBottomSheet>
         ),
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
       ),
-      child: AppText.custom(
+      child: AppText.searchbar1(
         title,
-        style: AppFonts.appBarTitleMedium(
-          color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
+        color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         maxLines: 1,
         minFontSize: 10,
       ),
@@ -426,12 +424,10 @@ class _ActivityFiltersBottomSheetState extends State<ActivityFiltersBottomSheet>
           child: Row(
             children: [
               Expanded(
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   option.title,
-                  style: AppFonts.appBarTitleMedium(
-                    color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
+                  color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   maxLines: 2,
                   minFontSize: 10,
                 ),
@@ -542,12 +538,10 @@ class _ActivityFiltersBottomSheetState extends State<ActivityFiltersBottomSheet>
 
               // Title
               Expanded(
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   _getLocalizedGroupByTitle(context, title),
-                  style: AppFonts.appBarTitleMedium(
-                    color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
+                  color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   maxLines: 2,
                   minFontSize: 10,
                 ),

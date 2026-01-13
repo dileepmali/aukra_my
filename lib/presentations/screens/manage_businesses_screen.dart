@@ -164,19 +164,19 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
           ),
         );
       }),
-      floatingActionButton: CustomFloatingActionButton(
-        onPressed: () async {
-          debugPrint('➕ Add Business tapped');
-          final result = await Get.to(() => const ShopDetailScreen(isAddNewBusiness: true));
-          // Refresh merchant list if new business was added
-          if (result == true) {
-            debugPrint('🔄 New business added - refreshing list');
-            _controller.fetchMerchants();
-          }
-        },
-        screenType: 'businesses',
-        icon: Icons.add,
-      ),
+      // floatingActionButton: CustomFloatingActionButton(
+      //   onPressed: () async {
+      //     debugPrint('➕ Add Business tapped');
+      //     final result = await Get.to(() => const ShopDetailScreen(isAddNewBusiness: true));
+      //     // Refresh merchant list if new business was added
+      //     if (result == true) {
+      //       debugPrint('🔄 New business added - refreshing list');
+      //       _controller.fetchMerchants();
+      //     }
+      //   },
+      //   screenType: 'businesses',
+      //   icon: Icons.add,
+      // ),
     );
   }
 

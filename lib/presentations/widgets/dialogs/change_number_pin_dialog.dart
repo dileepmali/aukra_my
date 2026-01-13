@@ -242,28 +242,22 @@ class _ChangeNumberPinDialogContentState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title
-                  AppText.custom(
+                  AppText.searchbar2(
                     _isOtpStep ? 'Enter OTP' : 'Enter Security Pin',
-                    style: TextStyle(
-                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w700,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w600,
                     textAlign: TextAlign.start,
                   ),
                   SizedBox(height: responsive.hp(1)),
 
                   // Subtitle
-                  AppText.custom(
+                  AppText.headlineLarge(
                     _isOtpStep
                         ? 'Enter OTP received on your phone\n${widget.maskedPhoneNumber ?? ""}'
                         : 'Enter your 4-digit pin to get otp on\n${widget.maskedPhoneNumber ?? ""}',
-                    style: TextStyle(
-                      color: isDark
-                          ? AppColors.textInverse
-                          : AppColorsLight.textSecondary,
-                      fontSize: responsive.fontSize(15),
-                    ),
+                    color: isDark
+                        ? AppColors.textInverse
+                        : AppColorsLight.textSecondary,
                     textAlign: TextAlign.start,
                     maxLines: 3,
                   ),
@@ -350,23 +344,20 @@ class _ChangeNumberPinDialogContentState
                     SizedBox(height: responsive.hp(2)),
                     GestureDetector(
                       onTap: _canResend && !isLoading ? _resendOtp : null,
-                      child: AppText.custom(
+                      child: AppText.headlineLarge1(
                         _canResend
                             ? 'Resend OTP'
                             : 'Resend OTP in $_resendTimer seconds',
-                        style: TextStyle(
-                          color: _canResend && !isLoading
-                              ? (isDark
-                                  ? AppColors.splaceSecondary2
-                                  : AppColorsLight.splaceSecondary1)
-                              : (isDark
-                                  ? AppColors.textDisabled
-                                  : AppColorsLight.textSecondary),
-                          fontSize: responsive.fontSize(14),
-                          fontWeight: FontWeight.w600,
-                          decoration:
-                              _canResend && !isLoading ? TextDecoration.underline : null,
-                        ),
+                        color: _canResend && !isLoading
+                            ? (isDark
+                                ? AppColors.splaceSecondary2
+                                : AppColorsLight.splaceSecondary1)
+                            : (isDark
+                                ? AppColors.textDisabled
+                                : AppColorsLight.textSecondary),
+                        fontWeight: FontWeight.w600,
+                        decoration:
+                            _canResend && !isLoading ? TextDecoration.underline : null,
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -375,12 +366,9 @@ class _ChangeNumberPinDialogContentState
                   // Error message
                   if (errorMessage != null) ...[
                     SizedBox(height: responsive.hp(1)),
-                    AppText.custom(
+                    AppText.bodyLarge(
                       errorMessage!,
-                      style: TextStyle(
-                        color: AppColors.red500,
-                        fontSize: responsive.fontSize(12),
-                      ),
+                      color: AppColors.red500,
                       textAlign: TextAlign.start,
                     ),
                   ],

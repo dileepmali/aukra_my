@@ -15,6 +15,7 @@ import '../../core/services/error_service.dart';
 import '../../core/untils/error_types.dart';
 import '../../controllers/shop_detail_controller.dart';
 import '../../controllers/change_master_number_controller.dart';
+import '../../controllers/privacy_setting_controller.dart';
 import '../../models/merchant_list_model.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
@@ -238,33 +239,49 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       // Prepare for dialog sequence - hide any existing keyboard
       await DialogTransitionHelper.prepareForDialogSequence(context);
 
-      // STEP 1: Show PIN dialog and call API 1 (Send OTP to current number)
+      // STEP 1: Use global PIN check - skip if PIN is disabled
       debugPrint('');
-      debugPrint('📍 STEP 1: Enter PIN to send OTP to current admin mobile...');
+      debugPrint('📍 STEP 1: Check PIN and send OTP to current admin mobile...');
 
-      final pinResult = await PinVerificationDialog.show(
-        context: context,
-        title: 'Enter Security Pin',
-        subtitle: 'Enter your 4-digit pin to get OTP on',
-        maskedPhoneNumber: _masterMobile,
-        requireOtp: false,
-        confirmButtonText: 'Send OTP',
-        showWarning: false,
-        warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
-      );
+      String? pin;
+      try {
+        final privacyController = Get.find<PrivacySettingController>();
+        final result = await privacyController.requirePinIfEnabled(
+          context,
+          title: 'Enter Security PIN',
+          subtitle: 'Enter your 4-digit PIN to change master mobile',
+          confirmButtonText: 'Send OTP',
+        );
 
-      if (pinResult == null) {
-        debugPrint('❌ User cancelled PIN entry');
-        return;
+        if (result == null) {
+          debugPrint('❌ User cancelled PIN entry or validation failed');
+          return;
+        }
+
+        pin = result == 'SKIP' ? '' : result;
+      } catch (e) {
+        // Controller not registered, show PIN dialog as fallback
+        debugPrint('⚠️ PrivacySettingController not found, using fallback PIN dialog');
+        final pinResult = await PinVerificationDialog.show(
+          context: context,
+          title: 'Enter Security Pin',
+          subtitle: 'Enter your 4-digit pin to get OTP on',
+          maskedPhoneNumber: _masterMobile,
+          requireOtp: false,
+          confirmButtonText: 'Send OTP',
+          showWarning: false,
+          warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
+        );
+
+        final pinValue = pinResult?['pin'];
+        if (pinResult == null || pinValue == null) {
+          debugPrint('❌ User cancelled PIN entry');
+          return;
+        }
+        pin = pinValue;
       }
 
-      final pin = pinResult['pin'];
-      if (pin == null || pin.isEmpty) {
-        debugPrint('❌ No PIN provided');
-        return;
-      }
-
-      debugPrint('✅ PIN entered: ****');
+      debugPrint('✅ PIN verified or skipped');
 
       // Wait for keyboard to close before API call
       await DialogTransitionHelper.waitForDialogTransition();
@@ -543,13 +560,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 ),
               ),
               SizedBox(width: responsive.wp(3)),
-              AppText.custom(
+              AppText.searchbar2(
                 _businessName,
-                style: TextStyle(
-                  color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w500,
                 maxLines: 1,
                 minFontSize: 12,
                 letterSpacing: 1.1,

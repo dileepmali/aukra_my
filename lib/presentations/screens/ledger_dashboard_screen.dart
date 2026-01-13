@@ -8,6 +8,7 @@ import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_colors_light.dart';
 import '../../app/themes/app_text.dart';
 import '../../controllers/ledger_dashboard_controller.dart';
+import '../../controllers/privacy_setting_controller.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
@@ -45,16 +46,13 @@ class LedgerDashboardScreen extends StatelessWidget {
                 icon: Icon(Icons.arrow_back, color: isDark ? AppColors.white : AppColorsLight.textPrimary),
                 onPressed: () => Get.back(),
               ),
-          AppText.custom(
+          AppText.searchbar2(
             'Ledger Dashboard',
-            style: TextStyle(
-              color: isDark ? Colors.white : AppColorsLight.textPrimary,
-              fontSize: responsive.fontSize(20),
-              fontWeight: FontWeight.w600,
-            ),
+            color: isDark ? Colors.white : AppColorsLight.textPrimary,
+            fontWeight: FontWeight.w500,
             maxLines: 1,
             minFontSize: 12,
-            letterSpacing: 1.0,
+            letterSpacing: 1.2,
           ),
             ],
           ),
@@ -83,22 +81,16 @@ class LedgerDashboardScreen extends StatelessWidget {
               children: [
                 Icon(Icons.error_outline, size: 48, color: AppColors.red500),
                 SizedBox(height: responsive.hp(2)),
-                AppText.custom(
+                AppText.headlineLarge1(
                   controller.errorMessage.value,
-                  style: TextStyle(
-                    fontSize: responsive.fontSize(14),
-                    color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                  ),
+                  color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                 ),
                 SizedBox(height: responsive.hp(2)),
                 TextButton(
                   onPressed: controller.fetchDashboard,
-                  child: AppText.custom(
+                  child: AppText.headlineLarge1(
                     'Retry',
-                    style: TextStyle(
-                      fontSize: responsive.fontSize(14),
-                      color: AppColorsLight.splaceSecondary1,
-                    ),
+                    color: AppColorsLight.splaceSecondary1,
                   ),
                 ),
               ],
@@ -141,26 +133,20 @@ class LedgerDashboardScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        AppText.custom(
+                        AppText.searchbar1(
                           'Account Statement',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(18),
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? AppColors.textSecondary : AppColorsLight.textPrimary,
-                          ),
+                          color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                          fontWeight: FontWeight.w500,
                         ),
                         TextButton(
                           onPressed: () {
                             debugPrint('View Details tapped');
                             // TODO: Navigate to detailed statement screen
                           },
-                          child: AppText.custom(
+                          child: AppText.searchbar1(
                             'View Details',
-                            style: TextStyle(
-                              fontSize: responsive.fontSize(18),
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                            ),
+                            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -203,55 +189,69 @@ class LedgerDashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText.custom(
+              AppText.headlineLarge(
                 'Basic Details',
-                style: TextStyle(
-                  fontSize: responsive.fontSize(15),
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textDisabled : AppColorsLight.textPrimary,
-                ),
+                color: isDark ? AppColors.textDisabled : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w600,
               ),
               GestureDetector(
                 onTap: () async {
-                  // Show PIN verification dialog
-                  final pin = await PinVerificationDialog.show(context: context);
+                  // Use global PIN check - skip if PIN is disabled
+                  String? pin;
+                  try {
+                    final privacyController = Get.find<PrivacySettingController>();
+                    final result = await privacyController.requirePinIfEnabled(
+                      context,
+                      title: 'Enter Security PIN',
+                      subtitle: 'Enter your 4-digit PIN to edit ledger details',
+                    );
 
-                  if (pin != null && pin.isNotEmpty) {
-                    // PIN verified, navigate to edit form
-                    debugPrint('✅ PIN verified: $pin');
+                    if (result == null) {
+                      return; // User cancelled or PIN validation failed
+                    }
 
-                    // Get complete ledger data
-                    final ledgerData = {
-                      'isEditMode': true,
-                      'ledgerId': controller.ledgerDetail.value?.id,
-                      'partyType': controller.partyType,
-                      'partyName': controller.partyName,
-                      'mobileNumber': controller.ledgerDetail.value?.mobileNumber,
-                      'area': controller.ledgerDetail.value?.area,
-                      'pinCode': controller.ledgerDetail.value?.pinCode,
-                      'address': controller.ledgerDetail.value?.address,
-                      'city': controller.ledgerDetail.value?.city,
-                      'country': controller.ledgerDetail.value?.country,
-                      'creditDay': controller.ledgerDetail.value?.creditDay,
-                      'creditLimit': controller.ledgerDetail.value?.creditLimit,
-                      'interestRate': controller.ledgerDetail.value?.interestRate,
-                      'interestType': controller.ledgerDetail.value?.interestType,
-                      'openingBalance': controller.ledgerDetail.value?.openingBalance,
-                      'transactionType': controller.ledgerDetail.value?.transactionType,
-                    };
-
-                    debugPrint('📝 Navigating to edit form with data: $ledgerData');
-
-                    Get.toNamed('/customer-form', arguments: ledgerData);
+                    pin = result == 'SKIP' ? '' : result;
+                  } catch (e) {
+                    // Controller not registered, show PIN dialog as fallback
+                    debugPrint('⚠️ PrivacySettingController not found, using fallback PIN dialog');
+                    final dialogResult = await PinVerificationDialog.show(context: context);
+                    if (dialogResult == null || dialogResult['pin'] == null) {
+                      return;
+                    }
+                    pin = dialogResult['pin'];
                   }
+
+                  // PIN verified or skipped, navigate to edit form
+                  debugPrint('✅ PIN verified or skipped');
+
+                  // Get complete ledger data
+                  final ledgerData = {
+                    'isEditMode': true,
+                    'ledgerId': controller.ledgerDetail.value?.id,
+                    'partyType': controller.partyType,
+                    'partyName': controller.partyName,
+                    'mobileNumber': controller.ledgerDetail.value?.mobileNumber,
+                    'area': controller.ledgerDetail.value?.area,
+                    'pinCode': controller.ledgerDetail.value?.pinCode,
+                    'address': controller.ledgerDetail.value?.address,
+                    'city': controller.ledgerDetail.value?.city,
+                    'country': controller.ledgerDetail.value?.country,
+                    'creditDay': controller.ledgerDetail.value?.creditDay,
+                    'creditLimit': controller.ledgerDetail.value?.creditLimit,
+                    'interestRate': controller.ledgerDetail.value?.interestRate,
+                    'interestType': controller.ledgerDetail.value?.interestType,
+                    'openingBalance': controller.ledgerDetail.value?.openingBalance,
+                    'transactionType': controller.ledgerDetail.value?.transactionType,
+                  };
+
+                  debugPrint('📝 Navigating to edit form with data: $ledgerData');
+
+                  Get.toNamed('/customer-form', arguments: ledgerData);
                 },
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   'Edit',
-                  style: TextStyle(
-                    fontSize: responsive.fontSize(16),
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  ),
+                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -283,56 +283,42 @@ class LedgerDashboardScreen extends StatelessWidget {
                       ),
                     ),
                     child: Center(
-                      child: AppText.custom(
+                      child: AppText.displaySmall(
                         _getInitials(controller.partyName ?? 'Party'),
-                        style: TextStyle(
-                          fontSize: responsive.fontSize(18),
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.white,
-                        ),
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                   SizedBox(height: responsive.hp(0.8)),
 
                   // Party Name (just below avatar)
-                  AppText.custom(
+                  AppText.searchbar(
                     controller.partyName ?? 'Party',
-                    style: TextStyle(
-                      fontSize: responsive.fontSize(19),
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w700,
                   ),
                   SizedBox(height: responsive.hp(0.1)),
 
-                  // Party Type and Address Row
+                  // Party Type and Area Row
                   Row(
                     children: [
-                      AppText.custom(
+                      AppText.headlineMedium(
                         controller.getPartyTypeDisplay(),
-                        style: TextStyle(
-                          fontSize: responsive.fontSize(13),
-                          fontWeight: FontWeight.w400,
+                        color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      // Use area field directly from API response
+                      if (controller.ledgerDetail.value?.area != null &&
+                          controller.ledgerDetail.value!.area!.isNotEmpty) ...[
+                        AppText.headlineMedium(
+                          ' • ',
                           color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                         ),
-                      ),
-                      if (controller.ledgerDetail.value?.address != null &&
-                          controller.ledgerDetail.value!.address!.isNotEmpty) ...[
-                        AppText.custom(
-                          ' • ',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(13),
-                            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                          ),
-                        ),
-                        AppText.custom(
-                          controller.ledgerDetail.value!.address!,
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(13),
-                            fontWeight: FontWeight.w400,
-                            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                          ),
+                        AppText.headlineMedium(
+                          controller.ledgerDetail.value!.area!,
+                          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                          fontWeight: FontWeight.w400,
                         ),
                       ],
                     ],
@@ -477,13 +463,11 @@ class LedgerDashboardScreen extends StatelessWidget {
               // Month Statement Header (Top Left inside gradient)
               Padding(
                 padding: EdgeInsets.only(left: responsive.wp(5), bottom: responsive.hp(1)),
-                child: AppText.custom(
+                child: AppText.headlineMedium(
                   '$currentMonthName Statement',
-                  style: TextStyle(
-                    fontSize: responsive.fontSize(13),
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white,
-                  ),
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 1.0,
                 ),
               ),
 
@@ -546,13 +530,10 @@ class LedgerDashboardScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AppText.custom(
-                          '₹${Formatters.formatAmountWithCommas(monthlyOut.toString())}',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(20),
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
+                        AppText.displayMedium2(
+                          '₹ ${Formatters.formatAmountWithCommas(monthlyOut.toString())}',
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                       ],
                     ),
@@ -577,13 +558,10 @@ class LedgerDashboardScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AppText.custom(
-                          '₹${Formatters.formatAmountWithCommas(monthlyIn.toString())}',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(20),
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
+                        AppText.displayMedium2(
+                          '₹ ${Formatters.formatAmountWithCommas(monthlyIn.toString())}',
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                       ],
                     ),
@@ -606,13 +584,10 @@ class LedgerDashboardScreen extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText.custom(
+        AppText.searchbar1(
           'Dashboard & Report',
-          style: TextStyle(
-            fontSize: responsive.fontSize(16),
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-          ),
+          color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+          fontWeight: FontWeight.w500,
         ),
         SizedBox(height: responsive.hp(1.5)),
 
@@ -725,12 +700,9 @@ class LedgerDashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText.custom(
+              AppText.headlineMedium(
                 title,
-                style: TextStyle(
-                  fontSize: responsive.fontSize(13),
-                  color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                ),
+                color: isDark ? AppColors.white : AppColorsLight.textSecondary,
               ),
               SizedBox(
                 width: responsive.iconSizeExtraLarge ,
@@ -766,13 +738,10 @@ class LedgerDashboardScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: responsive.hp(0.5)),
-          AppText.custom(
-            '₹${Formatters.formatAmountWithCommas(amount.toString())}',
-            style: TextStyle(
-              fontSize: responsive.fontSize(22),
-              fontWeight: FontWeight.w700,
-              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-            ),
+          AppText.displayMedium2(
+            '₹ ${Formatters.formatAmountWithCommas(amount.toString())}',
+            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+            fontWeight: FontWeight.w700,
           ),
         ],
       ),
@@ -818,25 +787,21 @@ class LedgerDashboardScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      AppText.custom(
+                      AppText.searchbar1(
                         'Recent Transactions',
-                        style: TextStyle(
-                          fontSize: responsive.fontSize(18),
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.textSecondary : AppColorsLight.textPrimary,
-                        ),
+                        color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                        fontWeight: FontWeight.w500,
                       ),
                       TextButton(
                         onPressed: () {
                           // Navigate to all transactions
                           Get.back(); // Go back to ledger detail which shows all transactions
                         },
-                        child: AppText.custom(
+                        child: AppText.searchbar1(
                           'View All',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(18),
-                            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                          ),
+                          color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                          fontWeight: FontWeight.w500,
+
                         ),
                       ),
                     ],
@@ -995,13 +960,10 @@ class LedgerDashboardScreen extends StatelessWidget {
 
           // Label : Value (centered format)
           Flexible(
-            child: AppText.custom(
+            child: AppText.bodyLarge(
               '$label : $value',
-              style: TextStyle(
-                fontSize: responsive.fontSize(12),
-                fontWeight: FontWeight.w400,
-                color: isDark ? AppColors.white : AppColors.white,
-              ),
+              color: AppColors.white,
+              fontWeight: FontWeight.w400,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
             ),
@@ -1065,15 +1027,10 @@ class LedgerDashboardScreen extends StatelessWidget {
           BlendMode.srcIn,
         ),
       ),
-      subtitleSuffix: AppText.custom(
+      subtitleSuffix: AppText.headlineMedium(
         'Bal. - ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
-        style: TextStyle(
-          color: isPositive
-              ? AppColors.white
-              : AppColors.white,
-          fontSize: responsive.fontSize(13),
-          fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
-        ),
+        color: AppColors.white,
+        fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       ),
       subtitleFontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       amount: formattedAmount,

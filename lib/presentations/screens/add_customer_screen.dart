@@ -139,13 +139,10 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 builder: (context) {
                   final title = _partyTypeTitle;
                   debugPrint('📱 AppBar rendering with title: $title');
-                  return AppText.custom(
+                  return AppText.searchbar2(
                     title,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                     maxLines: 1,
                     minFontSize: 12,
                     letterSpacing: 1.1,

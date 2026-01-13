@@ -585,14 +585,11 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
           child: Obx(() => controller.isResendAvailable.value
               ? GestureDetector(
                   onTap: () => _handleResendOtp(),
-                  child: AppText.custom(
+                  child: AppText.searchbar1(
                     'Resend OTP', // Always English
-                    style: AppFonts.searchbar1(
-                      color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-                      fontWeight: AppFonts.medium,
-                    ).copyWith(
-                      decoration: TextDecoration.underline,
-                    ),
+                    color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+                    fontWeight: AppFonts.medium,
+                    decoration: TextDecoration.underline,
                     maxLines: 1,
                     minFontSize: 10,
                   ),

@@ -19,6 +19,8 @@ import '../../../core/api/ledger_transaction_api.dart';
 import '../../../core/services/error_service.dart';
 import '../../../core/untils/error_types.dart';
 import '../../../controllers/ledger_controller.dart';
+import '../../../controllers/privacy_setting_controller.dart';
+import '../../../core/utils/formatters.dart';
 
 class TransactionDetailBottomSheet extends StatelessWidget {
   final int? transactionId;
@@ -26,11 +28,12 @@ class TransactionDetailBottomSheet extends StatelessWidget {
   final String partyName;
   final String location;
   final double amount;
-  final String transactionDate; // Formatted date for display
-  final String entryDate; // Formatted date for display
+  final String transactionDate; // ISO date string for formatting
+  final String entryDate; // ISO date string for formatting
   final String? rawTransactionDate; // Original ISO date for API calls
   final String? remarks;
   final bool isPositive;
+  final double? closingBalance; // Closing balance after this transaction
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -46,6 +49,7 @@ class TransactionDetailBottomSheet extends StatelessWidget {
     this.rawTransactionDate,
     this.remarks,
     required this.isPositive,
+    this.closingBalance,
     this.onEdit,
     this.onDelete,
   }) : super(key: key);
@@ -62,6 +66,7 @@ class TransactionDetailBottomSheet extends StatelessWidget {
     String? rawTransactionDate,
     String? remarks,
     required bool isPositive,
+    double? closingBalance,
     VoidCallback? onEdit,
     VoidCallback? onDelete,
   }) {
@@ -80,6 +85,7 @@ class TransactionDetailBottomSheet extends StatelessWidget {
         rawTransactionDate: rawTransactionDate,
         remarks: remarks,
         isPositive: isPositive,
+        closingBalance: closingBalance,
         onEdit: onEdit,
         onDelete: onDelete,
       ),
@@ -167,15 +173,12 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: responsive.wp(2)),
-                      AppText.custom(
+                      AppText.searchbar1(
                         isPositive ? 'In transaction entry' : 'Out transaction entry',
-                        style: TextStyle(
-                          color: isPositive
-                              ? (isDark ? AppColors.white : AppColorsLight.splaceSecondary1)
-                              : AppColors.textDisabled,
-                          fontSize: responsive.fontSize(16),
-                          fontWeight: FontWeight.w600,
-                        ),
+                        color: isPositive
+                            ? (isDark ? AppColors.white : AppColorsLight.splaceSecondary1)
+                            : AppColors.textDisabled,
+                        fontWeight: FontWeight.w600,
                       ),
                     ],
                   ),
@@ -211,40 +214,63 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                             ),
                           ),
                           child: Center(
-                            child: AppText.custom(
+                            child: AppText.displayMedium(
                               getInitials(partyName),
-                              style: TextStyle(
-                                color: AppColors.white,
-                                fontSize: responsive.fontSize(22),
-                                fontWeight: FontWeight.w700,
-                              ),
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                         SizedBox(height: responsive.hp(0.5)),
 
                         // Party Name
-                        AppText.custom(
+                        AppText.searchbar2(
                           partyName,
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                            fontSize: responsive.fontSize(21),
-                            fontWeight: FontWeight.w600,
-                          ),
+                          color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                          fontWeight: FontWeight.w600,
                           maxLines: 1,
                         ),
                         SizedBox(height: responsive.hp(0.2)),
 
-                        // Location
-                        AppText.custom(
-                          location,
-                          style: TextStyle(
+                        // Location (if available)
+                        if (location.isNotEmpty) ...[
+                          AppText.headlineLarge1(
+                            location,
                             color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                            fontSize: responsive.fontSize(16),
                             fontWeight: FontWeight.w400,
+                            maxLines: 1,
                           ),
-                          maxLines: 1,
-                        ),
+                          SizedBox(height: responsive.hp(0.2)),
+                        ],
+
+                        // Closing Balance (if available) - shown under name/address
+                        if (closingBalance != null) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AppText.headlineLarge1(
+                                'Closing Bal. ',
+                                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              SvgPicture.asset(
+                                AppIcons.vectoeIc3,
+                                width: responsive.iconSizeSmall - 2,
+                                height: responsive.iconSizeSmall - 2,
+                                colorFilter: ColorFilter.mode(
+                                  isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                              SizedBox(width: responsive.wp(0.3)),
+                              AppText.headlineLarge1(
+                                NumberFormat('#,##,##0.00', 'en_IN').format(closingBalance!.abs()),
+                                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ],
+                          ),
+                        ],
                         SizedBox(height: responsive.hp(2)),
 
                         // Amount with Currency Icon
@@ -266,37 +292,31 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                               ),
                             ),
                             SizedBox(width: responsive.wp(1)),
-                            AppText.custom(
+                            AppText.displayLarge(
                               NumberFormat('#,##,##0.00', 'en_IN').format(amount),
-                              style: TextStyle(
-                                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                fontSize: responsive.fontSize(45),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              maxLines: 1,
+                              minFontSize: 15,
+                              letterSpacing: 1.2,
                             ),
                           ],
                         ),
-                        SizedBox(height: responsive.hp(0.5)),
+                        SizedBox(height: responsive.hp(0.9)),
 
-                        // Transaction Date
-                        AppText.custom(
-                          'Transaction on : $transactionDate',
-                          style: TextStyle(
-                            color: isDark ? AppColors.background : AppColorsLight.textSecondary,
-                            fontSize: responsive.fontSize(16),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        // Transaction Date (formatted: d MMM yyyy, HH:mm)
+                        AppText.searchbar1(
+                          'Transaction on : ${Formatters.formatStringToDateAndTime(rawTransactionDate ?? transactionDate)}',
+                          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
-                        SizedBox(height: responsive.hp(1.2)),
+                        SizedBox(height: responsive.hp(2.6)),
 
-                        // Entry Date
-                        AppText.custom(
-                          'Entry on : $entryDate',
-                          style: TextStyle(
-                            color: isDark ? AppColors.background : AppColorsLight.textSecondary,
-                            fontSize: responsive.fontSize(16),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        // Entry Date (formatted: d MMM yyyy, HH:mm)
+                        AppText.searchbar1(
+                          'Entry on : ${Formatters.formatStringToDateAndTime(entryDate)}',
+                          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                         SizedBox(height: responsive.hp(3)),
 
@@ -312,13 +332,10 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                                   : AppColorsLight.containerLight.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                             ),
-                            child: AppText.custom(
+                            child: AppText.searchbar1(
                               remarks!,
-                              style: TextStyle(
-                                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                fontSize: responsive.fontSize(16),
-                                fontWeight: FontWeight.w400,
-                              ),
+                              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                              fontWeight: FontWeight.w400,
                               textAlign: TextAlign.center,
                               maxLines: 3,
                             ),
@@ -339,49 +356,69 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                 showBorder: true,
                 primaryButtonText: 'Edit',
                 onPrimaryPressed: () async {
-                  // Show PIN verification dialog for Exit/Edit
-                  final pinResult = await PinVerificationDialog.show(
-                    context: context,
-                    title: 'Enter Security Pin',
-                    subtitle: 'Enter your 4-digit pin to edit transaction',
-                    requireOtp: false,
-                  );
-
-                  // If PIN is entered (not null), proceed with edit
-                  if (pinResult != null && pinResult['pin'] != null) {
-                    // Close bottom sheet first
-                    Navigator.pop(context);
-
-                    // Navigate to Add Transaction screen in edit mode
-                    final navigationResult = await Get.toNamed(
-                      AppRoutes.addTransaction,
-                      arguments: {
-                        'transactionId': transactionId,
-                        'ledgerId': ledgerId,
-                        'customerName': partyName,
-                        'customerLocation': location,
-                        'amount': amount,
-                        'transactionType': isPositive ? 'IN' : 'OUT',
-                        'transactionDate': rawTransactionDate ?? transactionDate, // Use raw ISO date if available
-                        'comments': remarks,
-                      },
+                  // Use global PIN check - skip if PIN is disabled
+                  String? pin;
+                  try {
+                    final privacyController = Get.find<PrivacySettingController>();
+                    final result = await privacyController.requirePinIfEnabled(
+                      context,
+                      title: 'Enter Security PIN',
+                      subtitle: 'Enter your 4-digit PIN to edit transaction',
                     );
 
-                    // If update was successful, call onEdit callback to refresh data
-                    if (navigationResult == true) {
-                      debugPrint('✅ Transaction updated successfully - triggering refresh');
-                      // Call onEdit callback to refresh LedgerDetailController
-                      onEdit?.call();
+                    if (result == null) {
+                      return; // User cancelled or PIN validation failed
+                    }
 
-                      // Also refresh LedgerController (main list) if it exists
-                      try {
-                        final ledgerController = Get.find<LedgerController>();
-                        debugPrint('🔄 Also refreshing LedgerController (main list)...');
-                        await ledgerController.refreshAll();
-                        debugPrint('✅ LedgerController refreshed successfully');
-                      } catch (e) {
-                        debugPrint('⚠️ LedgerController not found, skipping main list refresh');
-                      }
+                    pin = result == 'SKIP' ? '' : result;
+                  } catch (e) {
+                    // Controller not registered, show PIN dialog as fallback
+                    debugPrint('⚠️ PrivacySettingController not found, using fallback PIN dialog');
+                    final dialogResult = await PinVerificationDialog.show(
+                      context: context,
+                      title: 'Enter Security Pin',
+                      subtitle: 'Enter your 4-digit pin to edit transaction',
+                      requireOtp: false,
+                    );
+                    if (dialogResult == null || dialogResult['pin'] == null) {
+                      return;
+                    }
+                    pin = dialogResult['pin'];
+                  }
+
+                  // PIN verified or skipped, proceed with edit
+                  // Close bottom sheet first
+                  Navigator.pop(context);
+
+                  // Navigate to Add Transaction screen in edit mode
+                  final navigationResult = await Get.toNamed(
+                    AppRoutes.addTransaction,
+                    arguments: {
+                      'transactionId': transactionId,
+                      'ledgerId': ledgerId,
+                      'customerName': partyName,
+                      'customerLocation': location,
+                      'amount': amount,
+                      'transactionType': isPositive ? 'IN' : 'OUT',
+                      'transactionDate': rawTransactionDate ?? transactionDate, // Use raw ISO date if available
+                      'comments': remarks,
+                    },
+                  );
+
+                  // If update was successful, call onEdit callback to refresh data
+                  if (navigationResult == true) {
+                    debugPrint('✅ Transaction updated successfully - triggering refresh');
+                    // Call onEdit callback to refresh LedgerDetailController
+                    onEdit?.call();
+
+                    // Also refresh LedgerController (main list) if it exists
+                    try {
+                      final ledgerController = Get.find<LedgerController>();
+                      debugPrint('🔄 Also refreshing LedgerController (main list)...');
+                      await ledgerController.refreshAll();
+                      debugPrint('✅ LedgerController refreshed successfully');
+                    } catch (e) {
+                      debugPrint('⚠️ LedgerController not found, skipping main list refresh');
                     }
                   }
                 },
@@ -411,69 +448,82 @@ class TransactionDetailBottomSheet extends StatelessWidget {
                     return;
                   }
 
-                  // Show PIN verification dialog
-                  final result = await PinVerificationDialog.show(
-                    context: context,
-                    title: 'Enter Security Pin',
-                    subtitle: 'Enter your 4-digit pin to delete transaction',
-                    requireOtp: false,
-                    confirmGradientColors: isDark
-                        ? [
-                            AppColors.red800,
-                            AppColors.red500,
-                          ]
-                        : [
-                            AppColors.red800,
-                            AppColors.red500,
-                          ],
-                    confirmTextColor: AppColors.white,
-                  );
+                  // Use global PIN check - skip if PIN is disabled
+                  String? pin;
+                  try {
+                    final privacyController = Get.find<PrivacySettingController>();
+                    final result = await privacyController.requirePinIfEnabled(
+                      context,
+                      title: 'Enter Security PIN',
+                      subtitle: 'Enter your 4-digit PIN to delete transaction',
+                      confirmGradientColors: [AppColors.red800, AppColors.red500],
+                    );
 
-                  // If PIN is entered (not null), proceed with deletion
-                  if (result != null && result['pin'] != null) {
-                    try {
-                      // Call Delete API
-                      final api = LedgerTransactionApi();
-                      final response = await api.deleteTransaction(
-                        transactionId: transactionId!,
-                        securityKey: result['pin']!,
-                      );
-
-                      // Close bottom sheet
-                      Navigator.pop(context);
-
-                      // Show success message
-                      AdvancedErrorService.showSuccess(
-                        response.message,
-                        type: SuccessType.snackbar,
-                        customDuration: Duration(seconds: 2),
-                      );
-
-                      debugPrint('✅ Transaction deleted successfully - triggering refresh');
-
-                      // Call onDelete callback to refresh LedgerDetailController
-                      onDelete?.call();
-
-                      // Also refresh LedgerController (main list) if it exists
-                      try {
-                        final ledgerController = Get.find<LedgerController>();
-                        debugPrint('🔄 Also refreshing LedgerController (main list)...');
-                        await ledgerController.refreshAll();
-                        debugPrint('✅ LedgerController refreshed successfully');
-                      } catch (e) {
-                        debugPrint('⚠️ LedgerController not found, skipping main list refresh');
-                      }
-                    } catch (e) {
-                      debugPrint('❌ Delete Transaction Error: $e');
-
-                      // Show error message
-                      AdvancedErrorService.showError(
-                        e.toString().replaceAll('Exception: ', ''),
-                        severity: ErrorSeverity.high,
-                        category: ErrorCategory.network,
-                        customDuration: Duration(seconds: 3),
-                      );
+                    if (result == null) {
+                      return; // User cancelled or PIN validation failed
                     }
+
+                    pin = result == 'SKIP' ? '' : result;
+                  } catch (e) {
+                    // Controller not registered, show PIN dialog as fallback
+                    debugPrint('⚠️ PrivacySettingController not found, using fallback PIN dialog');
+                    final dialogResult = await PinVerificationDialog.show(
+                      context: context,
+                      title: 'Enter Security Pin',
+                      subtitle: 'Enter your 4-digit pin to delete transaction',
+                      requireOtp: false,
+                      confirmGradientColors: [AppColors.red800, AppColors.red500],
+                      confirmTextColor: AppColors.white,
+                    );
+                    if (dialogResult == null || dialogResult['pin'] == null) {
+                      return;
+                    }
+                    pin = dialogResult['pin'];
+                  }
+
+                  // PIN verified or skipped, proceed with deletion
+                  try {
+                    // Call Delete API
+                    final api = LedgerTransactionApi();
+                    final response = await api.deleteTransaction(
+                      transactionId: transactionId!,
+                      securityKey: pin!,
+                    );
+
+                    // Close bottom sheet
+                    Navigator.pop(context);
+
+                    // Show success message
+                    AdvancedErrorService.showSuccess(
+                      response.message,
+                      type: SuccessType.snackbar,
+                      customDuration: Duration(seconds: 2),
+                    );
+
+                    debugPrint('✅ Transaction deleted successfully - triggering refresh');
+
+                    // Call onDelete callback to refresh LedgerDetailController
+                    onDelete?.call();
+
+                    // Also refresh LedgerController (main list) if it exists
+                    try {
+                      final ledgerController = Get.find<LedgerController>();
+                      debugPrint('🔄 Also refreshing LedgerController (main list)...');
+                      await ledgerController.refreshAll();
+                      debugPrint('✅ LedgerController refreshed successfully');
+                    } catch (e) {
+                      debugPrint('⚠️ LedgerController not found, skipping main list refresh');
+                    }
+                  } catch (e) {
+                    debugPrint('❌ Delete Transaction Error: $e');
+
+                    // Show error message
+                    AdvancedErrorService.showError(
+                      e.toString().replaceAll('Exception: ', ''),
+                      severity: ErrorSeverity.high,
+                      category: ErrorCategory.network,
+                      customDuration: Duration(seconds: 3),
+                    );
                   }
                 },
               ),

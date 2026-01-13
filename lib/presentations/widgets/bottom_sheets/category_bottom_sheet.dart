@@ -116,13 +116,10 @@ class _CategoryBottomSheetState extends State<CategoryBottomSheet> {
                 // Title
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: responsive.wp(5)),
-                  child: AppText.custom(
+                  child: AppText.searchbar2(
                     'Select business Category',
-                    style: TextStyle(
-                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
 
@@ -262,12 +259,10 @@ class _CategoryBottomSheetState extends State<CategoryBottomSheet> {
           child: Row(
             children: [
               Expanded(
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   title,
-                  style: AppFonts.appBarTitleMedium(
-                    color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
+                  color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   maxLines: 2,
                   minFontSize: 10,
                 ),

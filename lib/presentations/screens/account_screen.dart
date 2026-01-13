@@ -59,15 +59,12 @@ class _AccountScreenState extends State<AccountScreen> {
 
               return Row(
                 children: [
-                  AppText.custom(
+                  AppText.searchbar2(
                     merchantName,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                     maxLines: 1,
-                    minFontSize: 13,
+                    minFontSize: 12,
                     letterSpacing: 1.2,
                   ),
                   SizedBox(width: responsive.spacing(8)),
@@ -101,21 +98,15 @@ class _AccountScreenState extends State<AccountScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AppText.custom(
+                AppText.searchbar1(
                   'Error loading dashboard',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                    fontSize: responsive.fontSize(16),
-                    fontWeight: FontWeight.w500,
-                  ),
+                  color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
                 SizedBox(height: responsive.hp(1)),
-                AppText.custom(
+                AppText.headlineLarge1(
                   _accountController.errorMessage.value,
-                  style: TextStyle(
-                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                    fontSize: responsive.fontSize(14),
-                  ),
+                  color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                 ),
                 SizedBox(height: responsive.hp(2)),
                 ElevatedButton(
@@ -204,35 +195,26 @@ class _AccountScreenState extends State<AccountScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppText.custom(
+                AppText.searchbar2(
                   'Net balance',
-                  style: TextStyle(
-                    color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                    fontSize: responsive.fontSize(19),
-                    fontWeight: FontWeight.w400,
-                  ),
+                  color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
-                AppText.custom(
+                AppText.searchbar2(
                   '₹${Formatters.formatAmountWithCommas(_accountController.totalNetBalance.abs().toString())}',
-                  style: TextStyle(
-                    color: isPositive
-                        ? AppColors.primeryamount
-                        : AppColors.red500,
-                    fontSize: responsive.fontSize(20),
-                    fontWeight: FontWeight.w600,
-                  ),
+                  color: isPositive
+                      ? AppColors.primeryamount
+                      : AppColors.red500,
+                  fontWeight: FontWeight.w600,
                 ),
 
               ],
             ),
             SizedBox(height: responsive.hp(0.5)),
-            AppText.custom(
+            AppText.headlineLarge1(
               '${_accountController.totalCustomers} customers, ${_accountController.totalSuppliers} suppliers, ${_accountController.totalEmployees} employees',
-              style: TextStyle(
-                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                fontSize: responsive.fontSize(14),
-                fontWeight: FontWeight.w400,
-              ),
+              color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+              fontWeight: FontWeight.w400,
             ),
           ],
         ),
@@ -283,25 +265,19 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ),
                   SizedBox(width: responsive.spacing(8)),
-                  AppText.custom(
+                  AppText.searchbar2(
                     title,
-                    style: TextStyle(
-                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(17),
-                      fontWeight: FontWeight.w500,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ],
               ),
               GestureDetector(
                 onTap: onViewAll,
-                child: AppText.custom(
+                child: AppText.headlineLarge(
                   'View all',
-                  style: TextStyle(
-                    color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                    fontSize: responsive.fontSize(15),
-                    fontWeight: FontWeight.w500,
-                  ),
+                  color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -323,34 +299,25 @@ class _AccountScreenState extends State<AccountScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppText.custom(
+                  AppText.searchbar1(
                     'Net balance',
-                    style: TextStyle(
-                      color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                      fontSize: responsive.fontSize(14),
-                      fontWeight: FontWeight.w400,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w400,
                   ),
                   SizedBox(height: responsive.hp(0.1)),
-                  AppText.custom(
+                  AppText.headlineLarge1(
                     '$count $countLabel',
-                    style: TextStyle(
-                      color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                      fontSize: responsive.fontSize(14),
-                      fontWeight: FontWeight.w400,
-                    ),
+                    color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w400,
                   ),
                 ],
               ),
-              AppText.custom(
+              AppText.searchbar1(
                 '₹${Formatters.formatAmountWithCommas(balance.abs().toString())}',
-                style: TextStyle(
-                  color: isPositive
-                      ? AppColors.primeryamount
-                      : AppColors.red500,
-                  fontSize: responsive.fontSize(18),
-                  fontWeight: FontWeight.w600,
-                ),
+                color: isPositive
+                    ? AppColors.primeryamount
+                    : AppColors.red500,
+                fontWeight: FontWeight.w600,
               ),
             ],
           ),

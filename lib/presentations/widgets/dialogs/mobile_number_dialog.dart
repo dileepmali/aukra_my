@@ -159,28 +159,22 @@ class _MobileNumberDialogContentState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title
-                AppText.custom(
+                AppText.searchbar2(
                   widget.title,
-                  style: TextStyle(
-                    color: widget.titleColor ??
-                        (isDark ? AppColors.white : AppColorsLight.textPrimary),
-                    fontSize: responsive.fontSize(20),
-                    fontWeight: FontWeight.w700,
-                  ),
+                  color: widget.titleColor ??
+                      (isDark ? AppColors.white : AppColorsLight.textPrimary),
+                  fontWeight: FontWeight.w600,
                   textAlign: TextAlign.start,
                 ),
                 SizedBox(height: responsive.hp(1)),
 
                 // Subtitle
-                AppText.custom(
+                AppText.headlineLarge(
                   widget.subtitle,
-                  style: TextStyle(
-                    color: widget.subtitleColor ??
-                        (isDark
-                            ? AppColors.textInverse
-                            : AppColorsLight.textSecondary),
-                    fontSize: responsive.fontSize(15),
-                  ),
+                  color: widget.subtitleColor ??
+                      (isDark
+                          ? AppColors.textInverse
+                          : AppColorsLight.textSecondary),
                   textAlign: TextAlign.start,
                   maxLines: 3,
                 ),
@@ -283,13 +277,10 @@ class _MobileNumberDialogContentState
                       ),
                       borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                     ),
-                    child: AppText.custom(
+                    child: AppText.headlineMedium(
                       widget.warningText!,
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: responsive.fontSize(13),
-                        fontWeight: FontWeight.w500,
-                      ),
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w500,
                       textAlign: TextAlign.start,
                       maxLines: 4,
                     ),
@@ -299,12 +290,9 @@ class _MobileNumberDialogContentState
                 // Error message
                 if (errorMessage != null) ...[
                   SizedBox(height: responsive.hp(1)),
-                  AppText.custom(
+                  AppText.bodyLarge(
                     errorMessage!,
-                    style: TextStyle(
-                      color: AppColors.red500,
-                      fontSize: responsive.fontSize(12),
-                    ),
+                    color: AppColors.red500,
                     textAlign: TextAlign.start,
                   ),
                 ],

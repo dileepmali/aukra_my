@@ -11,6 +11,7 @@ class AppImages {
 
   // Empty state & customer
   static const String addCustomerIm = 'assets/images/add_customer.png';
+  static const String AukraSplashIm = 'assets/images/aukra_splash.svg';
 
   // Error states
   static const String errorIm = 'assets/images/error_image.webp';

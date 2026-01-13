@@ -25,6 +25,7 @@ import '../../buttons/dialog_botton.dart';
 import '../../buttons/row_app_bar.dart';
 import '../widgets/custom_date_picker.dart';
 import '../../controllers/add_transaction_controller.dart';
+import '../../controllers/privacy_setting_controller.dart';
 
 class AddTransactionScreen extends GetView<AddTransactionController> {
   const AddTransactionScreen({Key? key}) : super(key: key);
@@ -43,17 +44,37 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
       return; // Stop here, don't show PIN dialog
     }
 
-    // ✅ Only show PIN dialog if validation passes
-    final result = await PinVerificationDialog.show(
-      context: context,
-      requireOtp: false,
-    );
-    if (result == null || result['pin'] == null) {
-      return; // User cancelled
+    // ✅ Use global PIN check - skip if PIN is disabled
+    String? pin;
+    try {
+      final privacyController = Get.find<PrivacySettingController>();
+      final result = await privacyController.requirePinIfEnabled(
+        context,
+        title: 'Enter Security PIN',
+        subtitle: 'Enter your 4-digit PIN to confirm transaction',
+      );
+
+      if (result == null) {
+        return; // User cancelled or PIN validation failed
+      }
+
+      // If 'SKIP', PIN is disabled - use empty string for API
+      pin = result == 'SKIP' ? '' : result;
+    } catch (e) {
+      // Controller not registered, show PIN dialog as fallback
+      debugPrint('⚠️ PrivacySettingController not found, using fallback PIN dialog');
+      final result = await PinVerificationDialog.show(
+        context: context,
+        requireOtp: false,
+      );
+      if (result == null || result['pin'] == null) {
+        return; // User cancelled
+      }
+      pin = result['pin']!;
     }
 
     // Submit transaction via controller
-    await controller.submitTransaction(result['pin']!);
+    await controller.submitTransaction(pin);
   }
 
   void _selectDate(BuildContext context) async {
@@ -91,16 +112,13 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                 ),
               ),
               SizedBox(width: responsive.wp(3)),
-              Obx(() => AppText.custom(
+              Obx(() => AppText.searchbar2(
                 controller.isEditMode.value ? 'Edit Transaction' : 'Add Transaction',
-                style: TextStyle(
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                  fontWeight: FontWeight.w500,
                 maxLines: 1,
                 minFontSize: 12,
-                letterSpacing: 1.0,
+                letterSpacing: 1.2,
               )),
             ],
           ),
@@ -159,14 +177,11 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                     ),
                     SizedBox(height: responsive.hp(1.2)),
 
-                    AppText.custom(
+                    AppText.displaySmall(
                         'Select transcation type',
-                        style: TextStyle(
-                          color: isDark ? AppColors.white : AppColorsLight.black,
-                          fontSize: responsive.fontSize(17),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center
+                        color: isDark ? AppColors.white : AppColorsLight.black,
+                        fontWeight: FontWeight.w500,
+                        textAlign: TextAlign.center,
                     ),
                     SizedBox(height: responsive.hp(1.2)),
 
@@ -176,7 +191,13 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                     SizedBox(height: responsive.hp(3)),
 
                     // Customer Avatar and Details
-                    _buildCustomerDetails(controller.customerName ?? 'Customer', controller.customerLocation ?? 'Location', responsive, isDark),
+                    _buildCustomerDetails(
+                      controller.customerName ?? 'Customer',
+                      controller.customerLocation,
+                      controller.closingBalance,
+                      responsive,
+                      isDark,
+                    ),
 
                     SizedBox(height: responsive.hp(3)),
 
@@ -366,12 +387,9 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
           width: responsive.iconSizeExtraLarge,
         ),
         SizedBox(height: responsive.hp(2)),
-        AppText.custom(
+        AppText.headlineLarge1(
           'All transaction between you and customers are\nsafely private & secure.',
-          style: TextStyle(
-            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-            fontSize: responsive.fontSize(14),
-          ),
+          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
           textAlign: TextAlign.start,
           maxLines: 2,
         ),
@@ -421,13 +439,10 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                       height: responsive.iconSizeMedium,
                     ),
                     SizedBox(width: responsive.wp(2)),
-                    AppText.custom(
+                    AppText.searchbar(
                       'In',
-                      style: TextStyle(
-                        color: controller.selectedType.value == 'IN' ? AppColors.white : Colors.white,
-                        fontSize: responsive.fontSize(17),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: controller.selectedType.value == 'IN' ? AppColors.white : Colors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ],
                 ),
@@ -460,13 +475,10 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                       height: responsive.iconSizeMedium,
                     ),
                     SizedBox(width: responsive.wp(2)),
-                    AppText.custom(
+                    AppText.searchbar(
                       'Out',
-                      style: TextStyle(
-                        color: controller.selectedType.value == 'OUT' ? AppColors.white : Colors.white,
-                        fontSize: responsive.fontSize(17),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: controller.selectedType.value == 'OUT' ? AppColors.white : Colors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ],
                 ),
@@ -480,7 +492,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
     );
   }
 
-  Widget _buildCustomerDetails(String name, String location, AdvancedResponsiveHelper responsive, bool isDark) {
+  Widget _buildCustomerDetails(String name, String? location, double closingBalance, AdvancedResponsiveHelper responsive, bool isDark) {
     String getInitials(String name) {
       final parts = name.trim().split(' ');
       if (parts.isEmpty) return 'A';
@@ -489,6 +501,9 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
       }
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
+
+    // Format closing balance with Indian number format
+    final formattedBalance = 'Closing Bal. ₹ ${NumberFormat('#,##,##0.00', 'en_IN').format(closingBalance.abs())}';
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
@@ -507,34 +522,33 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             ),
           ),
           child: Center(
-            child: AppText.custom(
+            child: AppText.displayLarge(
               getInitials(name),
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: responsive.fontSize(24),
-                fontWeight: FontWeight.w700,
-              ),
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         SizedBox(height: responsive.hp(0.6)),
         // Name
-        AppText.custom(
+        AppText.displaySmall(
           name,
-          style: TextStyle(
-            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-            fontSize: responsive.fontSize(18),
-            fontWeight: FontWeight.w600,
-          ),
+          color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+          fontWeight: FontWeight.w600,
         ),
         SizedBox(height: responsive.hp(0.2)),
-        // Location
-        AppText.custom(
-          location,
-          style: TextStyle(
+        // Location (if available)
+        if (location != null && location.isNotEmpty) ...[
+          AppText.headlineLarge1(
+            location,
             color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-            fontSize: responsive.fontSize(14),
           ),
+          SizedBox(height: responsive.hp(0.2)),
+        ],
+        // Closing Balance
+        AppText.headlineLarge1(
+          formattedBalance,
+          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
         ),
       ],
       ),
@@ -615,6 +629,8 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
         hintText: 'Add a note',
         fontSize: responsive.fontSize(16),
         borderRadius: responsive.borderRadiusSmall,
+        enableSuggestions: false,
+        autocorrect: false,
       ),
     );
   }

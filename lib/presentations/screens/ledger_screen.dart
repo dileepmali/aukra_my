@@ -303,13 +303,10 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   children: [
                     SizedBox(height: responsive.hp(30)),
                     Center(
-                      child: AppText.custom(
+                      child: AppText.headlineLarge(
                         'No customers found',
-                        style: TextStyle(
-                          color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                          fontSize: responsive.fontSize(16),
-                          fontWeight: FontWeight.w400,
-                        ),
+                        color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -421,13 +418,10 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   children: [
                     SizedBox(height: responsive.hp(30)),
                     Center(
-                      child: AppText.custom(
+                      child: AppText.searchbar1(
                         'No suppliers found',
-                        style: TextStyle(
-                          color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                          fontSize: responsive.fontSize(16),
-                          fontWeight: FontWeight.w400,
-                        ),
+                        color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -536,13 +530,10 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   children: [
                     SizedBox(height: responsive.hp(30)),
                     Center(
-                      child: AppText.custom(
+                      child: AppText.searchbar1(
                         'No employers found',
-                        style: TextStyle(
-                          color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                          fontSize: responsive.fontSize(16),
-                          fontWeight: FontWeight.w400,
-                        ),
+                        color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],

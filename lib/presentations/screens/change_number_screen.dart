@@ -17,8 +17,10 @@ import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../buttons/app_button.dart';
 import '../widgets/dialogs/change_number_pin_dialog.dart';
 import '../widgets/dialogs/new_number_otp_dialog.dart';
+import '../widgets/dialogs/mobile_number_dialog.dart';
 import '../../core/utils/formatters.dart';
 import '../../controllers/change_number_controller.dart';
+import '../../controllers/privacy_setting_controller.dart';
 import '../../core/services/error_service.dart';
 import '../../core/untils/error_types.dart';
 import '../../core/utils/dialog_transition_helper.dart';
@@ -67,7 +69,7 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
     }
   }
 
-  /// Handle first button click: Show PIN Dialog
+  /// Handle first button click: Show PIN Dialog or Skip if PIN is disabled
   Future<void> _handleFirstButtonClick() async {
     debugPrint('📱 First button clicked: Verify OTP');
 
@@ -79,26 +81,101 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
     // Prepare for dialog sequence - hide any existing keyboard
     await DialogTransitionHelper.prepareForDialogSequence(context);
 
-    // Show PIN dialog with API integration
-    final result = await ChangeNumberPinDialog.show(
-      context: context,
-      controller: _controller,
-      maskedPhoneNumber: maskedNumber,
-    );
+    // Check if PIN is enabled globally
+    bool isPinEnabled = false;
+    try {
+      final privacyController = Get.find<PrivacySettingController>();
+      isPinEnabled = privacyController.isPinEnabled;
+      debugPrint('🔐 PIN enabled: $isPinEnabled');
+    } catch (e) {
+      debugPrint('⚠️ PrivacySettingController not found, assuming PIN is enabled');
+      isPinEnabled = true;
+    }
 
-    if (result != null) {
-      final mobile = result['mobile'];
-      debugPrint('✅ First flow completed. New number: $mobile');
+    if (isPinEnabled) {
+      // PIN is enabled - Show full PIN dialog flow
+      final result = await ChangeNumberPinDialog.show(
+        context: context,
+        controller: _controller,
+        maskedPhoneNumber: maskedNumber,
+      );
+
+      if (result != null) {
+        final mobile = result['mobile'];
+        debugPrint('✅ First flow completed. New number: $mobile');
+
+        // Update UI to show numbers
+        setState(() {
+          _newNumber = '+91$mobile';
+        });
+
+        // Store new number in controller
+        _controller.setNewNumber(mobile!);
+      } else {
+        debugPrint('❌ First flow cancelled');
+      }
+    } else {
+      // PIN is disabled - Skip PIN and go directly to OTP flow
+      debugPrint('🔓 PIN is disabled, skipping PIN dialog...');
+
+      // Step 1: Send OTP to current number (with empty PIN)
+      final otpSent = await _controller.sendOtpToCurrentNumber('');
+      if (!otpSent) {
+        debugPrint('❌ Failed to send OTP to current number');
+        return;
+      }
+
+      if (!mounted) return;
+      await DialogTransitionHelper.waitForDialogTransition();
+
+      // Step 2: Show OTP dialog for current number
+      final currentOtp = await NewNumberOtpDialog.show(
+        context: context,
+        newPhoneNumber: maskedNumber,
+        title: 'Enter OTP',
+        subtitle: 'Enter OTP sent to\n$maskedNumber',
+        confirmButtonText: 'Verify',
+      );
+
+      if (currentOtp == null) {
+        debugPrint('❌ Current OTP entry cancelled');
+        return;
+      }
+
+      await DialogTransitionHelper.waitForDialogTransition();
+
+      // Step 3: Verify current number OTP
+      final verified = await _controller.verifyCurrentNumberOtp(currentOtp);
+      if (!verified) {
+        debugPrint('❌ Failed to verify current OTP');
+        return;
+      }
+
+      if (!mounted) return;
+      await DialogTransitionHelper.waitForDialogTransition();
+
+      // Step 4: Show mobile number entry dialog
+      final newMobile = await MobileNumberDialog.show(
+        context: context,
+        title: 'Enter New Mobile',
+        subtitle: 'Enter your new 10-digit mobile number',
+        confirmButtonText: 'Continue',
+      );
+
+      if (newMobile == null || newMobile.isEmpty) {
+        debugPrint('❌ New mobile entry cancelled');
+        return;
+      }
+
+      debugPrint('✅ Flow completed. New number: $newMobile');
 
       // Update UI to show numbers
       setState(() {
-        _newNumber = '+91$mobile';
+        _newNumber = '+91$newMobile';
       });
 
       // Store new number in controller
-      _controller.setNewNumber(mobile!);
-    } else {
-      debugPrint('❌ First flow cancelled');
+      _controller.setNewNumber(newMobile);
     }
   }
 
@@ -209,7 +286,6 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
                 'Change Number',
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
                   fontWeight: FontWeight.w500,
-
                 maxLines: 1,
                 minFontSize: 12,
                 letterSpacing: 1.1,

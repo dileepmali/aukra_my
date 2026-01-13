@@ -38,10 +38,9 @@ class SplashController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      // ⚡ HIGHLY OPTIMIZED: Reduced to 150ms for ultra-fast app startup
-      // Minimal delay for SharedFileHandlerService while keeping deep links fast
+      // Splash screen visibility duration
       if (!skipDelay && !Get.testMode) {
-        await Future.delayed(const Duration(milliseconds: 150)); // Reduced from 300ms
+        await Future.delayed(const Duration(milliseconds: 300));
       }
 
       // Check token validity and navigate accordingly

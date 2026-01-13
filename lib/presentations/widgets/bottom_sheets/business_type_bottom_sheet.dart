@@ -129,13 +129,10 @@ class _BusinessTypeBottomSheetState extends State<BusinessTypeBottomSheet> {
                 // Title
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: responsive.wp(5)),
-                  child: AppText.custom(
+                  child: AppText.searchbar2(
                     'Select Business Type',
-                    style: TextStyle(
-                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                      fontSize: responsive.fontSize(20),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
 

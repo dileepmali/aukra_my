@@ -166,17 +166,14 @@ class ListItemWidget extends StatelessWidget {
                             SizedBox(width: responsive.spacing(6)),
                           ],
                           Expanded(
-                            child: AppText.custom(
+                            child: AppText.searchbar2(
                               title,
-                              style: TextStyle(
-                                color: titleColor ?? (isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.textPrimary),
-                                fontSize: titleFontSize ?? responsive.fontSize(18),
-                                fontWeight: titleFontWeight ?? FontWeight.w500,
-                                letterSpacing: titleLetterSpacing ?? 1.2,
-                                decoration: titleDecoration,
-                              ),
+                              color: titleColor ?? (isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.textPrimary),
+                              fontWeight: titleFontWeight ?? FontWeight.w500,
+                              letterSpacing: titleLetterSpacing ?? 1.2,
+                              decoration: titleDecoration,
                               maxLines: 1,
-                              minFontSize: 15,
+                              minFontSize: 10,
                             ),
                           ),
                           // Amount on the right side of title with custom symbol and number styling
@@ -205,17 +202,14 @@ class ListItemWidget extends StatelessWidget {
                                 ),
                                 SizedBox(width: responsive.spacing(3)),
                                 // Amount number - bigger font
-                                AppText.custom(
+                                AppText.searchbar4(
                                   amount!.replaceAll('₹', '').trim(),
-                                  style: TextStyle(
-                                    color: isPositiveAmount == true
-                                        ? AppColors.primeryamount
-                                        : isPositiveAmount == false
-                                            ? AppColors.red500.withOpacity(0.7)
-                                            : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                                    fontSize: responsive.fontSize(18),
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  color: isPositiveAmount == true
+                                      ? AppColors.primeryamount
+                                      : isPositiveAmount == false
+                                          ? AppColors.red500.withOpacity(0.7)
+                                          : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
+                                  fontWeight: FontWeight.w600,
                                   maxLines: 1,
                                   minFontSize: 14,
                                 ),
@@ -241,15 +235,13 @@ class ListItemWidget extends StatelessWidget {
                                 SizedBox(width: responsive.iconSizeSmall + responsive.spacing(15)),
                               ],
                               Expanded(
-                                child: AppText.custom(
+                                child: AppText.headlineMedium(
                                   subtitle!,
-                                  style: TextStyle(
-                                    color: subtitleColor ?? (isPositiveAmount == true
-                                        ? AppColors.textDisabled
-                                        : isPositiveAmount == false
-                                        ? AppColors.textSecondary
-                                        : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary)),
-                                  ),
+                                  color: subtitleColor ?? (isPositiveAmount == true
+                                      ? AppColors.textDisabled
+                                      : isPositiveAmount == false
+                                      ? AppColors.textSecondary
+                                      : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary)),
                                   maxLines: 2,
                                   minFontSize: 12,
                                 ),

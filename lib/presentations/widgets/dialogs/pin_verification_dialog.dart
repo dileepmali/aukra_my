@@ -246,26 +246,20 @@ class _PinVerificationDialogContentState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
               // Title
-              AppText.custom(
+              AppText.searchbar2(
                 _isOtpStep ? 'Enter OTP' : widget.title,
-                style: TextStyle(
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w700,
-                ),
+                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w600,
                 textAlign: TextAlign.start,
               ),
               SizedBox(height: responsive.hp(1)),
 
               // Subtitle
-              AppText.custom(
+              AppText.headlineLarge(
                 _isOtpStep
                     ? 'Enter OTP received on your phone\n${widget.maskedPhoneNumber ?? ""}'
                     : '${widget.subtitle}${widget.maskedPhoneNumber != null ? '\n${widget.maskedPhoneNumber}' : ''}',
-                style: TextStyle(
-                  color: isDark ? AppColors.textInverse : AppColorsLight.textSecondary,
-                  fontSize: responsive.fontSize(15),
-                ),
+                color: isDark ? AppColors.textInverse : AppColorsLight.textSecondary,
                 textAlign: TextAlign.start,
                 maxLines: 3,
               ),
@@ -332,18 +326,15 @@ class _PinVerificationDialogContentState
                 SizedBox(height: responsive.hp(2)),
                 GestureDetector(
                   onTap: _canResend ? _resendOtp : null,
-                  child: AppText.custom(
+                  child: AppText.headlineLarge1(
                     _canResend
                         ? 'Resend OTP'
                         : 'Resend OTP in $_resendTimer seconds',
-                    style: TextStyle(
-                      color: _canResend
-                          ? (isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary1)
-                          : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                      fontSize: responsive.fontSize(14),
-                      fontWeight: FontWeight.w600,
-                      decoration: _canResend ? TextDecoration.underline : null,
-                    ),
+                    color: _canResend
+                        ? (isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary1)
+                        : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
+                    fontWeight: FontWeight.w600,
+                    decoration: _canResend ? TextDecoration.underline : null,
                     textAlign: TextAlign.start,
                   ),
                 ),
@@ -368,13 +359,10 @@ class _PinVerificationDialogContentState
                     ),
                     borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   ),
-                  child: AppText.custom(
+                  child: AppText.headlineMedium(
                     widget.warningText!,
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: responsive.fontSize(13),
-                      fontWeight: FontWeight.w500,
-                    ),
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w500,
                     textAlign: TextAlign.start,
                     maxLines: 4,
                   ),
@@ -384,12 +372,9 @@ class _PinVerificationDialogContentState
               // Error message
               if (errorMessage != null) ...[
                 SizedBox(height: responsive.hp(1)),
-                AppText.custom(
+                AppText.bodyLarge(
                   errorMessage!,
-                  style: TextStyle(
-                    color: AppColors.red500,
-                    fontSize: responsive.fontSize(12),
-                  ),
+                  color: AppColors.red500,
                   textAlign: TextAlign.center,
                 ),
               ],

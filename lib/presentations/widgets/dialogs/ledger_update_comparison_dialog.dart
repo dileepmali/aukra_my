@@ -187,24 +187,18 @@ class _LedgerUpdateComparisonDialogContentState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title
-              AppText.custom(
+              AppText.searchbar2(
                 'Are you sour?',
-                style: TextStyle(
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w700,
-                ),
+                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w600,
                 textAlign: TextAlign.start,
               ),
               SizedBox(height: responsive.hp(0.5)),
 
               // Subtitle
-              AppText.custom(
+              AppText.searchbar1(
                 'you are about to update these details.check twice & confirm the action',
-                style: TextStyle(
-                  color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                  fontSize: responsive.fontSize(16),
-                ),
+                color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                 textAlign: TextAlign.start,
                 maxLines: 2,
               ),
@@ -214,25 +208,19 @@ class _LedgerUpdateComparisonDialogContentState
               Row(
                 children: [
                   Expanded(
-                    child: AppText.custom(
+                    child: AppText.headlineMedium(
                       'Old',
-                      style: TextStyle(
-                        color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(13),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                      fontWeight: FontWeight.w600,
                       textAlign: TextAlign.start,
                     ),
                   ),
                   SizedBox(width: responsive.wp(2)),
                   Expanded(
-                    child: AppText.custom(
+                    child: AppText.headlineMedium(
                       'Updated Data',
-                      style: TextStyle(
-                        color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                        fontSize: responsive.fontSize(13),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                      fontWeight: FontWeight.w600,
                       textAlign: TextAlign.start,
                     ),
                   ),

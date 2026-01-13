@@ -243,13 +243,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           showBorder: true,
           customHeight: responsive.hp(12),
           customPadding: EdgeInsets.symmetric(horizontal: responsive.wp(2)),
-          leadingWidget: AppText.custom(
+          leadingWidget: AppText.searchbar2(
             'My Profile',
-            style: TextStyle(
-              color: isDark ? Colors.white : AppColorsLight.textPrimary,
-              fontSize: responsive.fontSize(20),
-              fontWeight: FontWeight.w600,
-            ),
+            color: isDark ? Colors.white : AppColorsLight.textPrimary,
+            fontWeight: FontWeight.w500,
             maxLines: 1,
             minFontSize: 12,
             letterSpacing: 1.1,
@@ -315,13 +312,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 backgroundColor: isDark
                 ? AppColors.containerDark
                     : AppColorsLight.splaceSecondary1,
-                child: AppText.custom(
+                child: AppText.searchbar2(
                   userInitials,
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: responsive.fontSize(20),
-                    fontWeight: FontWeight.w600,
-                  ),
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(width: responsive.wp(3)),
@@ -332,24 +326,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    AppText.custom(
+                    AppText.searchbar(
                       _username.isEmpty ? 'Aukra' : _username,
-                      style: TextStyle(
-                        color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                        fontSize: responsive.fontSize(18),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                      fontWeight: FontWeight.w500,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: responsive.hp(0.2)),
-                    AppText.custom(
+                    AppText.headlineLarge1(
                       _mobileNumber.isEmpty ? 'No number' : Formatters.formatPhoneWithCountryCode(_mobileNumber),
-                      style: TextStyle(
-                        color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(14),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                      fontWeight: FontWeight.w400,
                     ),
                   ],
                 ),

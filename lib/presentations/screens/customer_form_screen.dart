@@ -106,16 +106,13 @@ class CustomerFormScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(width: responsive.wp(3),),
-              AppText.custom(
+              AppText.searchbar2(
                 _getTitle(partyType, isEditMode),
-                style: TextStyle(
-                  color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w500,
                 maxLines: 1,
                 minFontSize: 12,
-                letterSpacing: 1.0
+                letterSpacing: 1.0,
               ),
             ],
           ),
@@ -402,16 +399,13 @@ class CustomerFormScreen extends StatelessWidget {
     AdvancedResponsiveHelper responsive,
     bool isDark,
   ) {
-    return AppText.custom(
+    return AppText.headlineLarge1(
       text,
-      style: TextStyle(
-        color: isDark
-            ? AppColors.white.withOpacity(0.7)
-            : AppColorsLight.textSecondary,
-        fontSize: responsive.fontSize(14),
-        fontWeight: FontWeight.w400,
-        letterSpacing: 1.0,
-      ),
+      color: isDark
+          ? AppColors.white.withOpacity(0.7)
+          : AppColorsLight.textSecondary,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 1.0,
     );
   }
 
@@ -442,13 +436,10 @@ class CustomerFormScreen extends StatelessWidget {
               : AppColorsLight.brandGradient,
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         ),
-        child: AppText.custom(
+        child: AppText.headlineLarge1(
           label,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: responsive.fontSize(14),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
+          color: Colors.white,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),
       ),
     );
@@ -481,13 +472,10 @@ class CustomerFormScreen extends StatelessWidget {
               : AppColorsLight.brandGradient,
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         ),
-        child: AppText.custom(
+        child: AppText.headlineLarge1(
           label,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: responsive.fontSize(14),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
+          color: Colors.white,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),
       ),
     );

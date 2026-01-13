@@ -118,13 +118,10 @@ class _EditAddressDialogContentState extends State<_EditAddressDialogContent> {
             Padding(
               padding: EdgeInsets.only(
                   left: responsive.wp(4), top: responsive.hp(1)),
-              child: AppText.custom(
+              child: AppText.searchbar2(
                 'Business Address',
-                style: TextStyle(
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w700,
-                ),
+                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w600,
                 textAlign: TextAlign.start,
               ),
             ),
@@ -133,15 +130,12 @@ class _EditAddressDialogContentState extends State<_EditAddressDialogContent> {
             // Subtitle
             Padding(
               padding: EdgeInsets.only(left: responsive.wp(4)),
-              child: AppText.custom(
+              child: AppText.headlineLarge1(
                 'Edit your business address',
-                style: TextStyle(
-                  color: isDark
-                      ? AppColors.textDisabled
-                      : AppColorsLight.textSecondary,
-                  fontSize: responsive.fontSize(14),
-                  fontWeight: FontWeight.w400,
-                ),
+                color: isDark
+                    ? AppColors.textDisabled
+                    : AppColorsLight.textSecondary,
+                fontWeight: FontWeight.w400,
                 textAlign: TextAlign.start,
               ),
             ),
@@ -171,13 +165,10 @@ class _EditAddressDialogContentState extends State<_EditAddressDialogContent> {
                   ),
                   if (errorMessage != null) ...[
                     SizedBox(height: responsive.hp(1)),
-                    AppText.custom(
+                    AppText.bodyLarge(
                       errorMessage!,
-                      style: TextStyle(
-                        color: AppColors.red500,
-                        fontSize: responsive.fontSize(12),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      color: AppColors.red500,
+                      fontWeight: FontWeight.w400,
                     ),
                   ],
                 ],

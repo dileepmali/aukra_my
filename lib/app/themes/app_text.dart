@@ -160,12 +160,16 @@ class AppText {
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
     double? letterSpacing,
+    TextDecoration? decoration,
   }) {
+    final baseStyle = AppFonts.displaySmall(color: color, fontWeight: fontWeight);
+    final finalStyle = baseStyle.copyWith(
+      letterSpacing: letterSpacing,
+      decoration: decoration,
+    );
     return AutoSizeText(
       text,
-      style: letterSpacing != null
-          ? AppFonts.displaySmall(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displaySmall(color: color, fontWeight: fontWeight),
+      style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -211,12 +215,44 @@ class AppText {
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
     double? letterSpacing,
+    TextDecoration? decoration,
   }) {
+    final baseStyle = AppFonts.searchbar1(color: color, fontWeight: fontWeight);
+    final finalStyle = baseStyle.copyWith(
+      letterSpacing: letterSpacing,
+      decoration: decoration,
+    );
     return AutoSizeText(
       text,
-      style: letterSpacing != null
-          ? AppFonts.searchbar1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.searchbar1(color: color, fontWeight: fontWeight),
+      style: finalStyle,
+      maxLines: maxLines,
+      minFontSize: minFontSize,
+      overflow: overflow,
+      textAlign: textAlign,
+      group: group,
+    );
+  }
+
+  static Widget searchbar4(
+      String text, {
+        Color? color,
+        FontWeight? fontWeight,
+        int maxLines = 1,
+        double minFontSize = 11.5,
+        TextAlign? textAlign,
+        TextOverflow overflow = TextOverflow.ellipsis,
+        AutoSizeGroup? group,
+        double? letterSpacing,
+        TextDecoration? decoration,
+      }) {
+    final baseStyle = AppFonts.searchbar1(color: color, fontWeight: fontWeight);
+    final finalStyle = baseStyle.copyWith(
+      letterSpacing: letterSpacing,
+      decoration: decoration,
+    );
+    return AutoSizeText(
+      text,
+      style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -236,12 +272,16 @@ class AppText {
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
     double? letterSpacing,
+    TextDecoration? decoration,
   }) {
+    final baseStyle = AppFonts.searchbar2(color: color, fontWeight: fontWeight);
+    final finalStyle = baseStyle.copyWith(
+      letterSpacing: letterSpacing,
+      decoration: decoration,
+    );
     return AutoSizeText(
       text,
-      style: letterSpacing != null
-          ? AppFonts.searchbar2(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.searchbar2(color: color, fontWeight: fontWeight),
+      style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -291,12 +331,16 @@ class AppText {
     TextOverflow overflow = TextOverflow.ellipsis,
     AutoSizeGroup? group,
     double? letterSpacing,
+    TextDecoration? decoration,
   }) {
+    final baseStyle = AppFonts.headlineLarge1(color: color, fontWeight: fontWeight);
+    final finalStyle = baseStyle.copyWith(
+      letterSpacing: letterSpacing,
+      decoration: decoration,
+    );
     return AutoSizeText(
       text,
-      style: letterSpacing != null
-          ? AppFonts.headlineLarge1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.headlineLarge1(color: color, fontWeight: fontWeight),
+      style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,

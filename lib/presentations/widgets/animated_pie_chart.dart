@@ -129,15 +129,12 @@ class _AnimatedPieChartState extends State<AnimatedPieChart>
                 children: [
                   // Subtitle Text (shown first - above the amount)
                   if (widget.centerSubText.isNotEmpty) ...[
-                    AppText.custom(
+                    AppText.bodyLarge(
                       widget.centerSubText,
-                      style: TextStyle(
-                        fontSize: responsive.fontSize(10),
-                        fontWeight: FontWeight.w500,
-                        color: widget.isDark
-                            ? AppColors.white
-                            : AppColorsLight.textSecondary,
-                      ),
+                      fontWeight: FontWeight.w500,
+                      color: widget.isDark
+                          ? AppColors.white
+                          : AppColorsLight.textSecondary,
                     ),
                     SizedBox(height: responsive.hp(0.1)),
                   ],
@@ -149,27 +146,21 @@ class _AnimatedPieChartState extends State<AnimatedPieChart>
                       // If centerText contains %, show animated percentage
                       if (widget.centerText.contains('%')) {
                         int animatedPercentage = (widget.usedValue * _animation.value).toInt();
-                        return AppText.custom(
+                        return AppText.searchbar1(
                           '$animatedPercentage%',
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(16),
-                            fontWeight: FontWeight.w600,
-                            color: widget.isDark
-                                ? AppColors.white
-                                : AppColorsLight.textPrimary,
-                          ),
+                          fontWeight: FontWeight.w600,
+                          color: widget.isDark
+                              ? AppColors.white
+                              : AppColorsLight.textPrimary,
                         );
                       } else {
                         // Otherwise show static text
-                        return AppText.custom(
+                        return AppText.searchbar1(
                           widget.centerText,
-                          style: TextStyle(
-                            fontSize: responsive.fontSize(16),
-                            fontWeight: FontWeight.w600,
-                            color: widget.isDark
-                                ? AppColors.white
-                                : AppColorsLight.textPrimary,
-                          ),
+                          fontWeight: FontWeight.w600,
+                          color: widget.isDark
+                              ? AppColors.white
+                              : AppColorsLight.textPrimary,
                         );
                       }
                     },

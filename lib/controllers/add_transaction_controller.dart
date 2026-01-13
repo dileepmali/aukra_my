@@ -32,7 +32,8 @@ class AddTransactionController extends GetxController {
   int? ledgerId;
   int? transactionId; // For edit mode
   String? customerName;
-  String? customerLocation;
+  String? customerLocation; // Customer area/location
+  double closingBalance = 0.0; // Closing balance amount
   String accountType = 'CUSTOMER'; // CUSTOMER or SUPPLIER
 
   // API instances
@@ -52,7 +53,8 @@ class AddTransactionController extends GetxController {
     ledgerId = args?['ledgerId'] as int?;
     transactionId = args?['transactionId'] as int?;
     customerName = args?['customerName'] as String? ?? 'Customer';
-    customerLocation = args?['customerLocation'] as String? ?? 'Location';
+    customerLocation = args?['customerLocation'] as String?;
+    closingBalance = (args?['closingBalance'] as num?)?.toDouble() ?? 0.0;
     accountType = args?['accountType'] as String? ?? 'CUSTOMER';
 
     // Check if we're in edit mode

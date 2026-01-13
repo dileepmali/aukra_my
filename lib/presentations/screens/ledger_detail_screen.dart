@@ -73,7 +73,11 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       final detail = controller.ledgerDetail.value;
                       final name = detail?.partyName ?? 'Ledger Individual';
                       final mobile = detail?.mobileNumber ?? '';
-                      final address = detail?.address ?? '';
+                      // Use area field directly from API response
+                      final area = detail?.area ?? '';
+
+                      // Debug: Check area value
+                      debugPrint('📍 AppBar - Mobile: $mobile, Area: $area');
 
                       // Get initials from name
                       String getInitials(String name) {
@@ -125,13 +129,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                 ),
                               ),
                               child: Center(
-                                child: AppText.custom(
+                                child: AppText.displaySmall(
                                   getInitials(name),
-                                  style: TextStyle(
-                                    color: AppColors.white,
-                                    fontSize: responsive.fontSize(18),
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
@@ -144,33 +145,27 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   // Name (Title)
-                                  AppText.custom(
+                                  AppText.searchbar(
                                     name,
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? AppColors.white
-                                          : AppColorsLight.textPrimary,
-                                      fontSize: responsive.fontSize(16),
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    color: isDark
+                                        ? AppColors.white
+                                        : AppColorsLight.textPrimary,
+                                    fontWeight: FontWeight.w600,
                                     maxLines: 1,
                                     minFontSize: 12,
                                   ),
                                   SizedBox(height: responsive.hp(0.2)),
                 
-                                  // Mobile Number + Address (Subtitle)
-                                  AppText.custom(
+                                  // Mobile Number + Area (Subtitle)
+                                  AppText.bodyLarge(
                                     [
                                       if (mobile.isNotEmpty) mobile,
-                                      if (address.isNotEmpty) address,
+                                      if (area.isNotEmpty) area,
                                     ].join(' • '),
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? AppColors.textDisabled
-                                          : AppColorsLight.textSecondary,
-                                      fontSize: responsive.fontSize(12.5),
-                                      fontWeight: FontWeight.w400,
-                                    ),
+                                    color: isDark
+                                        ? AppColors.textDisabled
+                                        : AppColorsLight.textSecondary,
+                                    fontWeight: FontWeight.w400,
                                     maxLines: 1,
                                     minFontSize: 10,
                                   ),
@@ -353,13 +348,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText.custom(
+                AppText.headlineLarge(
                   'Closing Balance',
-                  style: TextStyle(
-                    color: AppColors.white.withOpacity(0.8),
-                    fontSize: responsive.fontSize(15),
-                    fontWeight: FontWeight.w400,
-                  ),
+                  color: AppColors.white.withOpacity(0.8),
+                  fontWeight: FontWeight.w400,
                 ),
                 SizedBox(height: responsive.hp(1)),
                 Row(
@@ -377,13 +369,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       ),
                     ),
                     SizedBox(width: responsive.wp(1),),
-                    AppText.custom(
+                    AppText.displayMedium1(
                           '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontSize: responsive.fontSize(28),
-                            fontWeight: FontWeight.w700,
-                          ),
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                   ],
                 ),
@@ -453,14 +442,11 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
             children: [
               SizedBox(height: responsive.hp(30)),
               Center(
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   'No transactions found',
-                  style: TextStyle(
-                    color: isDark
-                        ? AppColors.textSecondary
-                        : AppColorsLight.textSecondary,
-                    fontSize: responsive.fontSize(16),
-                  ),
+                  color: isDark
+                      ? AppColors.textSecondary
+                      : AppColorsLight.textSecondary,
                 ),
               ),
             ],
@@ -544,15 +530,12 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
           BlendMode.srcIn,
         ),
       ),
-      subtitleSuffix: AppText.custom(
+      subtitleSuffix: AppText.headlineMedium(
         'Bal. ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
-        style: TextStyle(
-          color: isPositive
-              ? AppColors.textDisabled
-              : AppColors.textSecondary,
-          fontSize: responsive.fontSize(13),
-          fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
-        ),
+        color: isPositive
+            ? AppColors.textDisabled
+            : AppColors.textSecondary,
+        fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       ),
       subtitleFontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       amount: formattedAmount,
@@ -594,10 +577,6 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     // Get location from ledger detail
     final location = controller.ledgerDetail.value?.address ?? '';
 
-    // Format dates for bottom sheet
-    final transactionDateFormatted = _formatDateForBottomSheet(transaction.transactionDate);
-    final entryDateFormatted = _formatDateForBottomSheet(transaction.updatedAt);
-
     // Show transaction detail bottom sheet
     TransactionDetailBottomSheet.show(
       context,
@@ -606,11 +585,12 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
       partyName: partyName,
       location: location,
       amount: transaction.amount,
-      transactionDate: transactionDateFormatted,
-      entryDate: entryDateFormatted,
+      transactionDate: transaction.transactionDate, // Raw ISO date for formatting
+      entryDate: transaction.updatedAt, // Raw ISO date for formatting
       remarks: transaction.description,
       isPositive: isPositive,
       rawTransactionDate: transaction.transactionDate, // Pass original ISO date for API calls
+      closingBalance: transaction.currentBalance, // Pass closing balance after this transaction
       onEdit: () async {
         debugPrint('✅ Edit callback - Refreshing ledger detail data...');
         await controller.refreshAll();
@@ -669,7 +649,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                   arguments: {
                     'ledgerId': controller.ledgerId,
                     'customerName': detail?.partyName ?? 'Customer',
-                    'customerLocation': detail?.address ?? 'Location',
+                    'customerLocation': detail?.address ?? '',
+                    'closingBalance': detail?.currentBalance ?? 0.0,
                     'accountType': detail?.partyType ?? 'CUSTOMER',
                     'defaultTransactionType': 'IN', // Pre-select IN
                   },
@@ -708,13 +689,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       ),
                     ),
                     SizedBox(width: responsive.spacing(8)),
-                    AppText.custom(
+                    AppText.searchbar1(
                       'IN',
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: responsive.fontSize(18),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ],
                 ),
@@ -732,7 +710,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                   arguments: {
                     'ledgerId': controller.ledgerId,
                     'customerName': detail?.partyName ?? 'Customer',
-                    'customerLocation': detail?.address ?? 'Location',
+                    'customerLocation': detail?.address ?? '',
+                    'closingBalance': detail?.currentBalance ?? 0.0,
                     'accountType': detail?.partyType ?? 'CUSTOMER',
                     'defaultTransactionType': 'OUT', // Pre-select OUT
                   },
@@ -771,13 +750,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       ),
                     ),
                     SizedBox(width: responsive.spacing(8)),
-                    AppText.custom(
+                    AppText.searchbar1(
                       'OUT',
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: responsive.fontSize(18),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ],
                 ),

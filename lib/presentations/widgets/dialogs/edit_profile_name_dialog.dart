@@ -170,13 +170,10 @@ class _EditProfileNameDialogContentState
             // Header with icon and close button
             Padding(
               padding:  EdgeInsets.only(left: responsive.wp(4),top: responsive.hp(1)),
-              child: AppText.custom(
+              child: AppText.searchbar2(
                 'Profile Name',
-                style: TextStyle(
-                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w700,
-                ),
+                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w600,
                 textAlign: TextAlign.start,
               ),
             ),
@@ -185,15 +182,12 @@ class _EditProfileNameDialogContentState
             // Subtitle
             Padding(
               padding:  EdgeInsets.only(left: responsive.wp(4)),
-              child: AppText.custom(
+              child: AppText.headlineLarge1(
                 'Edit profile name',
-                style: TextStyle(
-                  color: isDark
-                      ? AppColors.textDisabled
-                      : AppColorsLight.textSecondary,
-                  fontSize: responsive.fontSize(14),
-                  fontWeight: FontWeight.w400,
-                ),
+                color: isDark
+                    ? AppColors.textDisabled
+                    : AppColorsLight.textSecondary,
+                fontWeight: FontWeight.w400,
                 textAlign: TextAlign.start,
               ),
             ),
@@ -223,13 +217,10 @@ class _EditProfileNameDialogContentState
                   ),
                   if (errorMessage != null) ...[
                     SizedBox(height: responsive.hp(1)),
-                    AppText.custom(
+                    AppText.bodyLarge(
                       errorMessage!,
-                      style: TextStyle(
-                        color: AppColors.red500,
-                        fontSize: responsive.fontSize(12),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      color: AppColors.red500,
+                      fontWeight: FontWeight.w400,
                     ),
                   ],
                 ],

@@ -34,6 +34,15 @@ class _SplashScreenState extends State<SplashScreen> {
     // This was blocking the UI thread and causing 2-3 second delay
     // Biometric authentication now happens AFTER navigation in MainScreen/AppEntryWrapper
     // This makes deep links and cold starts feel much faster!
+
+    // 🖼️ Make splash screen truly full screen (edge-to-edge)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
   }
 
   @override
@@ -44,6 +53,81 @@ class _SplashScreenState extends State<SplashScreen> {
     controller.skipDelay = widget.skipDelay;
 
     return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Full screen SVG image
+          SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: SvgPicture.asset(
+              AppImages.AukraSplashIm,
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Bottom text - Product of Anantkaya & Proudly made in Bharat
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: responsive.hp(10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Product of ',
+                        style: AppFonts.headlineLarge(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Anantkaya',
+                        style: AppFonts.headlineLarge(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ).copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.white,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' Solucation Pvt.Ltd.',
+                        style: AppFonts.headlineLarge(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: responsive.hp(2)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AppText.headlineSmall(
+                      'Proudly made in Bharat',
+                      color: AppColors.white,
+                      minFontSize: 10,
+                    ),
+                    SizedBox(width: responsive.wp(2)),
+                    SvgPicture.asset(
+                      AppIcons.indianFlagIc,
+                      width: responsive.wp(5),
+                      height: responsive.wp(5),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      /* COMMENTED OUT - Previous splash screen design
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -167,6 +251,7 @@ class _SplashScreenState extends State<SplashScreen> {
           ],
         ),
       ),
+      */
     );
   }
 
