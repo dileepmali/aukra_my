@@ -262,7 +262,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         enableSuggestions: widget.enableSuggestions,
         autocorrect: widget.autocorrect,
         expands: widget.expands,
-        style: widget.textStyle ?? AppFonts.displaySmall(
+        style: widget.textStyle ?? AppFonts.searchbar1(
           color: defaultTextColor,
           fontWeight: widget.fontWeight ?? AppFonts.medium,
         ).copyWith(fontSize: defaultFontSize),

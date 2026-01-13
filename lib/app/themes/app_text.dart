@@ -26,6 +26,7 @@ class AppText {
   static Widget displayLarge(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 16,
     TextAlign? textAlign,
@@ -36,8 +37,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.displayLarge(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displayLarge(color: color),
+          ? AppFonts.displayLarge(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayLarge(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -51,6 +52,7 @@ class AppText {
   static Widget displayMedium(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 14,
     TextAlign? textAlign,
@@ -61,8 +63,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.displayMedium(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displayMedium(color: color),
+          ? AppFonts.displayMedium(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -75,6 +77,7 @@ class AppText {
   static Widget displayMedium1(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 14,
     TextAlign? textAlign,
@@ -85,8 +88,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.displayMedium1(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displayMedium1(color: color),
+          ? AppFonts.displayMedium1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium1(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -99,6 +102,7 @@ class AppText {
   static Widget displayMedium2(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 13,
     TextAlign? textAlign,
@@ -109,8 +113,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.displayMedium2(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displayMedium2(color: color),
+          ? AppFonts.displayMedium2(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium2(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -123,6 +127,7 @@ class AppText {
   static Widget displayMedium3(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 13,
     TextAlign? textAlign,
@@ -133,8 +138,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.displayMedium3(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displayMedium3(color: color),
+          ? AppFonts.displayMedium3(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displayMedium3(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -148,6 +153,7 @@ class AppText {
   static Widget displaySmall(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 12,
     TextAlign? textAlign,
@@ -158,8 +164,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.displaySmall(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.displaySmall(color: color),
+          ? AppFonts.displaySmall(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.displaySmall(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -173,6 +179,7 @@ class AppText {
   static Widget searchbar(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 12,
     TextAlign? textAlign,
@@ -183,8 +190,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.searchbar(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.searchbar(color: color),
+          ? AppFonts.searchbar(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.searchbar(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -197,6 +204,7 @@ class AppText {
   static Widget searchbar1(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 11,
     TextAlign? textAlign,
@@ -207,8 +215,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.searchbar1(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.searchbar1(color: color),
+          ? AppFonts.searchbar1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.searchbar1(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -221,6 +229,7 @@ class AppText {
   static Widget searchbar2(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 12,
     TextAlign? textAlign,
@@ -231,8 +240,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.searchbar2(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.searchbar2(color: color),
+          ? AppFonts.searchbar2(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.searchbar2(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -250,6 +259,7 @@ class AppText {
   static Widget headlineLarge(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 11,
     TextAlign? textAlign,
@@ -260,8 +270,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.headlineLarge(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.headlineLarge(color: color),
+          ? AppFonts.headlineLarge(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineLarge(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -274,6 +284,7 @@ class AppText {
   static Widget headlineLarge1(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 10,
     TextAlign? textAlign,
@@ -284,8 +295,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.headlineLarge1(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.headlineLarge1(color: color),
+          ? AppFonts.headlineLarge1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineLarge1(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -299,6 +310,7 @@ class AppText {
   static Widget headlineMedium(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 10,
     TextAlign? textAlign,
@@ -309,8 +321,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.headlineMedium(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.headlineMedium(color: color),
+          ? AppFonts.headlineMedium(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineMedium(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -324,6 +336,7 @@ class AppText {
   static Widget headlineSmall(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 9,
     TextAlign? textAlign,
@@ -334,8 +347,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.headlineSmall(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.headlineSmall(color: color),
+          ? AppFonts.headlineSmall(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineSmall(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -348,6 +361,7 @@ class AppText {
   static Widget headlineSmall1(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 9,
     TextAlign? textAlign,
@@ -358,8 +372,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.headlineSmall1(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.headlineSmall1(color: color),
+          ? AppFonts.headlineSmall1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.headlineSmall1(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -377,6 +391,7 @@ class AppText {
   static Widget bodyLarge(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 3,
     double minFontSize = 9,
     TextAlign? textAlign,
@@ -387,8 +402,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.bodyLarge(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.bodyLarge(color: color),
+          ? AppFonts.bodyLarge(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodyLarge(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -401,6 +416,7 @@ class AppText {
   static Widget bodyLarge1(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 3,
     double minFontSize = 8,
     TextAlign? textAlign,
@@ -411,8 +427,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.bodyLarge1(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.bodyLarge1(color: color),
+          ? AppFonts.bodyLarge1(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodyLarge1(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -426,6 +442,7 @@ class AppText {
   static Widget bodyMedium(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 3,
     double minFontSize = 8,
     TextAlign? textAlign,
@@ -436,8 +453,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.bodyMedium(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.bodyMedium(color: color),
+          ? AppFonts.bodyMedium(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodyMedium(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -451,6 +468,7 @@ class AppText {
   static Widget bodySmall(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 3,
     double minFontSize = 7,
     TextAlign? textAlign,
@@ -461,8 +479,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.bodySmall(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.bodySmall(color: color),
+          ? AppFonts.bodySmall(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.bodySmall(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -480,6 +498,7 @@ class AppText {
   static Widget labelLarge(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 8,
     TextAlign? textAlign,
@@ -490,8 +509,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.labelLarge(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.labelLarge(color: color),
+          ? AppFonts.labelLarge(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.labelLarge(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -505,6 +524,7 @@ class AppText {
   static Widget labelMedium(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 7,
     TextAlign? textAlign,
@@ -515,8 +535,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.labelMedium(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.labelMedium(color: color),
+          ? AppFonts.labelMedium(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.labelMedium(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -530,6 +550,7 @@ class AppText {
   static Widget labelSmall(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 6,
     TextAlign? textAlign,
@@ -540,8 +561,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.labelSmall(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.labelSmall(color: color),
+          ? AppFonts.labelSmall(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.labelSmall(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -555,6 +576,7 @@ class AppText {
   static Widget caption(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 7,
     TextAlign? textAlign,
@@ -565,8 +587,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.caption(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.caption(color: color),
+          ? AppFonts.caption(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.caption(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -580,6 +602,7 @@ class AppText {
   static Widget overline(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 6,
     TextAlign? textAlign,
@@ -590,8 +613,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.overline(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.overline(color: color),
+          ? AppFonts.overline(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.overline(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -609,6 +632,7 @@ class AppText {
   static Widget button(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 10,
     double? fontSize,
@@ -620,8 +644,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.button(color: color, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.button(color: color, fontSize: fontSize),
+          ? AppFonts.button(color: color, fontWeight: fontWeight, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.button(color: color, fontWeight: fontWeight, fontSize: fontSize),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -635,6 +659,7 @@ class AppText {
   static Widget dialogButton(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 10,
     double? fontSize,
@@ -646,8 +671,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.dialogButton(color: color, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.dialogButton(color: color, fontSize: fontSize),
+          ? AppFonts.dialogButton(color: color, fontWeight: fontWeight, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.dialogButton(color: color, fontWeight: fontWeight, fontSize: fontSize),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -661,6 +686,7 @@ class AppText {
   static Widget appBarTitleLarge(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 13,
     TextAlign? textAlign,
@@ -671,8 +697,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.appBarTitleLarge(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.appBarTitleLarge(color: color),
+          ? AppFonts.appBarTitleLarge(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.appBarTitleLarge(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -686,6 +712,7 @@ class AppText {
   static Widget appBarTitle(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 12,
     TextAlign? textAlign,
@@ -696,8 +723,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.appBarTitle(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.appBarTitle(color: color),
+          ? AppFonts.appBarTitle(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.appBarTitle(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -710,6 +737,7 @@ class AppText {
   static Widget appBarTitleMedium(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 12,
     TextAlign? textAlign,
@@ -720,8 +748,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.appBarTitleMedium(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.appBarTitleMedium(color: color),
+          ? AppFonts.appBarTitleMedium(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.appBarTitleMedium(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -735,6 +763,7 @@ class AppText {
   static Widget tabBar(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 8,
     TextAlign? textAlign,
@@ -745,8 +774,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.tabBar(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.tabBar(color: color),
+          ? AppFonts.tabBar(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.tabBar(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -760,6 +789,7 @@ class AppText {
   static Widget navigation(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 1,
     double minFontSize = 7,
     TextAlign? textAlign,
@@ -770,8 +800,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.navigation(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.navigation(color: color),
+          ? AppFonts.navigation(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.navigation(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -785,6 +815,7 @@ class AppText {
   static Widget code(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 5,
     double minFontSize = 8,
     double? fontSize,
@@ -796,8 +827,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.code(color: color, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.code(color: color, fontSize: fontSize),
+          ? AppFonts.code(color: color, fontWeight: fontWeight, fontSize: fontSize).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.code(color: color, fontWeight: fontWeight, fontSize: fontSize),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -848,6 +879,7 @@ class AppText {
   static Widget extraLargeDisplay(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 18,
     TextAlign? textAlign,
@@ -858,8 +890,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.extraLargeDisplay(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.extraLargeDisplay(color: color),
+          ? AppFonts.extraLargeDisplay(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.extraLargeDisplay(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
@@ -873,6 +905,7 @@ class AppText {
   static Widget tinyText(
     String text, {
     Color? color,
+    FontWeight? fontWeight,
     int maxLines = 2,
     double minFontSize = 5,
     TextAlign? textAlign,
@@ -883,8 +916,8 @@ class AppText {
     return AutoSizeText(
       text,
       style: letterSpacing != null
-          ? AppFonts.tinyText(color: color).copyWith(letterSpacing: letterSpacing)
-          : AppFonts.tinyText(color: color),
+          ? AppFonts.tinyText(color: color, fontWeight: fontWeight).copyWith(letterSpacing: letterSpacing)
+          : AppFonts.tinyText(color: color, fontWeight: fontWeight),
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,

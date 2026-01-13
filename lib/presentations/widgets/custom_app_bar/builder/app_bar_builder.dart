@@ -6,7 +6,6 @@ import '../../../../../core/responsive_layout/device_category.dart';
 import '../../../../app/constants/app_icons.dart';
 import '../../../../app/themes/app_colors.dart';
 import '../../../../app/themes/app_colors_light.dart';
-import '../../../../app/themes/app_fonts.dart';
 import '../../../../app/themes/app_text.dart';
 import '../../../../core/haptic_service.dart';
 import '../../../../core/responsive_layout/font_size_hepler_class.dart';
@@ -49,15 +48,13 @@ class AppBarBuilder {
           // Title (only show if title is provided)
           if (config.title != null && config.title!.isNotEmpty)
             Expanded(
-              child: AppText.custom(
+              child: AppText.searchbar2(
                 config.title!,
-                style: config.titleTextStyle ?? TextStyle(
-                  color: config.titleColor ?? Colors.white,
-                  fontSize: responsive.fontSize(18),
-                  fontWeight: FontWeight.bold,
-                ),
+                color: config.titleColor ?? Colors.white,
+                fontWeight: FontWeight.w500,
                 maxLines: 1,
-                minFontSize: 12,
+                minFontSize: 10,
+                letterSpacing: 1.2,
               ),
             )
           else if (config.leadingWidget == null && config.trailingWidget == null)
@@ -85,14 +82,13 @@ class AppBarBuilder {
         if (config.title != null) ...[
           Align(
             alignment: Alignment.centerLeft,
-            child: AppText.custom(
+            child: AppText.searchbar2(
               config.title!,
-              style: config.titleTextStyle ??
-                  AppFonts.appBarTitle(
-                    color: config.titleColor ?? AppColors.textWhite,
-                  ),
+              color: config.titleColor ?? AppColors.textWhite,
+              fontWeight: FontWeight.w500,
               maxLines: 1,
-              minFontSize: 12,
+              minFontSize: 10,
+              letterSpacing: 1.2,
             ),
           ),
           SizedBox(height: responsive.hp(1)),
@@ -143,14 +139,13 @@ class AppBarBuilder {
             if (config.title != null) ...[
               Align(
                 alignment: Alignment.centerLeft,
-                child: AppText.custom(
+                child: AppText.searchbar2(
                   config.title!,
-                  style: config.titleTextStyle ??
-                      AppFonts.appBarTitle(
-                        color: config.titleColor ?? AppColors.textWhite,
-                      ),
+                  color: config.titleColor ?? AppColors.textWhite,
+                  fontWeight: FontWeight.w500,
                   maxLines: 1,
-                  minFontSize: 12,
+                  minFontSize: 10,
+                  letterSpacing: 1.2,
                 ),
               ),
               SizedBox(height: responsive.hp(1)),
@@ -284,14 +279,13 @@ class AppBarBuilder {
         if (config.title != null) ...[
           Align(
             alignment: Alignment.centerLeft,
-            child: AppText.custom(
+            child: AppText.searchbar2(
               config.title!,
-              style: config.titleTextStyle ??
-                  AppFonts.appBarTitle(
-                    color: config.titleColor ?? AppColors.textWhite,
-                  ),
+              color: config.titleColor ?? AppColors.textWhite,
+              fontWeight: FontWeight.w500,
               maxLines: 1,
-              minFontSize: 12,
+              minFontSize: 10,
+              letterSpacing: 1.2,
             ),
           ),
           SizedBox(height: responsive.hp(1)),

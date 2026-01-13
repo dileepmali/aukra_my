@@ -351,6 +351,8 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                                               maxLines: 1,
                                               minFontSize: 13,
                                               textAlign: TextAlign.left,
+                                              fontWeight: FontWeight.w500, // Medium weight (normal look)
+
                                             ),
                                           ),
 
@@ -365,6 +367,8 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                                               maxLines: 4,
                                               minFontSize: 10,
                                               textAlign: TextAlign.left,
+                                              fontWeight: FontWeight.w500, // Medium weight (normal look)
+
                                             ),
                                           ),
 
@@ -444,6 +448,8 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
           maxLines: 2,
           minFontSize: 12,
           textAlign: TextAlign.left,
+          fontWeight: FontWeight.w500, // Medium weight (normal look)
+
         ),
         SizedBox(height: isKeyboardVisible ? responsive.space2XS : responsive.space2XSS),
 

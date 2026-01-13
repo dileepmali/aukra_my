@@ -180,6 +180,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                             maxLines: 1,
                             minFontSize: 14,
                             textAlign: TextAlign.left,
+                            fontWeight: FontWeight.w500, // Medium weight (normal look)
                           ),
                           SizedBox(height: responsive.spaceXSS),
                           TextField(
@@ -188,6 +189,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                             textInputAction: TextInputAction.done, // 🔥 NEW: Show Done button on keyboard
                             style: AppFonts.displayMedium3(
                               color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                              fontWeight: FontWeight.w500, // Medium weight (normal look)
                             ),
                             cursorColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
                             inputFormatters: [
@@ -230,15 +232,20 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                               errorMaxLines: 2, // 🔥 FIX: Max 2 lines for error
                               errorStyle: AppFonts.headlineMedium(
                                 color: Colors.red,
-                                fontWeight: AppFonts.medium,
+                                fontWeight: AppFonts.regular,
+
                               ),
 
                               prefixText: ' ',
                               prefixStyle: AppFonts.displayMedium3(
                                 color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                                fontWeight: AppFonts.regular,
+
                               ),
                               hintStyle: AppFonts.displayMedium3(
                                 color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
+                                fontWeight: AppFonts.regular,
+
                               ),
                               filled: true,
                               fillColor: isDark
@@ -319,7 +326,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                         selectedCountryCode, // Will always be +91
                                         style: AppFonts.displayMedium3(
                                           color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                                          fontWeight: AppFonts.semiBold,
+                                          fontWeight: AppFonts.medium,
                                         ),
                                       ),
                                     ),
@@ -344,6 +351,8 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                 text: AppStrings.getLocalizedString(context, (localizations) => localizations.byClicking),
                                 style: AppFonts.headlineSmall(
                                   color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
+                                  fontWeight: AppFonts.medium,
+
                                 ),
                               ),
                               TextSpan(
@@ -546,6 +555,8 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                               maxLines: 1,
                                               minFontSize: 13,
                                               textAlign: TextAlign.left,
+                                              fontWeight: FontWeight.w500, // Medium weight (normal look)
+
                                             ),
                                           ),
 
@@ -558,6 +569,8 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                               maxLines: 4,
                                               minFontSize: 10,
                                               textAlign: TextAlign.left,
+                                              fontWeight: FontWeight.w500, // Medium weight (normal look)
+
                                             ),
                                           ),
 

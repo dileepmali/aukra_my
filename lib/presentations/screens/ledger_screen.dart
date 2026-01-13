@@ -172,15 +172,12 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
           return Row(
             children: [
-              AppText.custom(
+              AppText.searchbar2(
                 merchantName,
-                style: TextStyle(
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                  fontWeight: FontWeight.w500,
                 maxLines: 1,
-                minFontSize: 13,
+                minFontSize: 10,
                 letterSpacing: 1.2,
               ),
               SizedBox(width: responsive.spacing(8)),
@@ -242,15 +239,12 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   ),
                   child: Center(
-                    child: AppText.custom(
+                    child: AppText.headlineLarge(
                       tabs[index],
-                      style: TextStyle(
                         color: isSelected
                             ? AppColors.white
                             : (isDark ? AppColors.textSecondary : AppColorsLight.textSecondary),
-                        fontSize: responsive.fontSize(15),
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      ),
                       maxLines: 1,
                       minFontSize: 10,
                     ),

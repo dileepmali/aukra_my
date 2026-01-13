@@ -61,16 +61,14 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                 ),
               ),
               SizedBox(width: responsive.wp(3)),
-              AppText.custom(
+              AppText.searchbar2(
                 'My profile',
-                style: TextStyle(
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                  fontWeight: FontWeight.w500,
+
                 maxLines: 1,
                 minFontSize: 12,
-                letterSpacing: 1.1,
+                letterSpacing: 1.2,
               ),
             ],
           ),
@@ -107,12 +105,9 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                   ? SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
-                        child: AppText.custom(
+                        child: AppText.searchbar2(
                           'No businesses found',
-                          style: TextStyle(
                             color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                            fontSize: responsive.fontSize(16),
-                          ),
                         ),
                       ),
                     )
@@ -126,13 +121,10 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  AppText.custom(
+                                  AppText.headlineLarge(
                                     'All Businesses',
-                                    style: TextStyle(
                                       color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                                      fontSize: responsive.fontSize(14),
                                       fontWeight: FontWeight.w500,
-                                    ),
                                   ),
                                   SizedBox(height: responsive.hp(1)),
                                 ],
@@ -221,22 +213,20 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                       height: responsive.iconSizeLarge,
                     ),
                     SizedBox(height: responsive.hp(1)),
-                    AppText.custom(
+                    AppText.headlineLarge(
                       'Active businesses',
-                      style: TextStyle(
                         color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(14),
                         fontWeight: FontWeight.w400,
-                      ),
+
                     ),
                     SizedBox(height: responsive.hp(0.2)),
-                    Obx(() => AppText.custom(
+                    Obx(() => AppText.displayMedium(
                       '${_controller.activeCount}',
-                      style: TextStyle(
                         color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                        fontSize: responsive.fontSize(32),
                         fontWeight: FontWeight.w700,
-                      ),
+                      minFontSize: 12,
+                      maxLines: 2,
+
                     )),
                   ],
                 ),
@@ -262,22 +252,18 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                       height: responsive.iconSizeLarge,
                     ),
                     SizedBox(height: responsive.hp(1)),
-                    AppText.custom(
+                    AppText.headlineLarge(
                       'In-active businesses',
-                      style: TextStyle(
                         color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                        fontSize: responsive.fontSize(14),
                         fontWeight: FontWeight.w400,
-                      ),
                     ),
                     SizedBox(height: responsive.hp(0.2)),
-                    Obx(() => AppText.custom(
+                    Obx(() => AppText.displayMedium(
                       '${_controller.inactiveCount}',
-                      style: TextStyle(
                         color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                        fontSize: responsive.fontSize(32),
                         fontWeight: FontWeight.w700,
-                      ),
+                      minFontSize: 12,
+                      maxLines: 2,
                     )),
                   ],
                 ),
@@ -351,26 +337,22 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText.custom(
+                      AppText.searchbar2(
                         merchant.businessName,
-                        style: TextStyle(
                           color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                          fontSize: responsive.fontSize(18),
-                          fontWeight: FontWeight.w600,
-                        ),
+                          fontWeight: FontWeight.w500,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        letterSpacing: 1.1,
                       ),
                       SizedBox(height: responsive.hp(0.3)),
-                      AppText.custom(
+                      AppText.headlineMedium(
                         merchant.formattedAddress.isNotEmpty
                             ? merchant.formattedAddress
                             : 'No address added',
-                        style: TextStyle(
                           color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                          fontSize: responsive.fontSize(14),
                           fontWeight: FontWeight.w400,
-                        ),
+
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

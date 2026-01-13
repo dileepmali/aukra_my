@@ -125,16 +125,13 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                 ),
               ),
               SizedBox(width: responsive.wp(3)),
-              AppText.custom(
+              AppText.searchbar2(
                 'Security',
-                style: TextStyle(
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                fontWeight: FontWeight.w500,
                 maxLines: 1,
-                minFontSize: 12,
-                letterSpacing: 1.1,
+                minFontSize: 10,
+                letterSpacing: 1.2,
               ),
             ],
           ),
@@ -236,14 +233,13 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
                           // Title
                           Expanded(
-                            child: AppText.custom(
+                            child: AppText.searchbar(
                               option['title'] as String,
-                              style: TextStyle(
                                 color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                fontSize: responsive.fontSize(18),
-                                fontWeight: FontWeight.w600,
-                              ),
+                                fontWeight: FontWeight.w500,
                               maxLines: 1,
+                              minFontSize: 10,
+                              letterSpacing: 1.0,
                             ),
                           ),
 
@@ -263,16 +259,15 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       // Second Row: Subtitle (below icon + title) - only show if subtitle is not empty
                       if ((option['subtitle'] as String).isNotEmpty) ...[
                         SizedBox(height: responsive.hp(1.5)),
-                        AppText.custom(
+                        AppText.headlineLarge(
                           option['subtitle'] as String,
-                          style: TextStyle(
                             color: isDark
                                 ? AppColors.textDisabled
                                 : AppColorsLight.textSecondary,
-                            fontSize: responsive.fontSize(13),
-                            fontWeight: FontWeight.w400,
-                          ),
-                          maxLines: 3,
+                          fontWeight: FontWeight.w400,
+                          maxLines: 4,
+                          minFontSize: 10,
+                          letterSpacing: 1.0,
                         ),
                       ],
 
@@ -353,12 +348,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         if (_devices.isEmpty && !_isLoadingDevices)
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
-                            child: AppText.custom(
+                            child: AppText.searchbar2(
                               'No active devices',
-                              style: TextStyle(
                                 color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                                fontSize: responsive.fontSize(14),
-                              ),
+                              maxLines: 1,
+                              minFontSize: 10,
+                              letterSpacing: 1.0,
                             ),
                           )
                         else
@@ -386,26 +381,24 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          AppText.custom(
+                                          AppText.searchbar(
                                             device.deviceName ?? 'Unknown Device',
-                                            style: TextStyle(
                                               color: AppColors.white,
-                                              fontSize: responsive.fontSize(16),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            maxLines: 1,
+                                              fontWeight: FontWeight.w500,
+                                      maxLines: 1,
+                                      minFontSize: 10,
+                                      letterSpacing: 1.0,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           // Show merchant business address instead of device address
                                         if (_merchantAddress.isNotEmpty) ...[
                                             SizedBox(height: responsive.hp(0.3)),
-                                            AppText.custom(
+                                            AppText.searchbar(
                                               _merchantAddress,
-                                              style: TextStyle(
                                                 color: AppColors.textDisabled,
-                                                fontSize: responsive.fontSize(13),
-                                              ),
                                               maxLines: 1,
+                                              minFontSize: 10,
+                                              letterSpacing: 1.0,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
@@ -417,13 +410,11 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
                                     // Right side: Current device or Logout
                                     if (isCurrentDevice)
-                                      AppText.custom(
+                                      AppText.headlineLarge(
                                         'Current device',
-                                        style: TextStyle(
                                           color: isDark ? AppColors.primeryamount : AppColorsLight.blue,
-                                          fontSize: responsive.fontSize(14),
                                           fontWeight: FontWeight.w500,
-                                        ),
+
                                       )
                                     else
                                       GestureDetector(
@@ -447,13 +438,11 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                             }
                                           }
                                         },
-                                        child: AppText.custom(
+                                        child: AppText.headlineLarge(
                                           'Logout',
-                                          style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: responsive.fontSize(14),
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                            fontWeight: FontWeight.w500,
+
                                         ),
                                       ),
                                   ],
@@ -566,15 +555,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       : [],
                 ),
                 child: Center(
-                  child: AppText.custom(
+                  child: AppText.searchbar1(
                     'On',
-                    style: TextStyle(
                       color: isEnabled
                           ? Colors.white
                           : (isDark ? Colors.white.withOpacity(0.4) : AppColorsLight.textSecondary),
-                      fontSize: responsive.fontSize(12),
                       fontWeight: isEnabled ? FontWeight.w600 : FontWeight.w500,
-                    ),
                     maxLines: 1,
                     minFontSize: 9,
                   ),
@@ -623,15 +609,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       : [],
                 ),
                 child: Center(
-                  child: AppText.custom(
+                  child: AppText.searchbar1(
                     'Off',
-                    style: TextStyle(
                       color: !isEnabled
                           ? Colors.white
                           : (isDark ? Colors.white.withOpacity(0.4) : AppColorsLight.textSecondary),
-                      fontSize: responsive.fontSize(12),
                       fontWeight: !isEnabled ? FontWeight.w600 : FontWeight.w500,
-                    ),
                     maxLines: 1,
                     minFontSize: 9,
                   ),

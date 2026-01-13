@@ -205,13 +205,11 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
                 ),
               ),
               SizedBox(width: responsive.wp(3)),
-              AppText.custom(
+              AppText.searchbar2(
                 'Change Number',
-                style: TextStyle(
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontSize: responsive.fontSize(20),
-                  fontWeight: FontWeight.w600,
-                ),
+                  fontWeight: FontWeight.w500,
+
                 maxLines: 1,
                 minFontSize: 12,
                 letterSpacing: 1.1,
@@ -259,23 +257,19 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
                                         height: responsive.iconSizeHuge * 1.4,
                                       ),
                                       SizedBox(height: responsive.hp(1)),
-                                      AppText.custom(
+                                      AppText.searchbar1(
                                         'Old Number',
-                                        style: TextStyle(
                                           color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                                          fontSize: responsive.fontSize(15),
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                          fontWeight: FontWeight.w500,
+                                        letterSpacing: 1.1,
                                       ),
                                       if (_newNumber != null) ...[
                                         SizedBox(height: responsive.hp(0.5)),
-                                        AppText.custom(
+                                        AppText.searchbar1(
                                           Formatters.formatPhoneWithCountryCode(_currentNumber),
-                                          style: TextStyle(
                                             color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                            fontSize: responsive.fontSize(16),
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                            fontWeight: FontWeight.w500,
+                                          letterSpacing: 1.1,
                                         ),
                                       ],
                                     ],
@@ -300,23 +294,19 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
                                         height: responsive.iconSizeHuge * 1.4,
                                       ),
                                       SizedBox(height: responsive.hp(1)),
-                                      AppText.custom(
+                                      AppText.searchbar1(
                                         'New Number',
-                                        style: TextStyle(
                                           color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                                          fontSize: responsive.fontSize(15),
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                          fontWeight: FontWeight.w500,
+                                        letterSpacing: 1.1,
                                       ),
                                       if (_newNumber != null) ...[
                                         SizedBox(height: responsive.hp(0.5)),
-                                        AppText.custom(
+                                        AppText.searchbar1(
                                           Formatters.formatPhoneWithCountryCode(_newNumber!),
-                                          style: TextStyle(
                                             color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                            fontSize: responsive.fontSize(16),
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                            fontWeight: FontWeight.w500,
+                                          letterSpacing: 1.1,
                                         ),
                                       ],
                                     ],
@@ -341,6 +331,7 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
                                       : 'Chaining number will migrate all your data to teh new number. Make sure you are able to receive SMS on new number.',
                                   color: isDark ? AppColors.textDisabled : AppColorsLight.textPrimary,
                                   textAlign: TextAlign.center,
+                                  fontWeight: FontWeight.w400,
                                   maxLines: 3,
                                 ),
                               ),
@@ -375,15 +366,12 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
                               color: isDark ? AppColors.primeryamount : AppColorsLight.containerLight,
                               borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                             ),
-                            child: AppText.custom(
+                            child: AppText.headlineLarge1(
                               _newNumber != null
                                   ? 'You will be signed out from current device & all other devices.'
                                   : 'An OTP will be send to verify the user / number.',
-                              style: TextStyle(
                                 color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                                fontSize: responsive.fontSize(14),
-                                fontWeight: FontWeight.w500,
-                              ),
+                                fontWeight: FontWeight.w400,
                               textAlign: TextAlign.start,
                             ),
                           ),

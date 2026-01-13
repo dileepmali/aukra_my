@@ -131,7 +131,9 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
                     _getButtonText(),
                     color:  AppColors.white,
                     maxLines: 1,
-                    minFontSize: 12,
+                    minFontSize: 10,
+                    fontWeight: FontWeight.w600,
+
                   ),
                 ],
               ),

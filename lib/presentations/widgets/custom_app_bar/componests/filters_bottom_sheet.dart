@@ -134,8 +134,10 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                   AppText.appBarTitleLarge(
                     AppStrings.getLocalizedString(context, (localizations) => localizations.filters),
                     color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
                     maxLines: 1,
-                    minFontSize: 14,
+                    minFontSize: 10,
+                    letterSpacing: 1.2,
                   ),
                 ],
               ),
@@ -357,12 +359,10 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
         ),
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
       ),
-      child: AppText.custom(
+      child: AppText.headlineLarge(
         title,
-        style: AppFonts.appBarTitleMedium(
-          color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
+        color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         maxLines: 1,
         minFontSize: 10,
       ),
@@ -602,14 +602,13 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
           child: Row(
             children: [
               Expanded(
-                child: AppText.custom(
+                child: AppText.searchbar1(
                   option['title']!,
-                  style: AppFonts.appBarTitleMedium(
                     color: isDark ? AppColors.textWhite : AppColorsLight.textPrimary,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
                   maxLines: 2,
                   minFontSize: 10,
+                  letterSpacing: 1.1,
                 ),
               ),
               SizedBox(width: responsive.spacing(5)),
