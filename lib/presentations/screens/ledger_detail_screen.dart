@@ -521,6 +521,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     return ListItemWidget(
       title: noteTitle,
       subtitle: formattedDate,
+      subtitleColor: AppColors.textDisabled,
       titlePrefixIcon: SvgPicture.asset(
         isPositive ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
         width: responsive.iconSizeMedium,
@@ -532,12 +533,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
       ),
       subtitleSuffix: AppText.headlineMedium(
         'Bal. ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
-        color: isPositive
-            ? AppColors.textDisabled
-            : AppColors.textSecondary,
-        fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
+        color: AppColors.textDisabled,
+        fontWeight: FontWeight.w600,
       ),
-      subtitleFontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
+      subtitleFontWeight: FontWeight.w600,
       amount: formattedAmount,
       isPositiveAmount: isPositive,  // IN = Blue, OUT = RED ✅
       showBorder: true,

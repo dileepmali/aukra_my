@@ -257,7 +257,7 @@ class CustomerFormScreen extends StatelessWidget {
                       children: [
                         _buildCreditDayChip(context, '15 Days', 15, controller, responsive, isDark),
                         SizedBox(width: responsive.wp(2)),
-                        _buildCreditDayChip(context, '45 Days', 45, controller, responsive, isDark),
+                        _buildCreditDayChip(context, '30 Days', 30, controller, responsive, isDark),
                         SizedBox(width: responsive.wp(2)),
                         _buildCreditDayChip(context, '60 Days', 60, controller, responsive, isDark),
                         SizedBox(width: responsive.wp(2)),

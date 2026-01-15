@@ -40,10 +40,10 @@ class MerchantDashboardModel {
   /// Calculate total net balance across all parties
   /// Positive = You will receive (Receivable)
   /// Negative = You need to pay (Payable)
-  double get totalNetBalance => overallReceived - overallGiven;
+  double get totalNetBalance => overallGiven - overallReceived;
 
   /// Check if merchant is in credit (owes money)
-  bool get isInCredit => overallGiven > overallReceived;
+  bool get isInCredit => overallReceived > overallGiven;
 
   /// Get formatted total net balance
   String getFormattedTotalBalance() {
@@ -110,10 +110,10 @@ class MerchantPartyData {
   /// Calculate net balance for this party type
   /// Positive = They owe you (Receivable)
   /// Negative = You owe them (Payable)
-  double get netBalance => overallReceived - overallGiven;
+  double get netBalance => overallGiven - overallReceived;
 
-  /// Check if in credit for this party type
-  bool get isInCredit => overallGiven > overallReceived;
+  /// Check if in credit for this party type (you owe them)
+  bool get isInCredit => overallReceived > overallGiven;
 
   /// Get formatted net balance
   String getFormattedBalance() {

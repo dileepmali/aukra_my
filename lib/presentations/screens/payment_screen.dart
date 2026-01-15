@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:aukra_anantkaya_space/app/constants/app_images.dart';
 import 'package:aukra_anantkaya_space/app/themes/app_text.dart';
 import 'package:aukra_anantkaya_space/presentations/widgets/custom_border_widget.dart';
@@ -233,7 +234,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(responsive.wp(4)),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.containerLight : AppColorsLight.white,
+        gradient: LinearGradient(
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+          colors: isDark
+              ? [
+                  AppColors.containerLight,
+                  AppColors.containerLight,
+                ]
+              : [
+                AppColorsLight.gradientColor1,
+                AppColorsLight.gradientColor1,
+          ],
+        ),
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
       ),
       child: Column(

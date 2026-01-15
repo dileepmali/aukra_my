@@ -310,17 +310,18 @@ class _MyPlanScreenState extends State<MyPlanScreen> {
                   borderColor: planIndex == 2
                       ? null
                       : (isDark ? AppColors.driver : AppColorsLight.textPrimary),
-                  gradientColors: isCurrentPlan
-                      ? [
-                          isDark ? AppColors.containerDark : Colors.grey.shade400,
-                          isDark ? AppColors.containerLight : Colors.grey.shade500,
-                        ]
-                      : planIndex == 2
-                          // Platinum uses standard app gradient colors
-                          ? (isDark
-                              ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
-                              : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2])
-                          // Basic and Gold use the same button color
+                  gradientColors: planIndex == 2
+                      // Platinum ALWAYS uses gradient colors (even when current plan)
+                      ? (isDark
+                          ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
+                          : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2])
+                      : isCurrentPlan
+                          // Basic/Gold current plan - grey colors
+                          ? [
+                              isDark ? AppColors.containerDark : Colors.grey.shade400,
+                              isDark ? AppColors.containerLight : Colors.grey.shade500,
+                            ]
+                          // Basic/Gold not current - other colors
                           : [
                               isDark ? AppColors.containerLight : AppColorsLight.textSecondary,
                               isDark ? AppColors.containerDark : AppColorsLight.textSecondary,

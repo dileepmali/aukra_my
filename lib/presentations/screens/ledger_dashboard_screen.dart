@@ -263,70 +263,78 @@ class LedgerDashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar and Party Name Column (left side)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Circular Avatar with Gradient
-                  Container(
-                    width: responsive.wp(15),
-                    height: responsive.wp(15),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.containerDark,
-                          AppColors.containerDark,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                    child: Center(
-                      child: AppText.displaySmall(
-                        _getInitials(controller.partyName ?? 'Party'),
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: responsive.hp(0.8)),
-
-                  // Party Name (just below avatar)
-                  AppText.searchbar(
-                    controller.partyName ?? 'Party',
-                    color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  SizedBox(height: responsive.hp(0.1)),
-
-                  // Party Type and Area Row
-                  Row(
-                    children: [
-                      AppText.headlineMedium(
-                        controller.getPartyTypeDisplay(),
-                        color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      // Use area field directly from API response
-                      if (controller.ledgerDetail.value?.area != null &&
-                          controller.ledgerDetail.value!.area!.isNotEmpty) ...[
-                        AppText.headlineMedium(
-                          ' • ',
-                          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+              // Avatar and Party Name Column (left side) - wrapped in Expanded to prevent overflow
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Circular Avatar with Gradient
+                    Container(
+                      width: responsive.wp(15),
+                      height: responsive.wp(15),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.containerDark,
+                            AppColors.containerDark,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
+                      ),
+                      child: Center(
+                        child: AppText.displaySmall(
+                          _getInitials(controller.partyName ?? 'Party'),
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: responsive.hp(0.8)),
+
+                    // Party Name (just below avatar) - with overflow handling
+                    AppText.searchbar(
+                      controller.partyName ?? 'Party',
+                      color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                      fontWeight: FontWeight.w700,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: responsive.hp(0.1)),
+
+                    // Party Type and Area Row - with Flexible for overflow handling
+                    Row(
+                      children: [
                         AppText.headlineMedium(
-                          controller.ledgerDetail.value!.area!,
+                          controller.getPartyTypeDisplay(),
                           color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                           fontWeight: FontWeight.w400,
                         ),
+                        // Use area field directly from API response
+                        if (controller.ledgerDetail.value?.area != null &&
+                            controller.ledgerDetail.value!.area!.isNotEmpty) ...[
+                          AppText.headlineMedium(
+                            ' • ',
+                            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                          ),
+                          Flexible(
+                            child: AppText.headlineMedium(
+                              controller.ledgerDetail.value!.area!,
+                              color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                              fontWeight: FontWeight.w400,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  SizedBox(height: responsive.hp(1)),
+                    ),
+                    SizedBox(height: responsive.hp(1)),
 
 
-                ],
+                  ],
+                ),
               ),
 
               // Two Pie Charts side by side on right
@@ -870,33 +878,49 @@ class LedgerDashboardScreen extends StatelessWidget {
     );
   }
 
-  /// Build Credit Pie Chart Widget - Shows closing balance data from ledger detail
+  /// Build Credit Pie Chart Widget - Shows closing balance based on credit limit
   Widget _buildCreditPieChart(LedgerDashboardController controller, bool isDark) {
     final ledgerDetail = controller.ledgerDetail.value;
-    final dashboard = controller.dashboardData.value;
 
-    // Get closing balance from ledger detail (same as ledger_detail_screen.dart line 348)
+    // Get credit limit and closing balance
+    final double creditLimit = ledgerDetail?.creditLimit ?? 0.0;
     final double closingBalance = ledgerDetail?.currentBalance.abs() ??
                                   (controller.creditAmount ?? 0.0).abs();
 
-    // For visualization, use Given and Received amounts
-    final double given = dashboard?.overallGiven ?? 0.0;
-    final double received = dashboard?.overallReceived ?? 0.0;
+    // Calculate used and remaining based on credit limit
+    final double creditUsed = closingBalance;
+    final double creditRemaining = (creditLimit - creditUsed).clamp(0.0, creditLimit);
 
-    // Debug: Check if values are zero
-    debugPrint('📊 Pie Chart - Given: $given, Received: $received');
+    debugPrint('📊 Closing Balance Pie Chart - Credit Limit: ₹$creditLimit, Used: ₹$creditUsed, Remaining: ₹$creditRemaining');
 
-    // If both are 0, use small placeholder values to show chart structure
-    final double displayGiven = (given == 0 && received == 0) ? 1.0 : given;
-    final double displayReceived = (given == 0 && received == 0) ? 1.0 : received;
+    // For pie chart visualization
+    // If credit limit is 0, show full used (closing balance as 100%)
+    double displayUsed;
+    double displayRemaining;
+
+    if (creditLimit <= 0) {
+      // No credit limit set - show closing balance as full pie
+      displayUsed = closingBalance > 0 ? 100.0 : 1.0;
+      displayRemaining = closingBalance > 0 ? 0.0 : 1.0;
+    } else {
+      // Calculate percentage of credit limit used
+      displayUsed = creditUsed;
+      displayRemaining = creditRemaining;
+
+      // If both are 0, show placeholder
+      if (displayUsed == 0 && displayRemaining == 0) {
+        displayUsed = 1.0;
+        displayRemaining = 1.0;
+      }
+    }
 
     return AnimatedPieChart(
-      usedValue: displayGiven,
-      remainingValue: displayReceived,
+      usedValue: displayUsed,
+      remainingValue: displayRemaining,
       centerSubText: 'Closing Bal.',
       centerText: '₹${closingBalance.toStringAsFixed(0)}',
-      usedColor: AppColors.primeryamount, // Red color for "Given"
-      remainingColor: AppColors.red500, // Green color for "Received"
+      usedColor: AppColors.primeryamount, // Orange/Yellow for used credit
+      remainingColor: AppColors.red500, // Dark for remaining credit
       chartSize: 92,
       centerSpaceRadius: 38,
       usedRadius: 11,

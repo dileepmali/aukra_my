@@ -17,6 +17,7 @@ import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/list_item_widget.dart';
 import '../../controllers/ledger_controller.dart';
+import '../widgets/bottom_sheets/business_bottom_sheet.dart';
 
 class LedgerScreen extends StatefulWidget {
   final ValueChanged<int>? onTabChanged;
@@ -170,27 +171,41 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
           debugPrint('🏢 Displaying merchant name: $merchantName');
 
-          return Row(
-            children: [
-              AppText.searchbar2(
-                merchantName,
-                  color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                  fontWeight: FontWeight.w500,
-                maxLines: 1,
-                minFontSize: 10,
-                letterSpacing: 1.2,
-              ),
-              SizedBox(width: responsive.spacing(8)),
-              SvgPicture.asset(
-                AppIcons.dropdownIc,
-                colorFilter: ColorFilter.mode(
-                  isDark ? Colors.white : AppColorsLight.iconPrimary,
-                  BlendMode.srcIn,
+          return GestureDetector(
+            onTap: () async {
+              final selectedMerchant = await BusinessBottomSheet.show(
+                context: context,
+              );
+              if (selectedMerchant != null) {
+                debugPrint('🏢 Selected business: ${selectedMerchant.businessName}');
+                // Update merchant name in controller
+                _ledgerController.merchantName.value = selectedMerchant.businessName;
+                // Refresh ledgers for the selected merchant
+                _ledgerController.refreshAll();
+              }
+            },
+            child: Row(
+              children: [
+                AppText.searchbar2(
+                  merchantName,
+                    color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  maxLines: 1,
+                  minFontSize: 10,
+                  letterSpacing: 1.2,
                 ),
-                width: responsive.iconSizeLarge,
-                height: responsive.iconSizeLarge,
-              ),
-            ],
+                SizedBox(width: responsive.spacing(8)),
+                SvgPicture.asset(
+                  AppIcons.dropdownIc,
+                  colorFilter: ColorFilter.mode(
+                    isDark ? Colors.white : AppColorsLight.iconPrimary,
+                    BlendMode.srcIn,
+                  ),
+                  width: responsive.iconSizeLarge,
+                  height: responsive.iconSizeLarge,
+                ),
+              ],
+            ),
           );
         }),
       ),

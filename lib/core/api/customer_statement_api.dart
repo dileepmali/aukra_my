@@ -144,7 +144,7 @@ class CustomerStatementApi {
               ? ledger.area
               : (ledger.address.isNotEmpty ? ledger.address : 'N/A'),
           balance: ledger.currentBalance.abs(),
-          balanceType: ledger.transactionType,
+          balanceType: ledger.currentBalance >= 0 ? 'IN' : 'OUT',
           lastTransactionDate: ledger.updatedAt ?? DateTime.now(),
           mobileNumber: ledger.mobileNumber,
         );

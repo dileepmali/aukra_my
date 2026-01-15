@@ -194,7 +194,7 @@ class ListItemWidget extends StatelessWidget {
                                       isPositiveAmount == true
                                           ? AppColors.primeryamount
                                           : isPositiveAmount == false
-                                          ? AppColors.red500.withOpacity(0.7)
+                                          ? AppColors.red500
                                               : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
                                       BlendMode.srcIn,
                                     ),
@@ -207,7 +207,7 @@ class ListItemWidget extends StatelessWidget {
                                   color: isPositiveAmount == true
                                       ? AppColors.primeryamount
                                       : isPositiveAmount == false
-                                          ? AppColors.red500.withOpacity(0.7)
+                                          ? AppColors.red500
                                           : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
                                   fontWeight: FontWeight.w600,
                                   maxLines: 1,
