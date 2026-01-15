@@ -17,4 +17,10 @@ class AppImages {
   static const String errorIm = 'assets/images/error_image.webp';
   static const String offlineIm = 'assets/images/offline.webp';
   static const String foundErrorIm = 'assets/images/found_error.png';
+
+
+  static const String bhimIm = 'assets/images/bhim_im.png';
+  static const String paytmIm = 'assets/images/paytm__im.png';
+  static const String credIm = 'assets/images/cred_im.png';
+  // static const String credIm = 'assets/images/cred_im.png';
 }

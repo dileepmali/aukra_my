@@ -29,6 +29,7 @@ import 'manage_businesses_screen.dart';
 import 'policy_terms_screen.dart';
 import 'about_us_screen.dart';
 import 'security_settings_screen.dart';
+import 'my_plan_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -476,6 +477,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'onTap': () {
           debugPrint('ℹ️ Navigating to About Us screen...');
           Get.to(() => const AboutUsScreen());
+        },
+      },
+      {
+        'icon': AppIcons.bookIc,
+        'title': 'My Plan',
+        'subtitle': 'View your current plan & subscription',
+        'onTap': () {
+          debugPrint('📋 Navigating to My Plan screen...');
+          Get.to(() => const MyPlanScreen());
         },
       },
     ];

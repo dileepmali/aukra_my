@@ -31,6 +31,8 @@ import '../screens/change_number_screen.dart';
 import '../screens/manage_businesses_screen.dart';
 import '../screens/policy_terms_screen.dart';
 import '../screens/about_us_screen.dart';
+import '../screens/my_plan_screen.dart';
+import '../screens/payment_screen.dart';
 import 'app_routes.dart';
 
 final List<GetPage> getPages = [
@@ -131,6 +133,21 @@ final List<GetPage> getPages = [
   GetPage(
     name: AppRoutes.aboutUs,
     page: () => const AboutUsScreen(),
+  ),
+  GetPage(
+    name: AppRoutes.myPlan,
+    page: () => const MyPlanScreen(),
+  ),
+  GetPage(
+    name: AppRoutes.payment,
+    page: () {
+      final args = Get.arguments as Map<String, dynamic>?;
+      return PaymentScreen(
+        planName: args?['planName'] ?? '',
+        planPrice: args?['planPrice'] ?? '',
+        planDuration: args?['planDuration'] ?? '',
+      );
+    },
   ),
 ];
 

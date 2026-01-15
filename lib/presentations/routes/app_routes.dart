@@ -34,4 +34,6 @@ class AppRoutes {
   static const String addTransaction = '/add-transaction';
   static const String ledgerDashboard = '/ledger-dashboard';
   static const String customerStatement = '/customer-statement';
+  static const String myPlan = '/my-plan'; // 📋 NEW: My Plan screen
+  static const String payment = '/payment'; // 💳 NEW: Payment screen
 }

@@ -56,6 +56,14 @@ class AppIcons {
   static const String mobileIc = 'assets/icons/mobile.svg';
   static const String changeNumberIc = 'assets/icons/chnage_number.svg';
   static const String recoveryIc = 'assets/icons/recovery_ic.svg';
+  static const String boxIc = 'assets/icons/box.svg';
+  static const String warningIc = 'assets/icons/warning-2.svg';
+  static const String cardPostIc = 'assets/icons/card_post.svg';
+  static const String scanIc = 'assets/icons/scan.svg';
+  static const String downloadIc = 'assets/icons/download-01.svg';
+  static const String successIc = 'assets/icons/check-badge.svg';
+  static const String failedIc = 'assets/icons/check_failed.svg';
+
 
   // Calendar & time icons
   static const String calendarIc = 'assets/icons/Calendar.svg';
