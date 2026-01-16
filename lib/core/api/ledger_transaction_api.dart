@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'global_api_function.dart';
 import '../../models/transaction_list_model.dart';
+import '../../models/transaction_detail_model.dart';
 
 class LedgerTransactionApi {
   final ApiFetcher _apiFetcher = ApiFetcher();
@@ -153,6 +154,47 @@ class LedgerTransactionApi {
       return TransactionListModel(count: 0, data: []);
     } catch (e) {
       debugPrint('❌ Fetch Merchant Transactions API Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get transaction details by ID
+  ///
+  /// Endpoint: GET api/ledgerTransaction/details/{transactionId}
+  /// Returns detailed transaction info including history and attachments
+  Future<TransactionDetailModel> getTransactionDetails({
+    required int transactionId,
+  }) async {
+    try {
+      debugPrint('📥 Fetching transaction details for ID: $transactionId');
+
+      await _apiFetcher.request(
+        url: 'api/ledgerTransaction/details/$transactionId',
+        method: 'GET',
+        requireAuth: true,
+      );
+
+      // Check for errors
+      if (_apiFetcher.errorMessage != null) {
+        throw Exception(_apiFetcher.errorMessage);
+      }
+
+      // Parse success response
+      if (_apiFetcher.data is Map) {
+        final transactionDetail = TransactionDetailModel.fromJson(
+          _apiFetcher.data as Map<String, dynamic>,
+        );
+        debugPrint('✅ Fetched transaction details for ID: $transactionId');
+        debugPrint('   - Amount: ${transactionDetail.amount}');
+        debugPrint('   - Type: ${transactionDetail.transactionType}');
+        debugPrint('   - History count: ${transactionDetail.historyCount}');
+        debugPrint('   - Attachments: ${transactionDetail.attachmentCount}');
+        return transactionDetail;
+      }
+
+      throw Exception('Invalid response format');
+    } catch (e) {
+      debugPrint('❌ Fetch Transaction Details API Error: $e');
       rethrow;
     }
   }

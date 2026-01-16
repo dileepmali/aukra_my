@@ -292,43 +292,48 @@ class CustomerStatementController extends GetxController {
     statementData.refresh();
   }
 
-  /// Download statement (placeholder)
+  // Download button loading state
+  final isDownloading = false.obs;
+
+  /// Download statement - calls export API
   Future<void> downloadStatement() async {
+    if (isDownloading.value) return; // Prevent double tap
+
     try {
       debugPrint('📥 Downloading $partyType statement...');
 
-      // Show loading
-      Get.dialog(
-        const Center(
-          child: CircularProgressIndicator(),
-        ),
-        barrierDismissible: false,
+      isDownloading.value = true;
+
+      // Call export API with partyType
+      final response = await _statementApi.exportTransactions(
+        partyType: partyType,
       );
 
-      // Simulate download delay
-      await Future.delayed(const Duration(seconds: 2));
+      isDownloading.value = false;
 
-      // Close loading
-      Get.back();
+      final message = response['message'] ?? 'Export initiated';
+      final jobId = response['jobId'];
+      final status = response['status'];
 
-      // Show success message using error service
+      debugPrint('✅ Export Response:');
+      debugPrint('   - Message: $message');
+      debugPrint('   - Job ID: $jobId');
+      debugPrint('   - Status: $status');
+
+      // Show success message
       AdvancedErrorService.showSuccess(
-        'Statement downloaded successfully',
+        message,
         type: SuccessType.snackbar,
         customDuration: const Duration(seconds: 3),
       );
 
-      debugPrint('✅ Statement downloaded');
-
-      // TODO: Implement actual PDF/Excel generation and download
-      // You can use packages like pdf, excel, or flutter_downloader
     } catch (e) {
-      Get.back(); // Close loading
+      isDownloading.value = false;
       debugPrint('❌ Error downloading statement: $e');
 
-      // Show error message using error service
+      // Show error message
       AdvancedErrorService.showError(
-        'Failed to download statement',
+        e.toString().replaceAll('Exception: ', ''),
         severity: ErrorSeverity.medium,
         category: ErrorCategory.download,
         customDuration: const Duration(seconds: 3),

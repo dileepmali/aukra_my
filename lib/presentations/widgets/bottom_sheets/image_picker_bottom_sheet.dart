@@ -39,24 +39,46 @@ class ImagePickerBottomSheet extends StatelessWidget {
   }
 
   Future<void> _selectImageFromGallery(BuildContext context) async {
+    debugPrint('📷 Opening gallery picker...');
     try {
       final List<XFile> images = await _imagePicker.pickMultiImage();
-      if (images.isNotEmpty && onImagesSelected != null) {
-        onImagesSelected!(images);
+      debugPrint('📷 Gallery picker returned: ${images.length} images');
+      if (images.isNotEmpty) {
+        debugPrint('📷 Image paths: ${images.map((e) => e.path).toList()}');
+        if (onImagesSelected != null) {
+          debugPrint('📷 Calling onImagesSelected callback...');
+          onImagesSelected!(images);
+          debugPrint('📷 ✅ onImagesSelected callback completed');
+        } else {
+          debugPrint('📷 ❌ onImagesSelected callback is NULL!');
+        }
+      } else {
+        debugPrint('📷 ⚠️ No images selected from gallery');
       }
     } catch (e) {
-      debugPrint('Error picking images from gallery: $e');
+      debugPrint('📷 ❌ Error picking images from gallery: $e');
     }
   }
 
   Future<void> _selectImageFromCamera(BuildContext context) async {
+    debugPrint('📷 Opening camera...');
     try {
       final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera);
-      if (image != null && onImagesSelected != null) {
-        onImagesSelected!([image]);
+      debugPrint('📷 Camera returned: ${image != null ? 'image captured' : 'no image'}');
+      if (image != null) {
+        debugPrint('📷 Image path: ${image.path}');
+        if (onImagesSelected != null) {
+          debugPrint('📷 Calling onImagesSelected callback...');
+          onImagesSelected!([image]);
+          debugPrint('📷 ✅ onImagesSelected callback completed');
+        } else {
+          debugPrint('📷 ❌ onImagesSelected callback is NULL!');
+        }
+      } else {
+        debugPrint('📷 ⚠️ No image captured from camera');
       }
     } catch (e) {
-      debugPrint('Error picking image from camera: $e');
+      debugPrint('📷 ❌ Error picking image from camera: $e');
     }
   }
 

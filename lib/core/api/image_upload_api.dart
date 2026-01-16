@@ -13,7 +13,7 @@ class ImageUploadApi {
       '${dotenv.env['API_BASE_URL'] ?? "https://api.anantkhata.com"}/';
 
   /// Get pre-signed S3 upload URL from backend
-  /// POST /api/ledgerTranscation/get-upload-url/{merchantId}
+  /// POST /api/ledgerTransaction/get-upload-url/{merchantId}
   Future<Map<String, dynamic>> _getUploadUrl({
     required int merchantId,
     required String fileName,
@@ -25,7 +25,7 @@ class ImageUploadApi {
         throw Exception('Authentication required. Please login.');
       }
 
-      final url = '${baseUri}api/ledgerTranscation/get-upload-url/$merchantId';
+      final url = '${baseUri}api/ledgerTransaction/get-upload-url/$merchantId';
 
       debugPrint('🔗 Getting upload URL from: $url');
       debugPrint('   - fileName: $fileName');

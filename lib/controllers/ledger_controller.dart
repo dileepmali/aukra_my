@@ -517,4 +517,47 @@ class LedgerController extends GetxController {
     result = _applySorting(result);
     return result;
   }
+
+  // ============================================================
+  // LOCAL ACTIVITY UPDATE (for transaction edit fix)
+  // ============================================================
+
+  /// Update a specific ledger's last activity date locally
+  /// Call this after transaction create/edit/delete to update the date in UI
+  void updateLedgerLastActivity(int ledgerId, {DateTime? activityTime}) {
+    final time = activityTime ?? DateTime.now();
+    debugPrint('🔄 Updating ledger $ledgerId last activity to: $time');
+
+    // Update in customers list
+    final customerIndex = customers.indexWhere((l) => l.id == ledgerId);
+    if (customerIndex != -1) {
+      final updatedLedger = customers[customerIndex].copyWith(updatedAt: time);
+      customers[customerIndex] = updatedLedger;
+      customers.refresh();
+      debugPrint('✅ Updated customer ledger $ledgerId updatedAt');
+      return;
+    }
+
+    // Update in suppliers list
+    final supplierIndex = suppliers.indexWhere((l) => l.id == ledgerId);
+    if (supplierIndex != -1) {
+      final updatedLedger = suppliers[supplierIndex].copyWith(updatedAt: time);
+      suppliers[supplierIndex] = updatedLedger;
+      suppliers.refresh();
+      debugPrint('✅ Updated supplier ledger $ledgerId updatedAt');
+      return;
+    }
+
+    // Update in employers list
+    final employerIndex = employers.indexWhere((l) => l.id == ledgerId);
+    if (employerIndex != -1) {
+      final updatedLedger = employers[employerIndex].copyWith(updatedAt: time);
+      employers[employerIndex] = updatedLedger;
+      employers.refresh();
+      debugPrint('✅ Updated employer ledger $ledgerId updatedAt');
+      return;
+    }
+
+    debugPrint('⚠️ Ledger $ledgerId not found in any list');
+  }
 }

@@ -481,7 +481,7 @@ class CustomerStatementScreen extends StatelessWidget {
     bool isDark,
     CustomerStatementController controller,
   ) {
-    return Stack(
+    return Obx(() => Stack(
       children:[
         Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.top)),
         Container(
@@ -498,8 +498,8 @@ class CustomerStatementScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         ),
         child: AppButton(
-          text: 'Download',
-          onPressed: () => controller.downloadStatement(),
+          text: controller.isDownloading.value ? 'Downloading...' : 'Download',
+          onPressed: controller.isDownloading.value ? null : () => controller.downloadStatement(),
           textColor: Colors.white,
           fontSize: responsive.fontSize(16),
           fontWeight: FontWeight.w600,
@@ -517,9 +517,10 @@ class CustomerStatementScreen extends StatelessWidget {
             horizontal: responsive.wp(4),
             vertical: responsive.hp(1.8),
           ),
+          isLoading: controller.isDownloading.value,
         ),
       ),]
-    );
+    ));
   }
 
   /// Format DateTime for display

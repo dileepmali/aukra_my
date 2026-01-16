@@ -12,17 +12,20 @@ import '../../../core/responsive_layout/padding_navigation.dart';
 class ImagePreviewDialog extends StatefulWidget {
   final List<String> imagePaths;
   final int initialIndex;
+  final bool isNetworkImages;
 
   const ImagePreviewDialog({
     Key? key,
     required this.imagePaths,
     this.initialIndex = 0,
+    this.isNetworkImages = false,
   }) : super(key: key);
 
   static Future<void> show({
     required BuildContext context,
     required List<String> imagePaths,
     int initialIndex = 0,
+    bool isNetworkImages = false,
   }) {
     return showDialog(
       context: context,
@@ -31,6 +34,7 @@ class ImagePreviewDialog extends StatefulWidget {
       builder: (context) => ImagePreviewDialog(
         imagePaths: imagePaths,
         initialIndex: initialIndex,
+        isNetworkImages: isNetworkImages,
       ),
     );
   }
@@ -74,6 +78,24 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog> {
     }
   }
 
+  Widget _buildErrorWidget(AdvancedResponsiveHelper responsive, bool isDark) {
+    return Container(
+      width: responsive.wp(80),
+      height: responsive.hp(50),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.containerLight : AppColorsLight.containerLight,
+        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.broken_image,
+          size: responsive.iconSizeLarge,
+          color: isDark ? AppColors.white.withOpacity(0.3) : AppColorsLight.textSecondary,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final responsive = AdvancedResponsiveHelper(context);
@@ -106,27 +128,21 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog> {
                   child: Center(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-                      child: Image.file(
-                        File(widget.imagePaths[index]),
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: responsive.wp(80),
-                            height: responsive.hp(50),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppColors.containerLight : AppColorsLight.containerLight,
-                              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                      child: widget.isNetworkImages
+                          ? Image.network(
+                              widget.imagePaths[index],
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildErrorWidget(responsive, isDark);
+                              },
+                            )
+                          : Image.file(
+                              File(widget.imagePaths[index]),
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildErrorWidget(responsive, isDark);
+                              },
                             ),
-                            child: Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                size: responsive.iconSizeLarge,
-                                color: isDark ? AppColors.white.withOpacity(0.3) : AppColorsLight.textSecondary,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                     ),
                   ),
                 );

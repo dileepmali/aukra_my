@@ -232,8 +232,9 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                           ImagePickerBottomSheet.show(
                             context: context,
                             onImagesSelected: (images) {
+                              debugPrint('📷 AddTransaction: Received ${images.length} images from picker');
                               controller.addImages(images);
-                              debugPrint('Selected ${images.length} images');
+                              debugPrint('📷 AddTransaction: Total images now: ${controller.selectedImages.length}');
                             },
                           );
                         },

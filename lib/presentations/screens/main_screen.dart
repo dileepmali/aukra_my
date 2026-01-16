@@ -74,19 +74,26 @@ class _MainScreenState extends State<MainScreen> {
         await prefController.loadPreferences();
       }
 
-      // ✅ Step 2: Sync current language to backend (if not already saved)
+      // ✅ Step 2: Sync current language to backend (only if NO preferences exist on server)
+      // If preferences already exist, we respect server's language - no auto-sync needed
       if (Get.isRegistered<LocalizationController>() &&
           Get.isRegistered<UserPreferenceController>()) {
         final localizationController = Get.find<LocalizationController>();
         final prefController = Get.find<UserPreferenceController>();
 
         final currentLang = localizationController.currentLanguageCode;
-        debugPrint('📱 Step 2: Syncing language preference: $currentLang');
+        debugPrint('📱 Step 2: Checking language preference...');
+        debugPrint('   - App language: $currentLang');
+        debugPrint('   - Server language: ${prefController.language}');
+        debugPrint('   - Has loaded: ${prefController.hasLoaded.value}');
 
-        // Only sync if preferences haven't been loaded or language differs
-        if (!prefController.hasLoaded.value ||
-            prefController.language != currentLang) {
+        // Only sync if preferences DON'T exist on server (first time user)
+        // If hasLoaded is true, it means server has preferences - don't override
+        if (!prefController.hasLoaded.value) {
+          debugPrint('📱 First time user - syncing language to server...');
           await prefController.setLanguage(currentLang);
+        } else {
+          debugPrint('📱 Preferences exist on server - skipping auto-sync');
         }
       }
 

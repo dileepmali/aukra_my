@@ -170,4 +170,51 @@ class CustomerStatementApi {
       rethrow;
     }
   }
+
+  /// Export transactions API
+  /// GET /api/export/{merchantId}/transaction
+  /// Returns jobId and status for export
+  Future<Map<String, dynamic>> exportTransactions({
+    String? partyType,
+  }) async {
+    try {
+      // Get merchant ID from storage
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
+      }
+
+      debugPrint('📥 Exporting transactions for merchant: $merchantId');
+      debugPrint('   - Party Type: $partyType');
+
+      // Build URL with query params
+      String url = 'api/export/$merchantId/transaction';
+      if (partyType != null) {
+        url += '?partyType=$partyType';
+      }
+
+      await _apiFetcher.request(
+        url: url,
+        method: 'GET',
+        requireAuth: true,
+      );
+
+      if (_apiFetcher.errorMessage != null) {
+        throw Exception(_apiFetcher.errorMessage);
+      }
+
+      final response = _apiFetcher.data as Map<String, dynamic>;
+
+      debugPrint('📥 Export Response: $response');
+      debugPrint('   - Message: ${response['message']}');
+      debugPrint('   - Job ID: ${response['jobId']}');
+      debugPrint('   - Status: ${response['status']}');
+      debugPrint('   - Download URL: ${response['downloadUrl'] ?? response['fileUrl'] ?? 'N/A'}');
+
+      return response;
+    } catch (e) {
+      debugPrint('❌ Error exporting transactions: $e');
+      rethrow;
+    }
+  }
 }
