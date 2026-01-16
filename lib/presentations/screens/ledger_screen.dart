@@ -31,9 +31,6 @@ class LedgerScreen extends StatefulWidget {
 class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   bool _isGridView = true;
-  String? _currentFilter;
-  String? _currentSortBy;
-  String? _currentSortOrder;
   int _selectedTabIndex = 0;
 
   // Use Get.find() to get controller from binding
@@ -95,14 +92,8 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
   }
 
   void _handleFiltersApplied(Map<String, dynamic> filters) {
-    setState(() {
-      _currentFilter = filters['filter'];
-      _currentSortBy = filters['sortBy'];
-      _currentSortOrder = filters['sortOrder'];
-    });
-
-    // TODO: Implement filter logic here
-    debugPrint('Filters applied: $filters');
+    // Use controller's filter method
+    _ledgerController.handleFiltersApplied(filters);
   }
 
   void _handleSearchChanged(String query) {
@@ -144,24 +135,53 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
   Widget _buildAppBar(BuildContext context, AdvancedResponsiveHelper responsive) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return CustomResponsiveAppBar(
+    return Obx(() => CustomResponsiveAppBar(
       config: AppBarConfig(
         type: AppBarType.searchWithFilter,
         searchController: _searchController,
         searchHint: 'Search ledger...',
         onSearchChanged: _handleSearchChanged,
         onSearchTap: () {
+          // Get partyType based on selected tab
+          String partyType;
+          String partyTypeLabel;
+          switch (_selectedTabIndex) {
+            case 0:
+              partyType = 'CUSTOMER';
+              partyTypeLabel = 'Customer';
+              break;
+            case 1:
+              partyType = 'SUPPLIER';
+              partyTypeLabel = 'Supplier';
+              break;
+            case 2:
+              partyType = 'EMPLOYEE';
+              partyTypeLabel = 'Employee';
+              break;
+            default:
+              partyType = 'CUSTOMER';
+              partyTypeLabel = 'Customer';
+          }
           debugPrint('🔍 Navigating to search screen...');
-          Get.toNamed('/search-screen');
+          debugPrint('   Party Type: $partyType');
+          Get.toNamed('/search-screen', arguments: {
+            'partyType': partyType,
+            'partyTypeLabel': partyTypeLabel,
+          });
         },
         isGridView: _isGridView,
         onViewToggle: _handleViewToggle,
         enableSearchInput: false,
         showViewToggle: false,
         onFiltersApplied: _handleFiltersApplied,
-        currentFilter: _currentFilter,
-        currentSortBy: _currentSortBy,
-        currentSortOrder: _currentSortOrder,
+        // 🔥 Pass current filter values from controller for persistence
+        currentSortBy: _ledgerController.sortBy.value,
+        currentSortOrder: _ledgerController.sortOrder.value,
+        currentDateFilter: _ledgerController.dateFilter.value,
+        currentTransactionFilter: _ledgerController.transactionFilter.value,
+        currentCustomDateFrom: _ledgerController.customDateFrom.value,
+        currentCustomDateTo: _ledgerController.customDateTo.value,
+        hideFilters: ['Reminder', 'User'],
         customHeight: responsive.hp(19),
         customPadding: EdgeInsets.symmetric(horizontal: responsive.wp(3)),
         leadingWidget: Obx(() {
@@ -209,7 +229,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           );
         }),
       ),
-    );
+    ));
   }
 
   Widget _buildTabBar(AdvancedResponsiveHelper responsive, bool isDark) {
@@ -312,14 +332,16 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           onRefresh: () async {
             await _ledgerController.refreshAll();
           },
-          child: _ledgerController.customers.isEmpty
+          child: _ledgerController.filteredCustomers.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     SizedBox(height: responsive.hp(30)),
                     Center(
                       child: AppText.headlineLarge(
-                        'No customers found',
+                        _ledgerController.customers.isEmpty
+                            ? 'No customers found'
+                            : 'No results match your filters',
                         color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                         fontWeight: FontWeight.w400,
                       ),
@@ -334,9 +356,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     top: responsive.hp(2),
                     bottom: responsive.hp(30), // Add bottom padding for better scrolling
                   ),
-                  itemCount: _ledgerController.customers.length,
+                  itemCount: _ledgerController.filteredCustomers.length,
                   itemBuilder: (context, index) {
-                    final customer = _ledgerController.customers[index];
+                    final customer = _ledgerController.filteredCustomers[index];
 
                     // Format last update date, time and address
                     String subtitle = '';
@@ -427,14 +449,16 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           onRefresh: () async {
             await _ledgerController.refreshAll();
           },
-          child: _ledgerController.suppliers.isEmpty
+          child: _ledgerController.filteredSuppliers.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     SizedBox(height: responsive.hp(30)),
                     Center(
                       child: AppText.searchbar1(
-                        'No suppliers found',
+                        _ledgerController.suppliers.isEmpty
+                            ? 'No suppliers found'
+                            : 'No results match your filters',
                         color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                         fontWeight: FontWeight.w400,
                       ),
@@ -449,9 +473,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     top: responsive.hp(2),
                     bottom: responsive.hp(20), // Add bottom padding for better scrolling
                   ),
-                  itemCount: _ledgerController.suppliers.length,
+                  itemCount: _ledgerController.filteredSuppliers.length,
                   itemBuilder: (context, index) {
-                    final supplier = _ledgerController.suppliers[index];
+                    final supplier = _ledgerController.filteredSuppliers[index];
 
                     // Format last update date, time and address
                     String subtitle = '';
@@ -539,14 +563,16 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           onRefresh: () async {
             await _ledgerController.refreshAll();
           },
-          child: _ledgerController.employers.isEmpty
+          child: _ledgerController.filteredEmployers.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     SizedBox(height: responsive.hp(30)),
                     Center(
                       child: AppText.searchbar1(
-                        'No employers found',
+                        _ledgerController.employers.isEmpty
+                            ? 'No employees found'
+                            : 'No results match your filters',
                         color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                         fontWeight: FontWeight.w400,
                       ),
@@ -561,9 +587,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     top: responsive.hp(2),
                     bottom: responsive.hp(30), // Add bottom padding for better scrolling
                   ),
-                  itemCount: _ledgerController.employers.length,
+                  itemCount: _ledgerController.filteredEmployers.length,
                   itemBuilder: (context, index) {
-                    final employer = _ledgerController.employers[index];
+                    final employer = _ledgerController.filteredEmployers[index];
 
                     // Format last update date, time and address
                     String subtitle = '';

@@ -408,7 +408,7 @@ class _AppButtonState extends State<AppButton>
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    widget.textColor ?? AppColors.black,
+                    widget.textColor ?? Colors.white,
                   ),
                 ),
               ),
@@ -437,7 +437,7 @@ class _AppButtonState extends State<AppButton>
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
               valueColor: AlwaysStoppedAnimation<Color>(
-                widget.textColor ?? Colors.black,
+                widget.textColor ?? Colors.white,
               ),
             ),
           ),

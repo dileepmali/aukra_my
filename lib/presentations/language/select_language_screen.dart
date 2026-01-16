@@ -14,6 +14,7 @@ import '../../../app/themes/app_text.dart';
 import '../../../controllers/localization_controller.dart';
 import '../../../controllers/splash_controller.dart';
 import '../../../controllers/language_search_controller.dart';
+import '../../../controllers/user_preference_controller.dart';
 import '../../../core/responsive_layout/device_category.dart';
 import '../../app/constants/app_icons.dart';
 import '../../app/localizations/l10n/app_localizations.dart';
@@ -153,10 +154,26 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
       await _localizationController.changeLocale(selectedLang['code'] ?? '');
     }
 
+    // ✅ Update user preference via API
+    await _updateLanguagePreference(selectedLang['code'] ?? 'en');
+
     debugPrint('✅ Language saved: ${selectedLang['code']}');
 
     // Go back to My Profile
     Get.back();
+  }
+
+  /// ✅ Update language preference via API
+  Future<void> _updateLanguagePreference(String languageCode) async {
+    try {
+      if (Get.isRegistered<UserPreferenceController>()) {
+        final prefController = Get.find<UserPreferenceController>();
+        await prefController.setLanguage(languageCode);
+        debugPrint('✅ Language preference updated via API: $languageCode');
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating language preference: $e');
+    }
   }
 
   Future<void> _handleContinuePressed(BuildContext context) async {
@@ -206,6 +223,10 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
     // This ensures 'is_first_time_install' is set to false
     await _localizationController.completeLanguageSelection();
     debugPrint('✅ Language selection completed: ${_localizationController.currentLanguageCode}');
+
+    // ✅ DON'T call API here - user is not logged in yet
+    // Language preference will be synced to backend in MainScreen after successful login
+    // await _updateLanguagePreference(selectedLang['code'] ?? 'en');
 
     await _checkSecureStorageAndNavigate();
 
@@ -535,7 +556,7 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
                                               height: responsive.hp(3),
                                               width: responsive.wp(7),
                                               child: CircularProgressIndicator(
-                                                color: AppColors.buttonTextColor,
+                                                color: AppColors.white,
                                                 strokeWidth: 2,
                                               ),
                                             ),
@@ -546,7 +567,7 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
                                                   context,
                                                   (localizations) =>
                                                       localizations.continueText),
-                                              color: Colors.black,
+                                              color: AppColors.white,
                                               maxLines: 1,
                                               minFontSize: 12,
                                               textAlign: TextAlign.center,

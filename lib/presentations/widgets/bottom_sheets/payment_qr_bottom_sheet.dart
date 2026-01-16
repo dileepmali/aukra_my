@@ -9,7 +9,7 @@ import '../../../buttons/app_button.dart';
 import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
-import '../../controllers/qr_code_controller.dart';
+import '../../../controllers/qr_code_controller.dart';
 import '../../screens/payment_success_screen.dart';
 import '../../screens/payment_error_screen.dart';
 import '../custom_single_border_color.dart';

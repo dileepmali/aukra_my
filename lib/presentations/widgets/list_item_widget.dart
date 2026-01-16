@@ -166,7 +166,7 @@ class ListItemWidget extends StatelessWidget {
                             SizedBox(width: responsive.spacing(6)),
                           ],
                           Expanded(
-                            child: AppText.searchbar2(
+                            child: AppText.searchbar4(
                               title,
                               color: titleColor ?? (isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.textPrimary),
                               fontWeight: titleFontWeight ?? FontWeight.w500,

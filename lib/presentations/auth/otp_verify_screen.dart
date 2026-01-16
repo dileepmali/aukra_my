@@ -649,7 +649,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                 height: responsive.hp(3),
                 width: responsive.wp(6.2),
                 child: CircularProgressIndicator(
-                  color: AppColors.buttonTextColor,
+                  color: AppColors.white,
                   strokeWidth: 2,
                 ),
               ),
@@ -657,7 +657,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
             : Center(
                 child: AppText.button(
                   AppStrings.getLocalizedString(context, (localizations) => localizations.submitOtp),
-                  color: Colors.black,
+                  color: AppColors.white,
                   maxLines: 1,
                   minFontSize: 12,
                   textAlign: TextAlign.center,

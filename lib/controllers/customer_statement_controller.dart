@@ -19,6 +19,35 @@ class CustomerStatementController extends GetxController {
   String partyType = 'CUSTOMER';
   String partyTypeLabel = 'Customer';
 
+  // ============================================================
+  // FILTER STATE (same as SearchController)
+  // ============================================================
+
+  /// Sort by: name, amount, transaction_date
+  final sortBy = 'name'.obs;
+
+  /// Sort order: asc, desc
+  final sortOrder = 'asc'.obs;
+
+  /// Date filter: today, yesterday, older_week, older_month, all_time, custom
+  final dateFilter = 'all_time'.obs;
+
+  /// Transaction filter: all_transaction, in_transaction, out_transaction
+  final transactionFilter = 'all_transaction'.obs;
+
+  /// Reminder filter: all, overdue, today, upcoming (hidden in this screen)
+  final reminderFilter = 'all'.obs;
+
+  /// User filter: all, customer, supplier, employee (hidden in this screen)
+  final userFilter = 'all'.obs;
+
+  /// Custom date range
+  final customDateFrom = Rxn<DateTime>();
+  final customDateTo = Rxn<DateTime>();
+
+  /// Flag to indicate if filters are active
+  final hasActiveFilters = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -68,22 +97,199 @@ class CustomerStatementController extends GetxController {
     await fetchStatement();
   }
 
-  /// Get filtered customers based on search query
+  /// Get filtered customers based on search query AND filters
   List<CustomerStatementItem> get filteredCustomers {
     if (statementData.value == null) return [];
 
-    final customers = statementData.value!.customers;
+    var customers = statementData.value!.customers.toList();
 
-    if (searchQuery.value.isEmpty) {
-      return customers;
+    // Apply search query filter
+    if (searchQuery.value.isNotEmpty) {
+      final query = searchQuery.value.toLowerCase();
+      customers = customers.where((customer) {
+        return customer.name.toLowerCase().contains(query) ||
+            customer.location.toLowerCase().contains(query) ||
+            (customer.mobileNumber?.contains(query) ?? false);
+      }).toList();
     }
 
+    // Apply date filter
+    customers = _applyDateFilter(customers);
+
+    // Apply transaction filter (IN/OUT)
+    customers = _applyTransactionFilter(customers);
+
+    // Apply sorting
+    customers = _applySorting(customers);
+
+    return customers;
+  }
+
+  // ============================================================
+  // FILTER METHODS
+  // ============================================================
+
+  /// Handle filters from AppBar (same pattern as SearchController)
+  void handleFiltersApplied(Map<String, dynamic> filters) {
+    debugPrint('🔍 CustomerStatement: Filters applied: $filters');
+
+    // Handle Sort By
+    final filterSortBy = filters['sortBy'] as String?;
+    final filterSortOrder = filters['sortOrder'] as String?;
+
+    if (filterSortBy != null) {
+      sortBy.value = filterSortBy;
+      debugPrint('📊 Sort by: $filterSortBy');
+    }
+
+    if (filterSortOrder != null) {
+      sortOrder.value = filterSortOrder;
+      debugPrint('📊 Sort order: $filterSortOrder');
+    }
+
+    // Handle Date Filter
+    final filterDate = filters['dateFilter'] as String?;
+    if (filterDate != null) {
+      dateFilter.value = filterDate;
+      debugPrint('📅 Date filter: $filterDate');
+    }
+
+    // Handle Custom Date Range
+    if (filters['customDateFrom'] != null) {
+      customDateFrom.value = filters['customDateFrom'] as DateTime;
+      debugPrint('📅 Custom date from: ${customDateFrom.value}');
+    }
+    if (filters['customDateTo'] != null) {
+      customDateTo.value = filters['customDateTo'] as DateTime;
+      debugPrint('📅 Custom date to: ${customDateTo.value}');
+    }
+
+    // Handle Transaction Filter (IN/OUT)
+    final filterTransaction = filters['transactionFilter'] as String?;
+    if (filterTransaction != null) {
+      transactionFilter.value = filterTransaction;
+      debugPrint('💰 Transaction filter: $filterTransaction');
+    }
+
+    // Update active filters flag
+    _updateActiveFiltersFlag();
+
+    // Trigger UI refresh
+    statementData.refresh();
+
+    debugPrint('✅ Filters applied - Results: ${filteredCustomers.length}');
+  }
+
+  /// Update flag to indicate if filters are active
+  void _updateActiveFiltersFlag() {
+    final isSortActive = sortBy.value != 'name' || sortOrder.value != 'asc';
+
+    hasActiveFilters.value = isSortActive ||
+        dateFilter.value != 'all_time' ||
+        transactionFilter.value != 'all_transaction' ||
+        customDateFrom.value != null ||
+        customDateTo.value != null;
+  }
+
+  /// Apply date filter to customers
+  List<CustomerStatementItem> _applyDateFilter(List<CustomerStatementItem> customers) {
+    if (dateFilter.value == 'all_time') return customers;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     return customers.where((customer) {
-      final query = searchQuery.value.toLowerCase();
-      return customer.name.toLowerCase().contains(query) ||
-          customer.location.toLowerCase().contains(query) ||
-          (customer.mobileNumber?.contains(query) ?? false);
+      final itemDate = customer.lastTransactionDate;
+      final itemDateOnly = DateTime(itemDate.year, itemDate.month, itemDate.day);
+
+      switch (dateFilter.value) {
+        case 'today':
+          return itemDateOnly.isAtSameMomentAs(today);
+
+        case 'yesterday':
+          final yesterday = today.subtract(const Duration(days: 1));
+          return itemDateOnly.isAtSameMomentAs(yesterday);
+
+        case 'older_week':
+          final weekAgo = today.subtract(const Duration(days: 7));
+          return itemDateOnly.isBefore(weekAgo);
+
+        case 'older_month':
+          final monthAgo = DateTime(now.year, now.month - 1, now.day);
+          return itemDateOnly.isBefore(monthAgo);
+
+        case 'custom':
+          if (customDateFrom.value != null && customDateTo.value != null) {
+            return itemDateOnly.isAfter(customDateFrom.value!.subtract(const Duration(days: 1))) &&
+                   itemDateOnly.isBefore(customDateTo.value!.add(const Duration(days: 1)));
+          }
+          return true;
+
+        default:
+          return true;
+      }
     }).toList();
+  }
+
+  /// Apply transaction filter (IN/OUT)
+  List<CustomerStatementItem> _applyTransactionFilter(List<CustomerStatementItem> customers) {
+    switch (transactionFilter.value) {
+      case 'in_transaction':
+        return customers.where((c) => c.balanceType == 'IN').toList();
+      case 'out_transaction':
+      case 'old_transaction':
+        return customers.where((c) => c.balanceType == 'OUT').toList();
+      case 'all_transaction':
+      default:
+        return customers;
+    }
+  }
+
+  /// Apply sorting to customers
+  List<CustomerStatementItem> _applySorting(List<CustomerStatementItem> customers) {
+    final isAsc = sortOrder.value == 'asc';
+
+    switch (sortBy.value) {
+      case 'name':
+        customers.sort((a, b) => isAsc
+            ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
+            : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        break;
+
+      case 'amount':
+        customers.sort((a, b) => isAsc
+            ? a.balance.compareTo(b.balance)
+            : b.balance.compareTo(a.balance));
+        break;
+
+      case 'transaction_date':
+        customers.sort((a, b) => isAsc
+            ? a.lastTransactionDate.compareTo(b.lastTransactionDate)
+            : b.lastTransactionDate.compareTo(a.lastTransactionDate));
+        break;
+
+      default:
+        // Default: sort by name ascending
+        customers.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    }
+
+    return customers;
+  }
+
+  /// Clear all filters
+  void clearFilters() {
+    sortBy.value = 'name';
+    sortOrder.value = 'asc';
+    dateFilter.value = 'all_time';
+    transactionFilter.value = 'all_transaction';
+    reminderFilter.value = 'all';
+    userFilter.value = 'all';
+    customDateFrom.value = null;
+    customDateTo.value = null;
+    hasActiveFilters.value = false;
+
+    // Trigger UI refresh
+    statementData.refresh();
   }
 
   /// Download statement (placeholder)

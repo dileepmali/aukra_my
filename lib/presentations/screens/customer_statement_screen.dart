@@ -18,6 +18,7 @@ import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/custom_single_border_color.dart';
 import '../widgets/list_item_widget.dart';
+import 'search_screen.dart';
 
 class CustomerStatementScreen extends StatelessWidget {
   const CustomerStatementScreen({super.key});
@@ -37,24 +38,43 @@ class CustomerStatementScreen extends StatelessWidget {
       backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(responsive.hp(20)),
-        child: CustomResponsiveAppBar(
+        // ✅ Wrap in Obx to make filter values reactive
+        child: Obx(() => CustomResponsiveAppBar(
           config: AppBarConfig(
             type: AppBarType.searchWithFilter,
             customHeight: responsive.hp(19),
-            enableSearchInput: true,
+            enableSearchInput: false,
             showViewToggle: false,
             customPadding: EdgeInsets.symmetric(horizontal: responsive.wp(3)),
             // Search callback
             onSearchChanged: (query) {
               controller.searchQuery.value = query;
             },
-            // Filter callback - opens filter bottom sheet
-            onFiltersApplied: (filters) {
-              debugPrint('🔍 Filters applied: $filters');
-              // TODO: Implement filter logic for customer statement
-              // You can add sorting and filtering logic here
+            // ✅ Navigate to SearchScreen when search bar is tapped
+            // Pass partyType so SearchScreen only shows relevant data
+            onSearchTap: () {
+              debugPrint('🔍 Search bar tapped - navigating to SearchScreen');
+              debugPrint('   Party Type: ${controller.partyType}');
+              Get.to(
+                () => const SearchScreen(),
+                arguments: {
+                  'partyType': controller.partyType,
+                  'partyTypeLabel': controller.partyTypeLabel,
+                },
+              );
             },
-            // 🔥 NEW: Hide Reminder and User filters for customer statement
+            // Filter callback - opens filter bottom sheet
+            onFiltersApplied: (filters) => controller.handleFiltersApplied(filters),
+            // 🔥 Pass current filter values to restore previous selections (same as search_screen.dart)
+            currentSortBy: controller.sortBy.value,
+            currentSortOrder: controller.sortOrder.value,
+            currentDateFilter: controller.dateFilter.value,
+            currentTransactionFilter: controller.transactionFilter.value,
+            currentReminderFilter: controller.reminderFilter.value,
+            currentUserFilter: controller.userFilter.value,
+            currentCustomDateFrom: controller.customDateFrom.value,
+            currentCustomDateTo: controller.customDateTo.value,
+            // 🔥 Hide Reminder and User filters for customer statement
             hideFilters: ['Reminder', 'User'],
             leadingWidget: Row(
               children: [
@@ -66,7 +86,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     size: responsive.iconSizeLarge,
                   ),
                 ),
-                SizedBox(width: responsive.spacing(2)),
+                SizedBox(width: responsive.wp(2)),
                 AppText.searchbar2(
                   controller.screenTitle,
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
@@ -78,7 +98,7 @@ class CustomerStatementScreen extends StatelessWidget {
               ],
             )
           ),
-        ),
+        )),
       ),
       body: SafeArea(
         child: Obx(() {

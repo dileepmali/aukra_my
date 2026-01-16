@@ -14,6 +14,7 @@ import 'package:aukra_anantkaya_space/core/responsive_layout/padding_navigation.
 import '../../../../buttons/row_app_bar.dart';
 import '../../../../core/responsive_layout/device_category.dart';
 import '../../custom_single_border_color.dart';
+import '../../custom_date_picker.dart';
 
 class FiltersBottomSheet extends StatefulWidget {
   final Map<String, String>? filterOptions;
@@ -23,6 +24,14 @@ class FiltersBottomSheet extends StatefulWidget {
   final String? initialSortOrder;
   final List<String>? hideFilters; // 🔥 NEW: Hide specific filters
 
+  // 🔥 NEW: Initial values for all filter types (to restore previous selections)
+  final String? initialDateFilter;
+  final String? initialTransactionFilter;
+  final String? initialReminderFilter;
+  final String? initialUserFilter;
+  final DateTime? initialCustomDateFrom;
+  final DateTime? initialCustomDateTo;
+
   const FiltersBottomSheet({
     Key? key,
     this.filterOptions,
@@ -31,6 +40,13 @@ class FiltersBottomSheet extends StatefulWidget {
     this.initialSortBy,
     this.initialSortOrder,
     this.hideFilters, // 🔥 NEW: Pass filters to hide
+    // 🔥 NEW: Initial filter values
+    this.initialDateFilter,
+    this.initialTransactionFilter,
+    this.initialReminderFilter,
+    this.initialUserFilter,
+    this.initialCustomDateFrom,
+    this.initialCustomDateTo,
   }) : super(key: key);
 
   @override
@@ -40,11 +56,15 @@ class FiltersBottomSheet extends StatefulWidget {
 class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
   String selectedFilter = 'Sort by';
   String selectedSortOption = 'default'; // ✅ Default: Default option
-  String selectedDateOption = 'today'; // ✅ Default: Today
+  String selectedDateOption = 'all_time'; // ✅ Default: All time
   String selectedTransactionOption = 'all_transaction'; // ✅ Default: All transaction
   List<String> selectedReminderOptions = ['all']; // ✅ Default: All (checkbox - single selection)
   List<String> selectedPlaceholderOptions = ['all']; // ✅ Default: All (checkbox - single selection)
   bool isLoadingState = false;
+
+  // Custom date range for older_week, older_month, custom options
+  DateTime? customDateFrom;
+  DateTime? customDateTo;
 
   @override
   void initState() {
@@ -53,6 +73,34 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
     // ✅ Restore sort option from initial values OR use default
     if (widget.initialSortBy != null && widget.initialSortOrder != null) {
       selectedSortOption = _getSortKeyFromValues(widget.initialSortBy!, widget.initialSortOrder!);
+    }
+
+    // 🔥 Restore date filter
+    if (widget.initialDateFilter != null) {
+      selectedDateOption = widget.initialDateFilter!;
+    }
+
+    // 🔥 Restore transaction filter
+    if (widget.initialTransactionFilter != null) {
+      selectedTransactionOption = widget.initialTransactionFilter!;
+    }
+
+    // 🔥 Restore reminder filter
+    if (widget.initialReminderFilter != null) {
+      selectedReminderOptions = [widget.initialReminderFilter!];
+    }
+
+    // 🔥 Restore user filter
+    if (widget.initialUserFilter != null) {
+      selectedPlaceholderOptions = [widget.initialUserFilter!];
+    }
+
+    // 🔥 Restore custom date range
+    if (widget.initialCustomDateFrom != null) {
+      customDateFrom = widget.initialCustomDateFrom;
+    }
+    if (widget.initialCustomDateTo != null) {
+      customDateTo = widget.initialCustomDateTo;
     }
   }
 
@@ -286,13 +334,15 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                       sortOrder = 'desc';
                   }
 
-                  final result = {
+                  final result = <String, dynamic>{
                     'sortBy': sortBy,
                     'sortOrder': sortOrder,
                     'dateFilter': selectedDateOption,
                     'transactionFilter': selectedTransactionOption,
                     'reminderFilter': selectedReminderOptions.isNotEmpty ? selectedReminderOptions.first : 'all',
                     'userFilter': selectedPlaceholderOptions.isNotEmpty ? selectedPlaceholderOptions.first : 'all',
+                    if (customDateFrom != null) 'customDateFrom': customDateFrom,
+                    if (customDateTo != null) 'customDateTo': customDateTo,
                   };
 
                   widget.onFiltersApplied?.call(result);
@@ -415,15 +465,51 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
   }
 
   Widget _buildDateOption(Map<String, String> option, AdvancedResponsiveHelper responsive) {
+    final key = option['key']!;
+    // Only show date picker for 'custom' option
+    final needsDatePicker = key == 'custom';
+
     return _buildCommonFilterOption(
       option: option,
       responsive: responsive,
-      isSelected: selectedDateOption == option['key'],
-      onTap: () {
+      isSelected: selectedDateOption == key,
+      onTap: () async {
         HapticFeedback.selectionClick();
-        setState(() {
-          selectedDateOption = option['key']!;
-        });
+
+        if (needsDatePicker) {
+          // Show date picker for From date (only for custom)
+          final fromDate = await CustomDatePicker.show(
+            context: context,
+            initialDate: customDateFrom ?? DateTime.now().subtract(const Duration(days: 30)),
+            firstDate: DateTime(2020),
+            lastDate: DateTime.now(),
+          );
+
+          if (fromDate != null) {
+            // Show date picker for To date
+            final toDate = await CustomDatePicker.show(
+              context: context,
+              initialDate: customDateTo ?? DateTime.now(),
+              firstDate: fromDate,
+              lastDate: DateTime.now(),
+            );
+
+            if (toDate != null) {
+              setState(() {
+                selectedDateOption = key;
+                customDateFrom = fromDate;
+                customDateTo = toDate;
+              });
+              debugPrint('📅 Date range selected: $fromDate to $toDate');
+            }
+          }
+        } else {
+          setState(() {
+            selectedDateOption = key;
+            customDateFrom = null;
+            customDateTo = null;
+          });
+        }
       },
       isCheckboxStyle: false, // Radio button style
     );

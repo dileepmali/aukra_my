@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:get/get.dart';
 import '../api/fcm_token_api.dart';
 import '../api/auth_storage.dart';
+import '../../controllers/user_preference_controller.dart';
 import 'device_info_service.dart';
 
 /// Service for Firebase Cloud Messaging (Push Notifications)
@@ -35,9 +37,15 @@ class FcmService {
         // Setup foreground notification handler
         _setupForegroundHandler();
 
+        // ✅ Update user preferences - notifications enabled
+        await _updateNotificationPreference(enabled: true);
+
         debugPrint('✅ FCM Service initialized successfully');
       } else {
         debugPrint('⚠️ Notification permission denied');
+
+        // ✅ Update user preferences - notifications disabled
+        await _updateNotificationPreference(enabled: false);
       }
 
       debugPrint('==========================================');
@@ -211,6 +219,37 @@ class FcmService {
 
   /// Check if FCM is initialized
   static bool get isInitialized => _fcmToken != null;
+
+  /// Update user notification preferences via API
+  static Future<void> _updateNotificationPreference({required bool enabled}) async {
+    try {
+      debugPrint('📤 Updating notification preference: $enabled');
+
+      // Check if user is logged in before updating preferences
+      final isLoggedIn = await AuthStorage.isLoggedIn();
+      if (!isLoggedIn) {
+        debugPrint('⚠️ User not logged in, skipping preference update');
+        return;
+      }
+
+      // Get UserPreferenceController
+      if (Get.isRegistered<UserPreferenceController>()) {
+        final prefController = Get.find<UserPreferenceController>();
+
+        // Update notification settings
+        await prefController.setNotifications(
+          all: enabled,
+          push: enabled,
+        );
+
+        debugPrint('✅ Notification preference updated: $enabled');
+      } else {
+        debugPrint('⚠️ UserPreferenceController not registered');
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating notification preference: $e');
+    }
+  }
 }
 
 /// Background message handler (must be top-level function)

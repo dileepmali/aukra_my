@@ -2,6 +2,7 @@ class AppImages {
   // Splash & branding
   static const String splashMainIm = 'assets/images/splash_im.jpg';
   static const String AukraIm = 'assets/images/Auk₹a.png';
+  static const String appLogoIm = 'assets/images/app_logo.png';
 
   // Onboarding carousel images
   static const String firstIm = 'assets/images/dugital_ladger.png';

@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/localization_controller.dart';
+import '../../controllers/user_preference_controller.dart';
+import '../../core/services/fcm_service.dart';
 import '../../app/constants/app_icons.dart';
 import '../../app/constants/light_theme/app_icons.dart';
 import '../../app/localizations/l10n/app_localizations.dart';
@@ -52,6 +55,53 @@ class _MainScreenState extends State<MainScreen> {
       AccountScreen(),
       MyProfileScreen(),
     ];
+
+    // ✅ Initialize post-login services (preferences, FCM, language sync)
+    _initializePostLoginServices();
+  }
+
+  /// Initialize services that require authentication
+  /// Called only after successful login when MainScreen is loaded
+  Future<void> _initializePostLoginServices() async {
+    debugPrint('');
+    debugPrint('🚀 ========== POST-LOGIN INITIALIZATION ==========');
+
+    try {
+      // ✅ Step 1: Load user preferences from backend
+      if (Get.isRegistered<UserPreferenceController>()) {
+        final prefController = Get.find<UserPreferenceController>();
+        debugPrint('📱 Step 1: Loading user preferences...');
+        await prefController.loadPreferences();
+      }
+
+      // ✅ Step 2: Sync current language to backend (if not already saved)
+      if (Get.isRegistered<LocalizationController>() &&
+          Get.isRegistered<UserPreferenceController>()) {
+        final localizationController = Get.find<LocalizationController>();
+        final prefController = Get.find<UserPreferenceController>();
+
+        final currentLang = localizationController.currentLanguageCode;
+        debugPrint('📱 Step 2: Syncing language preference: $currentLang');
+
+        // Only sync if preferences haven't been loaded or language differs
+        if (!prefController.hasLoaded.value ||
+            prefController.language != currentLang) {
+          await prefController.setLanguage(currentLang);
+        }
+      }
+
+      // ✅ Step 3: Initialize FCM (request permission + register token)
+      // This is called AFTER login so notification permission dialog appears after auth
+      debugPrint('📱 Step 3: Initializing FCM service (permission + token registration)...');
+      await FcmService.init();
+
+      debugPrint('✅ Post-login initialization complete!');
+      debugPrint('==================================================');
+      debugPrint('');
+    } catch (e) {
+      debugPrint('❌ Post-login initialization error: $e');
+      debugPrint('==================================================');
+    }
   }
 
   void _onItemTapped(int index) {

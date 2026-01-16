@@ -76,6 +76,14 @@ class AppBarConfig {
   final String? currentSortBy;
   final String? currentSortOrder;
 
+  // 🔥 NEW: Current values for all filter types (to restore previous selections)
+  final String? currentDateFilter;
+  final String? currentTransactionFilter;
+  final String? currentReminderFilter;
+  final String? currentUserFilter;
+  final DateTime? currentCustomDateFrom;
+  final DateTime? currentCustomDateTo;
+
   // 🔥 NEW: Hide specific filters in bottom sheet
   final List<String>? hideFilters; // ['Reminder', 'User'] to hide these options
 
@@ -157,6 +165,14 @@ class AppBarConfig {
     this.currentFilter,
     this.currentSortBy,
     this.currentSortOrder,
+
+    // 🔥 NEW: Current values for all filter types
+    this.currentDateFilter,
+    this.currentTransactionFilter,
+    this.currentReminderFilter,
+    this.currentUserFilter,
+    this.currentCustomDateFrom,
+    this.currentCustomDateTo,
 
     // Hide filters
     this.hideFilters, // 🔥 NEW: Hide specific filters parameter

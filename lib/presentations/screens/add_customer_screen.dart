@@ -80,8 +80,12 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize ContactController
-    _contactController = Get.put(ContactController());
+    // Use existing controller if available, otherwise create new one
+    if (Get.isRegistered<ContactController>()) {
+      _contactController = Get.find<ContactController>();
+    } else {
+      _contactController = Get.put(ContactController());
+    }
 
     // Debug: Print received partyType
     debugPrint('📋 AddCustomerScreen initialized with partyType: ${widget.partyType}');
@@ -214,8 +218,9 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
             );
           }
 
-          // Show loading indicator
-          if (_contactController.isLoading.value) {
+          // Show loading indicator ONLY if we don't have cached data
+          // This prevents showing loading on every navigation
+          if (_contactController.isLoading.value && _contactController.filteredContacts.isEmpty) {
             return Center(
               child: CircularProgressIndicator(
                 color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,

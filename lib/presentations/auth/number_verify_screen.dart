@@ -450,7 +450,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                 height: responsive.hp(3),
                                 width: responsive.wp(6.5),
                                 child: CircularProgressIndicator(
-                                  color: AppColors.buttonTextColor,
+                                  color: AppColors.white,
                                   strokeWidth: 2,
                                 ),
                               ),
@@ -458,7 +458,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                             : Center(
                                 child: AppText.button(
                                   AppStrings.getLocalizedString(context, (localizations) => localizations.sendOtp),
-                                  color: Colors.black,
+                                  color: AppColors.white,
                                   maxLines: 1,
                                   minFontSize: 12,
                                   textAlign: TextAlign.center,

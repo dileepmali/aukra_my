@@ -208,6 +208,13 @@ class AppBarBuilder {
                             config.currentSortBy,
                             config.currentSortOrder,
                             config.hideFilters, // 🔥 NEW: Pass hideFilters from config
+                            // 🔥 NEW: Pass all filter values
+                            config.currentDateFilter,
+                            config.currentTransactionFilter,
+                            config.currentReminderFilter,
+                            config.currentUserFilter,
+                            config.currentCustomDateFrom,
+                            config.currentCustomDateTo,
                           );
                         }
                       },
@@ -320,6 +327,13 @@ class AppBarBuilder {
     String? currentSortBy,
     String? currentSortOrder,
     List<String>? hideFilters, // 🔥 NEW: Hide specific filters parameter
+    // 🔥 NEW: All filter values
+    String? currentDateFilter,
+    String? currentTransactionFilter,
+    String? currentReminderFilter,
+    String? currentUserFilter,
+    DateTime? currentCustomDateFrom,
+    DateTime? currentCustomDateTo,
   ) {
     if (context == null) return;
 
@@ -336,6 +350,13 @@ class AppBarBuilder {
         initialSortBy: currentSortBy,
         initialSortOrder: currentSortOrder,
         hideFilters: hideFilters, // 🔥 NEW: Pass hideFilters to bottom sheet
+        // 🔥 NEW: Pass all filter values to restore previous selections
+        initialDateFilter: currentDateFilter,
+        initialTransactionFilter: currentTransactionFilter,
+        initialReminderFilter: currentReminderFilter,
+        initialUserFilter: currentUserFilter,
+        initialCustomDateFrom: currentCustomDateFrom,
+        initialCustomDateTo: currentCustomDateTo,
       ),
     );
   }

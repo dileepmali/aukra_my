@@ -17,6 +17,29 @@ class LedgerController extends GetxController {
 
   final ApiFetcher _apiFetcher = ApiFetcher();
 
+  // ============================================================
+  // FILTER STATE (same as SearchController/CustomerStatementController)
+  // ============================================================
+
+  /// Sort by: name, amount, transaction_date
+  final sortBy = 'name'.obs;
+
+  /// Sort order: asc, desc
+  final sortOrder = 'asc'.obs;
+
+  /// Date filter: today, yesterday, older_week, older_month, all_time, custom
+  final dateFilter = 'all_time'.obs;
+
+  /// Transaction filter: all_transaction, in_transaction, out_transaction
+  final transactionFilter = 'all_transaction'.obs;
+
+  /// Custom date range
+  final customDateFrom = Rxn<DateTime>();
+  final customDateTo = Rxn<DateTime>();
+
+  /// Flag to indicate if filters are active
+  final hasActiveFilters = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -287,5 +310,211 @@ class LedgerController extends GetxController {
       default:
         return [];
     }
+  }
+
+  // ============================================================
+  // FILTER METHODS (same pattern as SearchController/CustomerStatementController)
+  // ============================================================
+
+  /// Handle filters from AppBar
+  void handleFiltersApplied(Map<String, dynamic> filters) {
+    debugPrint('🔍 LedgerController: Filters applied: $filters');
+
+    // Handle Sort By
+    final filterSortBy = filters['sortBy'] as String?;
+    final filterSortOrder = filters['sortOrder'] as String?;
+
+    if (filterSortBy != null) {
+      sortBy.value = filterSortBy;
+      debugPrint('📊 Sort by: $filterSortBy');
+    }
+
+    if (filterSortOrder != null) {
+      sortOrder.value = filterSortOrder;
+      debugPrint('📊 Sort order: $filterSortOrder');
+    }
+
+    // Handle Date Filter
+    final filterDate = filters['dateFilter'] as String?;
+    if (filterDate != null) {
+      dateFilter.value = filterDate;
+      debugPrint('📅 Date filter: $filterDate');
+    }
+
+    // Handle Custom Date Range
+    if (filters['customDateFrom'] != null) {
+      customDateFrom.value = filters['customDateFrom'] as DateTime;
+      debugPrint('📅 Custom date from: ${customDateFrom.value}');
+    }
+    if (filters['customDateTo'] != null) {
+      customDateTo.value = filters['customDateTo'] as DateTime;
+      debugPrint('📅 Custom date to: ${customDateTo.value}');
+    }
+
+    // Handle Transaction Filter (IN/OUT)
+    final filterTransaction = filters['transactionFilter'] as String?;
+    if (filterTransaction != null) {
+      transactionFilter.value = filterTransaction;
+      debugPrint('💰 Transaction filter: $filterTransaction');
+    }
+
+    // Update active filters flag
+    _updateActiveFiltersFlag();
+
+    // Trigger UI refresh
+    customers.refresh();
+    suppliers.refresh();
+    employers.refresh();
+
+    debugPrint('✅ Filters applied - Customers: ${filteredCustomers.length}, Suppliers: ${filteredSuppliers.length}, Employees: ${filteredEmployers.length}');
+  }
+
+  /// Update flag to indicate if filters are active
+  void _updateActiveFiltersFlag() {
+    final isSortActive = sortBy.value != 'name' || sortOrder.value != 'asc';
+
+    hasActiveFilters.value = isSortActive ||
+        dateFilter.value != 'all_time' ||
+        transactionFilter.value != 'all_transaction' ||
+        customDateFrom.value != null ||
+        customDateTo.value != null;
+  }
+
+  /// Apply date filter to ledgers
+  List<LedgerModel> _applyDateFilter(List<LedgerModel> ledgers) {
+    if (dateFilter.value == 'all_time') return ledgers;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return ledgers.where((ledger) {
+      final itemDate = ledger.updatedAt ?? ledger.createdAt;
+      if (itemDate == null) return true; // Include items without date
+
+      final itemDateOnly = DateTime(itemDate.year, itemDate.month, itemDate.day);
+
+      switch (dateFilter.value) {
+        case 'today':
+          return itemDateOnly.isAtSameMomentAs(today);
+
+        case 'yesterday':
+          final yesterday = today.subtract(const Duration(days: 1));
+          return itemDateOnly.isAtSameMomentAs(yesterday);
+
+        case 'older_week':
+          final weekAgo = today.subtract(const Duration(days: 7));
+          return itemDateOnly.isBefore(weekAgo);
+
+        case 'older_month':
+          final monthAgo = DateTime(now.year, now.month - 1, now.day);
+          return itemDateOnly.isBefore(monthAgo);
+
+        case 'custom':
+          if (customDateFrom.value != null && customDateTo.value != null) {
+            return itemDateOnly.isAfter(customDateFrom.value!.subtract(const Duration(days: 1))) &&
+                   itemDateOnly.isBefore(customDateTo.value!.add(const Duration(days: 1)));
+          }
+          return true;
+
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
+  /// Apply transaction filter (IN/OUT based on currentBalance)
+  List<LedgerModel> _applyTransactionFilter(List<LedgerModel> ledgers) {
+    switch (transactionFilter.value) {
+      case 'in_transaction':
+        // Positive balance = They owe you (IN)
+        return ledgers.where((l) => l.currentBalance >= 0).toList();
+      case 'out_transaction':
+      case 'old_transaction':
+        // Negative balance = You owe them (OUT)
+        return ledgers.where((l) => l.currentBalance < 0).toList();
+      case 'all_transaction':
+      default:
+        return ledgers;
+    }
+  }
+
+  /// Apply sorting to ledgers
+  List<LedgerModel> _applySorting(List<LedgerModel> ledgers) {
+    final isAsc = sortOrder.value == 'asc';
+
+    switch (sortBy.value) {
+      case 'name':
+        ledgers.sort((a, b) => isAsc
+            ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
+            : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        break;
+
+      case 'amount':
+        ledgers.sort((a, b) => isAsc
+            ? a.currentBalance.compareTo(b.currentBalance)
+            : b.currentBalance.compareTo(a.currentBalance));
+        break;
+
+      case 'transaction_date':
+        ledgers.sort((a, b) {
+          final dateA = a.updatedAt ?? a.createdAt ?? DateTime(1970);
+          final dateB = b.updatedAt ?? b.createdAt ?? DateTime(1970);
+          return isAsc ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+        });
+        break;
+
+      default:
+        // Default: sort by name ascending
+        ledgers.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    }
+
+    return ledgers;
+  }
+
+  /// Clear all filters
+  void clearFilters() {
+    sortBy.value = 'name';
+    sortOrder.value = 'asc';
+    dateFilter.value = 'all_time';
+    transactionFilter.value = 'all_transaction';
+    customDateFrom.value = null;
+    customDateTo.value = null;
+    hasActiveFilters.value = false;
+
+    // Trigger UI refresh
+    customers.refresh();
+    suppliers.refresh();
+    employers.refresh();
+  }
+
+  // ============================================================
+  // FILTERED GETTERS
+  // ============================================================
+
+  /// Get filtered customers based on active filters
+  List<LedgerModel> get filteredCustomers {
+    var result = customers.toList();
+    result = _applyDateFilter(result);
+    result = _applyTransactionFilter(result);
+    result = _applySorting(result);
+    return result;
+  }
+
+  /// Get filtered suppliers based on active filters
+  List<LedgerModel> get filteredSuppliers {
+    var result = suppliers.toList();
+    result = _applyDateFilter(result);
+    result = _applyTransactionFilter(result);
+    result = _applySorting(result);
+    return result;
+  }
+
+  /// Get filtered employers based on active filters
+  List<LedgerModel> get filteredEmployers {
+    var result = employers.toList();
+    result = _applyDateFilter(result);
+    result = _applyTransactionFilter(result);
+    result = _applySorting(result);
+    return result;
   }
 }

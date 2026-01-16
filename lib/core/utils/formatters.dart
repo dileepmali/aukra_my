@@ -134,54 +134,34 @@ class Formatters {
     return cleanNumber;
   }
 
-  /// Formats phone number with space after country code
+  /// Formats phone number with country code and hyphen separator (for UI display)
   ///
   /// Examples:
-  /// - "+919876543210" → "+91 9876543210"
-  /// - "+1234567890" → "+1 234567890"
-  /// - "+441234567890" → "+44 1234567890"
-  /// - "9876543210" → "9876543210" (no country code, returns as is)
+  /// - "9876543210" → "91-9876543210" (adds 91- prefix for 10 digit numbers)
+  /// - "+919876543210" → "91-9876543210"
+  /// - "919876543210" → "91-9876543210"
   static String formatPhoneWithCountryCode(String phoneNumber) {
     if (phoneNumber.isEmpty) return phoneNumber;
 
-    // Remove any existing spaces
-    String cleanNumber = phoneNumber.replaceAll(' ', '');
+    // Remove any existing spaces, +, and -
+    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[\s\+\-]'), '');
 
-    // Check if it starts with + (country code)
-    if (cleanNumber.startsWith('+')) {
-      // Remove the + sign temporarily to work with digits only
-      String withoutPlus = cleanNumber.substring(1);
+    // If it's exactly 10 digits, add 91- prefix (India)
+    if (cleanNumber.length == 10) {
+      return '91-$cleanNumber';
+    }
 
-      // Common country codes and their lengths (in digits, without +)
-      // +1 (USA/Canada) = 1 digit
-      // +44 (UK) = 2 digits
-      // +91 (India) = 2 digits
-      // +234 (Nigeria) = 3 digits
+    // If it starts with 91 and has 12 digits (91 + 10 digit number)
+    if (cleanNumber.startsWith('91') && cleanNumber.length == 12) {
+      String number = cleanNumber.substring(2);
+      return '91-$number';
+    }
 
-      // Try to detect country code length (1-3 digits after +)
-      int countryCodeLength = 2; // Default to 2 (for +91, +44, etc.)
-
-      // Check for specific patterns
-      if (withoutPlus.startsWith('1') && withoutPlus.length == 11) {
-        // +1 followed by 10 digits (USA/Canada format)
-        countryCodeLength = 1;
-      } else if (withoutPlus.startsWith('91') && withoutPlus.length == 12) {
-        // +91 followed by 10 digits (India format)
-        countryCodeLength = 2;
-      } else if (withoutPlus.startsWith('44') && withoutPlus.length >= 12) {
-        // +44 (UK format)
-        countryCodeLength = 2;
-      } else if (withoutPlus.length > 10) {
-        // For other cases, assume 2-digit country code
-        countryCodeLength = 2;
-      }
-
-      // Format: +CC NNNNNNNNNN
-      if (withoutPlus.length > countryCodeLength) {
-        String countryCode = '+' + withoutPlus.substring(0, countryCodeLength);
-        String number = withoutPlus.substring(countryCodeLength);
-        return '$countryCode $number';
-      }
+    // For other cases with more than 10 digits, extract last 10 as number
+    if (cleanNumber.length > 10) {
+      String countryCode = cleanNumber.substring(0, cleanNumber.length - 10);
+      String number = cleanNumber.substring(cleanNumber.length - 10);
+      return '$countryCode-$number';
     }
 
     return cleanNumber;

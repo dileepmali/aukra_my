@@ -15,6 +15,7 @@ import 'app/localizations/l10n/app_localizations.dart';
 import 'app/themes/app_themes.dart';
 import 'controllers/localization_controller.dart';
 import 'controllers/theme_controller.dart';
+import 'controllers/user_preference_controller.dart';
 import 'core/services/contact_cache_service.dart';
 import 'core/services/device_info_service.dart';
 import 'core/services/fcm_service.dart';
@@ -34,6 +35,7 @@ void main() async {
   // ⚡ Controllers MUST be registered before runApp (synchronous, fast)
   Get.put(LocalizationController(), permanent: true);
   Get.put(ThemeController(), permanent: true);
+  Get.put(UserPreferenceController(), permanent: true);
 
   // 🚀 RUN APP IMMEDIATELY - Don't block on heavy services
   runApp(const MyApp());
@@ -55,8 +57,9 @@ Future<void> _initializeBackgroundServices() async {
   // Initialize Hive for contact caching
   await ContactCacheService.init();
 
-  // Initialize FCM for push notifications
-  await FcmService.init();
+  // ✅ DON'T initialize FCM here - it will be initialized in MainScreen AFTER login
+  // FCM requires authentication for backend registration and preference updates
+  // await FcmService.init();
 }
 
 class MyApp extends StatelessWidget {
