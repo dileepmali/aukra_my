@@ -90,7 +90,23 @@ class LedgerDetailController extends GetxController {
         debugPrint('   Total: ${ids.length}, Unique: ${uniqueIds.length}');
       }
 
-      transactionHistory.value = history;
+      // Sort transactions by transactionDate (descending - newest first)
+      // This ensures edited transactions stay in their original position
+      final sortedData = List.of(history.data);
+      sortedData.sort((a, b) {
+        try {
+          final dateA = DateTime.parse(a.transactionDate);
+          final dateB = DateTime.parse(b.transactionDate);
+          return dateB.compareTo(dateA); // Descending order (newest first)
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      transactionHistory.value = TransactionListModel(
+        count: history.count,
+        data: sortedData,
+      );
       debugPrint('✅ Transactions loaded: ${history.count} items for ledger $ledgerId');
       debugPrint('📊 Updated transaction count AFTER fetch: ${transactionHistory.value?.count ?? 0}');
     } catch (e) {

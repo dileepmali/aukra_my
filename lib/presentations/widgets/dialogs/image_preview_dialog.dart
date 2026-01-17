@@ -105,50 +105,52 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
-        horizontal: responsive.wp(4),
-        vertical: responsive.hp(10),
+        horizontal: responsive.wp(5),
+        vertical: responsive.hp(12),
       ),
-      child: Stack(
-        children: [
-          // PageView with images
-          Center(
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemCount: widget.imagePaths.length,
-              itemBuilder: (context, index) {
-                return InteractiveViewer(
-                  panEnabled: true,
-                  minScale: 0.5,
-                  maxScale: 4.0,
-                  child: Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-                      child: widget.isNetworkImages
-                          ? Image.network(
-                              widget.imagePaths[index],
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildErrorWidget(responsive, isDark);
-                              },
-                            )
-                          : Image.file(
-                              File(widget.imagePaths[index]),
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildErrorWidget(responsive, isDark);
-                              },
-                            ),
+      child: SizedBox(
+        width: responsive.wp(92), // Full width (100 - 4*2 padding)
+        child: Stack(
+          children: [
+            // PageView with images
+            Center(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemCount: widget.imagePaths.length,
+                itemBuilder: (context, index) {
+                  return InteractiveViewer(
+                    panEnabled: true,
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                        child: widget.isNetworkImages
+                            ? Image.network(
+                                widget.imagePaths[index],
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return _buildErrorWidget(responsive, isDark);
+                                },
+                              )
+                            : Image.file(
+                                File(widget.imagePaths[index]),
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return _buildErrorWidget(responsive, isDark);
+                                },
+                              ),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
 
           // Previous button (left side)
           if (hasMultipleImages && _currentIndex > 0)
@@ -285,7 +287,8 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog> {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

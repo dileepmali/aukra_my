@@ -506,8 +506,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     final formattedAmount = transaction.amount.toStringAsFixed(2);
 
     // Format date for subtitle using Formatters utility (time first, then date)
-    // Use updatedAt to show when transaction was last edited
-    final formattedDate = Formatters.formatStringToTimeAndDate(transaction.updatedAt);
+    // Use transactionDate to show original transaction date (not updatedAt which changes on edit)
+    final formattedDate = Formatters.formatStringToTimeAndDate(transaction.transactionDate);
 
     // ✅ Use note/description as title, fallback to "No note" if empty
     final noteTitle = (transaction.description != null && transaction.description.toString().trim().isNotEmpty)
@@ -533,7 +533,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         ),
       ),
       subtitleSuffix: AppText.headlineMedium(
-        'Bal. ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
+        'Bal. ₹${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.currentBalance)}',
         color: AppColors.textDisabled,
         fontWeight: FontWeight.w600,
       ),
