@@ -214,23 +214,9 @@ class _BusinessBottomSheetState extends State<BusinessBottomSheet> {
   }
 
   Widget _buildContent(AdvancedResponsiveHelper responsive, bool isDark) {
-    // Show loading state
+    // Show loading state - just empty space, no indicator
     if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-            ),
-            SizedBox(height: responsive.hp(2)),
-            AppText.searchbar1(
-              'Loading businesses...',
-              color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-            ),
-          ],
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     // Show error state
@@ -375,7 +361,7 @@ class _BusinessBottomSheetState extends State<BusinessBottomSheet> {
                         merchant.formattedAddress,
                         color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                         fontWeight: FontWeight.w400,
-                        maxLines: 2,
+                        maxLines: 1,
                         minFontSize: 10,
                       ),
                     ],

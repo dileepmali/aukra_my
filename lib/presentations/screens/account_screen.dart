@@ -15,6 +15,7 @@ import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../controllers/ledger_controller.dart';
 import '../../controllers/account_controller.dart';
 import '../../core/utils/formatters.dart';
+import '../widgets/bottom_sheets/business_bottom_sheet.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -57,27 +58,42 @@ class _AccountScreenState extends State<AccountScreen> {
                   ? 'Aukra'
                   : ledgerController.merchantName.value;
 
-              return Row(
-                children: [
-                  AppText.searchbar2(
-                    merchantName,
-                    color: isDark ? Colors.white : AppColorsLight.textPrimary,
-                    fontWeight: FontWeight.w500,
-                    maxLines: 1,
-                    minFontSize: 12,
-                    letterSpacing: 1.2,
-                  ),
-                  SizedBox(width: responsive.spacing(8)),
-                  SvgPicture.asset(
-                    AppIcons.dropdownIc,
-                    colorFilter: ColorFilter.mode(
-                      isDark ? Colors.white : AppColorsLight.iconPrimary,
-                      BlendMode.srcIn,
+              return GestureDetector(
+                onTap: () async {
+                  final selectedMerchant = await BusinessBottomSheet.show(
+                    context: context,
+                  );
+                  if (selectedMerchant != null) {
+                    debugPrint('🏢 Selected business: ${selectedMerchant.businessName}');
+                    // Update merchant name in controller
+                    ledgerController.merchantName.value = selectedMerchant.businessName;
+                    // Refresh data
+                    ledgerController.refreshAll();
+                    _accountController.refreshDashboard();
+                  }
+                },
+                child: Row(
+                  children: [
+                    AppText.searchbar2(
+                      merchantName,
+                      color: isDark ? Colors.white : AppColorsLight.textPrimary,
+                      fontWeight: FontWeight.w500,
+                      maxLines: 1,
+                      minFontSize: 12,
+                      letterSpacing: 1.2,
                     ),
-                    width: responsive.iconSizeLarge,
-                    height: responsive.iconSizeLarge,
-                  ),
-                ],
+                    SizedBox(width: responsive.spacing(8)),
+                    SvgPicture.asset(
+                      AppIcons.dropdownIc,
+                      colorFilter: ColorFilter.mode(
+                        isDark ? Colors.white : AppColorsLight.iconPrimary,
+                        BlendMode.srcIn,
+                      ),
+                      width: responsive.iconSizeLarge,
+                      height: responsive.iconSizeLarge,
+                    ),
+                  ],
+                ),
               );
             }),
           ),
