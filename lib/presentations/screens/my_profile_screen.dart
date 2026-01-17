@@ -559,7 +559,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         ],
 
         textColor: AppColors.white,
-        fontSize: responsive.fontSize(16),
+        fontSize: responsive.fontSize(20),
         fontWeight: FontWeight.w600,
         borderColor: isDark ? AppColors.driver : AppColors.border1,
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),

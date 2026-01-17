@@ -259,19 +259,23 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
 
                   // Main Content
                   Expanded(
-                    child: SingleChildScrollView(
-                      dragStartBehavior: DragStartBehavior.start,
-                      physics: BouncingScrollPhysics(),
-                      padding: EdgeInsets.all(responsive.spaceMD),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          _buildMainContent(responsive),
-                        ],
-                      ),
-
-    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: EdgeInsets.all(responsive.spaceMD),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight, // 🔥 force top start
+                            ),
+                            child: Align(
+                              alignment: Alignment.topLeft, // 🔥 ALWAYS TOP
+                              child: _buildMainContent(responsive),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),

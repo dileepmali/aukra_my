@@ -240,7 +240,7 @@ class ListItemWidget extends StatelessWidget {
                                   color: subtitleColor ?? (isPositiveAmount == true
                                       ? AppColors.textDisabled
                                       : isPositiveAmount == false
-                                      ? AppColors.textSecondary
+                                      ? AppColors.textDisabled
                                       : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary)),
                                   maxLines: 2,
                                   minFontSize: 12,

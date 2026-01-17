@@ -646,15 +646,6 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
     if (phoneText.isEmpty) {
       debugPrint('🚨 Phone is empty - calling AdvancedErrorService.showError()');
 
-      // 🔥 FIX: Force hide any stuck progress before showing error
-      // This ensures validation errors are ALWAYS visible on login/OTP screens
-      if (AdvancedErrorService.isProgressShowing) {
-        debugPrint('⚠️ Progress is stuck - force hiding before showing validation error');
-        AdvancedErrorService.hideProgress(force: true);
-        // Small delay to ensure progress is hidden
-        await Future.delayed(Duration(milliseconds: 100));
-      }
-
       AdvancedErrorService.showError(
         AppStrings.getLocalizedString(context, (localizations) => localizations.pleaseEnterPhoneNumber),
         category: ErrorCategory.validation,

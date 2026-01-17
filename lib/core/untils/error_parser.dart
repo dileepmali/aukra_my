@@ -86,12 +86,12 @@ class ErrorParser {
         case 404:
           title = 'Not Found';
           category = ErrorCategory.server;
-          severity = ErrorSeverity.warning;
+          severity = ErrorSeverity.medium;
           break;
         case 500:
           title = 'Server Error';
           category = ErrorCategory.server;
-          severity = ErrorSeverity.critical;
+          severity = ErrorSeverity.high;
           break;
         default:
           title = 'Request Failed';

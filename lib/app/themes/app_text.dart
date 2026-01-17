@@ -882,39 +882,6 @@ class AppText {
   }
 
   // ============================================================================
-  // 🔧 CUSTOM - Apna custom style ke saath
-  // ============================================================================
-
-  /// Custom text with any TextStyle from AppFonts
-  /// Full flexibility for special cases
-  static Widget custom(
-    String text, {
-    required TextStyle style,
-    int maxLines = 2,
-    double minFontSize = 8,
-    double? maxFontSize,
-    TextAlign? textAlign,
-    TextOverflow overflow = TextOverflow.ellipsis,
-    AutoSizeGroup? group,
-    List<double>? presetFontSizes,
-    double? letterSpacing,
-  }) {
-    return AutoSizeText(
-      text,
-      style: letterSpacing != null
-          ? style.copyWith(letterSpacing: letterSpacing)
-          : style,
-      maxLines: maxLines,
-      minFontSize: minFontSize,
-      maxFontSize: maxFontSize ?? double.infinity,
-      overflow: overflow,
-      textAlign: textAlign,
-      group: group,
-      presetFontSizes: presetFontSizes,
-    );
-  }
-
-  // ============================================================================
   // 🎯 DEVICE-SPECIFIC - AUTO SIZE
   // ============================================================================
 

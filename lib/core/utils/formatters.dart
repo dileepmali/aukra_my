@@ -134,34 +134,34 @@ class Formatters {
     return cleanNumber;
   }
 
-  /// Formats phone number with country code and hyphen separator (for UI display)
+  /// Formats phone number with country code and space separator (for UI display)
   ///
   /// Examples:
-  /// - "9876543210" → "91-9876543210" (adds 91- prefix for 10 digit numbers)
-  /// - "+919876543210" → "91-9876543210"
-  /// - "919876543210" → "91-9876543210"
+  /// - "9876543210" → "+91 9876543210" (adds +91 prefix for 10 digit numbers)
+  /// - "+919876543210" → "+91 9876543210"
+  /// - "919876543210" → "+91 9876543210"
   static String formatPhoneWithCountryCode(String phoneNumber) {
     if (phoneNumber.isEmpty) return phoneNumber;
 
     // Remove any existing spaces, +, and -
     String cleanNumber = phoneNumber.replaceAll(RegExp(r'[\s\+\-]'), '');
 
-    // If it's exactly 10 digits, add 91- prefix (India)
+    // If it's exactly 10 digits, add +91 prefix (India)
     if (cleanNumber.length == 10) {
-      return '91-$cleanNumber';
+      return '+91 $cleanNumber';
     }
 
     // If it starts with 91 and has 12 digits (91 + 10 digit number)
     if (cleanNumber.startsWith('91') && cleanNumber.length == 12) {
       String number = cleanNumber.substring(2);
-      return '91-$number';
+      return '+91 $number';
     }
 
     // For other cases with more than 10 digits, extract last 10 as number
     if (cleanNumber.length > 10) {
       String countryCode = cleanNumber.substring(0, cleanNumber.length - 10);
       String number = cleanNumber.substring(cleanNumber.length - 10);
-      return '$countryCode-$number';
+      return '+$countryCode $number';
     }
 
     return cleanNumber;

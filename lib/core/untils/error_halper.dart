@@ -140,7 +140,7 @@ class ErrorMigrationHelper {
   static void showCopySuccess() {
     AdvancedErrorService.showSuccess(
       'success_share',
-      type: SuccessType.toast,
+      type: SuccessType.snackbar,
     );
   }
 

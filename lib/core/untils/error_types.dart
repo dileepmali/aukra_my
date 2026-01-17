@@ -7,12 +7,8 @@ import 'dart:ui';
 enum ErrorSeverity {
   low,        // Toast message (2s)
   medium,     // Snackbar with action (4s)
-  high,       // Dialog with retry (6s)
-  critical,   // Full screen error (10s)
+  high,       // Snackbar with longer duration (5s)
   // Legacy values for backward compatibility
-  success,    // Green - Success messages
-  info,       // Blue - Information
-  warning,    // Orange - Warnings
   error,      // Red - Errors
   network,    // Grey - Network issues
   auth,       // Purple - Authentication issues
@@ -138,7 +134,5 @@ class ErrorDisplayConfig {
 
 /// Success message types
 enum SuccessType {
-  toast,    // Quick feedback (2s)
   snackbar, // Medium feedback (3s)
-  dialog,   // Important feedback (until dismissed)
 }

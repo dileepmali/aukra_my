@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../app/themes/app_colors.dart';
 import '../app/themes/app_text.dart';
 import '../core/haptic_service.dart';
@@ -414,14 +415,13 @@ class _AppButtonState extends State<AppButton>
               ),
           SizedBox(width: widget.iconSpacing ?? 12),
           Flexible(
-            child: AppText.custom(
+            child: AutoSizeText(
               widget.loadingText!,
               style: _getTextStyle(),
               textAlign: widget.textAlign ?? TextAlign.center,
-              maxLines: widget.maxLines ?? 2, // ✅ Changed default to 2 lines for loading text
-              minFontSize: 12, // ✅ Increased minFontSize for better readability
+              maxLines: widget.maxLines ?? 2,
+              minFontSize: 12,
               overflow: widget.textOverflow ?? TextOverflow.ellipsis,
-              letterSpacing: 1.1
             ),
           ),
         ],
@@ -470,16 +470,16 @@ class _AppButtonState extends State<AppButton>
       children.add(SizedBox(width: widget.iconSpacing ?? 8));
     }
 
-    // Text - Using AppText for auto-sizing support
+    // Text - Using AutoSizeText for auto-sizing support
     if (widget.text != null || widget.translationKey != null) {
       children.add(Flexible(
-        child: AppText.custom(
+        child: AutoSizeText(
           _getLocalizedText(),
           style: _getTextStyle(),
           textAlign: widget.textAlign ?? TextAlign.center,
-          maxLines: widget.maxLines ?? 2, // ✅ Changed default to 2 lines for better text wrapping
-          minFontSize: 8, // ✅ Further reduced to 8 to prevent overflow with long South Indian text
-          overflow: TextOverflow.visible, // ✅ Allow text to wrap instead of ellipsis
+          maxLines: widget.maxLines ?? 2,
+          minFontSize: 8,
+          overflow: TextOverflow.ellipsis,
         ),
       ));
     }
@@ -598,139 +598,6 @@ class _AppButtonState extends State<AppButton>
           ),
         ),
       ),
-    );
-  }
-}
-
-
-// Predefined button variants for common use cases
-class AppButtonVariants {
-  static AppButton primary({
-    Key? key,
-    String? text,
-    String? translationKey,
-    VoidCallback? onPressed,
-    bool? isLoading,
-    double? width,
-    double? height,
-    IconData? icon,
-  }) {
-    return AppButton(
-      key: key,
-      text: text,
-      translationKey: translationKey,
-      onPressed: onPressed,
-      isLoading: isLoading,
-      width: width,
-      height: height,
-      icon: icon,
-      backgroundColor: Colors.blue,
-      textColor: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-    );
-  }
-
-  static AppButton secondary({
-    Key? key,
-    String? text,
-    String? translationKey,
-    VoidCallback? onPressed,
-    bool? isLoading,
-    double? width,
-    double? height,
-    IconData? icon,
-  }) {
-    return AppButton(
-      key: key,
-      text: text,
-      translationKey: translationKey,
-      onPressed: onPressed,
-      isLoading: isLoading,
-      width: width,
-      height: height,
-      icon: icon,
-      backgroundColor: Colors.transparent,
-      textColor: Colors.blue,
-      borderColor: Colors.blue,
-      borderRadius: BorderRadius.circular(8),
-    );
-  }
-
-  static AppButton danger({
-    Key? key,
-    String? text,
-    String? translationKey,
-    VoidCallback? onPressed,
-    bool? isLoading,
-    double? width,
-    double? height,
-    IconData? icon,
-  }) {
-    return AppButton(
-      key: key,
-      text: text,
-      translationKey: translationKey,
-      onPressed: onPressed,
-      isLoading: isLoading,
-      width: width,
-      height: height,
-      icon: icon,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-    );
-  }
-
-  static AppButton success({
-    Key? key,
-    String? text,
-    String? translationKey,
-    VoidCallback? onPressed,
-    bool? isLoading,
-    double? width,
-    double? height,
-    IconData? icon,
-  }) {
-    return AppButton(
-      key: key,
-      text: text,
-      translationKey: translationKey,
-      onPressed: onPressed,
-      isLoading: isLoading,
-      width: width,
-      height: height,
-      icon: icon,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-    );
-  }
-
-  static AppButton outline({
-    Key? key,
-    String? text,
-    String? translationKey,
-    VoidCallback? onPressed,
-    bool? isLoading,
-    double? width,
-    double? height,
-    IconData? icon,
-    Color? borderColor,
-    Color? textColor,
-  }) {
-    return AppButton(
-      key: key,
-      text: text,
-      translationKey: translationKey,
-      onPressed: onPressed,
-      isLoading: isLoading,
-      width: width,
-      height: height,
-      icon: icon,
-      backgroundColor: Colors.transparent,
-      textColor: textColor ?? Colors.black,
-      borderColor: borderColor ?? Colors.grey,
-      borderRadius: BorderRadius.circular(8),
     );
   }
 } 
