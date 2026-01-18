@@ -197,11 +197,8 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildHeaderCard(AdvancedResponsiveHelper responsive, bool isDark) {
-    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
-    final isPositive = BalanceHelper.isPositive(
-      currentBalance: _accountController.totalNetBalance,
-      itemName: 'Account: Total Net Balance',
-    );
+    // ✅ Use netBalanceType from Dashboard API (not balance sign)
+    final isPositive = _accountController.totalBalanceType == 'IN';
 
     return Stack(
       children:[
@@ -224,14 +221,15 @@ class _AccountScreenState extends State<AccountScreen> {
                   color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
-                AppText.searchbar2(
-                  '₹${Formatters.formatAmountWithCommas(_accountController.totalNetBalance.abs().toString())}',
-                  color: isPositive
-                      ? AppColors.primeryamount
-                      : AppColors.red500,
-                  fontWeight: FontWeight.w600,
+                Flexible(
+                  child: AppText.searchbar2(
+                    '₹${Formatters.formatAmountWithCommas(_accountController.totalNetBalance.abs().toString())}',
+                    color: isPositive
+                        ? AppColors.primeryamount
+                        : AppColors.red500,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-
               ],
             ),
             SizedBox(height: responsive.hp(0.5)),
@@ -257,11 +255,8 @@ class _AccountScreenState extends State<AccountScreen> {
     required String balanceType,
     required VoidCallback onViewAll,
   }) {
-    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
-    final isPositive = BalanceHelper.isPositive(
-      currentBalance: balance,
-      itemName: 'Account: $title',
-    );
+    // ✅ Use balanceType from Dashboard API (not balance sign)
+    final isPositive = balanceType == 'IN';
 
     return Container(
       width: double.infinity,
@@ -341,12 +336,14 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                 ],
               ),
-              AppText.searchbar1(
-                '₹${Formatters.formatAmountWithCommas(balance.abs().toString())}',
-                color: isPositive
-                    ? AppColors.primeryamount
-                    : AppColors.red500,
-                fontWeight: FontWeight.w600,
+              Flexible(
+                child: AppText.searchbar1(
+                  '₹${Formatters.formatAmountWithCommas(balance.abs().toString())}',
+                  color: isPositive
+                      ? AppColors.primeryamount
+                      : AppColors.red500,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),

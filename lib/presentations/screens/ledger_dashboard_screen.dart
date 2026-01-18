@@ -1,4 +1,5 @@
 import 'package:aukra_anantkaya_space/presentations/widgets/custom_single_border_color.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -11,14 +12,12 @@ import '../../controllers/ledger_dashboard_controller.dart';
 import '../../controllers/privacy_setting_controller.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
-import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../../core/utils/formatters.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/animated_pie_chart.dart';
 import '../widgets/list_item_widget.dart';
-import '../widgets/bottom_sheets/transaction_detail_bottom_sheet.dart';
 import '../widgets/account_statement_widget.dart';
 import '../../controllers/account_statement_controller.dart';
 import '../widgets/dialogs/pin_verification_dialog.dart';
@@ -517,68 +516,67 @@ class LedgerDashboardScreen extends StatelessWidget {
     }
 
     return Padding(
-      padding:  EdgeInsets.symmetric(horizontal: responsive.wp(5)),
+      padding: EdgeInsets.symmetric(horizontal: responsive.wp(3)),
       child: Row(
-            children: [
-              // Monthly OUT
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      AppIcons.arrowOutIc,
-                      width: responsive.iconSizeLarge,
-                      height: responsive.iconSizeLarge,
-                      colorFilter: ColorFilter.mode(
-                        AppColors.white,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    SizedBox(width: responsive.wp(2)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText.displayMedium2(
-                          '₹ ${Formatters.formatAmountWithCommas(monthlyOut.toString())}',
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ],
-                    ),
-                  ],
+        children: [
+          // Monthly OUT
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  AppIcons.arrowOutIc,
+                  width: responsive.iconSizeLarge,
+                  height: responsive.iconSizeLarge,
+                  colorFilter: ColorFilter.mode(
+                    AppColors.white,
+                    BlendMode.srcIn,
+                  ),
                 ),
-              ),
-              // Monthly IN
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      AppIcons.arrowInIc,
-                      width: responsive.iconSizeLarge,
-                      height: responsive.iconSizeLarge,
-                      colorFilter: ColorFilter.mode(
-                        AppColors.white,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    SizedBox(width: responsive.wp(2)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText.displayMedium2(
-                          '₹ ${Formatters.formatAmountWithCommas(monthlyIn.toString())}',
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ],
-                    ),
-                  ],
+                SizedBox(width: responsive.wp(2)),
+                Flexible(
+                  child: AppText.displaySmall(
+                    null,
+                    amount: monthlyOut,
+                    prefix: '₹ ',
+                    minFontSize: 10,
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-
-            ],
+              ],
+            ),
           ),
+          // Monthly IN
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  AppIcons.arrowInIc,
+                  width: responsive.iconSizeLarge,
+                  height: responsive.iconSizeLarge,
+                  colorFilter: ColorFilter.mode(
+                    AppColors.white,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                SizedBox(width: responsive.wp(2)),
+                Flexible(
+                  child: AppText.displaySmall(
+                    null,
+                    amount: monthlyIn,
+                    prefix: '₹ ',
+                    minFontSize: 10,
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -680,27 +678,26 @@ class LedgerDashboardScreen extends StatelessWidget {
     String? topRightIcon,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: responsive.wp(3),vertical: responsive.hp(1)),
+      padding: EdgeInsets.symmetric(horizontal: responsive.wp(3), vertical: responsive.hp(1)),
       decoration: BoxDecoration(
         gradient: isDark
             ? LinearGradient(
-          colors: [
-            AppColors.containerDark,
-            AppColors.containerDark,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        )
+                colors: [
+                  AppColors.containerDark,
+                  AppColors.containerDark,
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )
             : LinearGradient(
-          colors: [
-            AppColorsLight.gradientColor1,
-            AppColorsLight.gradientColor2,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+                colors: [
+                  AppColorsLight.gradientColor1,
+                  AppColorsLight.gradientColor2,
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -708,13 +705,17 @@ class LedgerDashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText.headlineMedium(
-                title,
-                color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+              Flexible(
+                child: AppText.headlineMedium(
+                  title,
+                  color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               SizedBox(
-                width: responsive.iconSizeExtraLarge ,
-                height: responsive.iconSizeExtraLarge ,
+                width: responsive.iconSizeExtraLarge,
+                height: responsive.iconSizeExtraLarge,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -746,10 +747,14 @@ class LedgerDashboardScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: responsive.hp(0.5)),
-          AppText.displayMedium2(
-            '₹ ${Formatters.formatAmountWithCommas(amount.toString())}',
+          // Use AppText for auto-scaling amount
+          AppText.displaySmall(
+            null,
+            amount: amount,
+            prefix: '₹ ',
+            minFontSize: 12,
             color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ],
       ),
@@ -952,7 +957,6 @@ class LedgerDashboardScreen extends StatelessWidget {
                   AppColors.containerDark,
                   AppColors.containerDark,
                   AppColors.containerLight,
-
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -982,12 +986,18 @@ class LedgerDashboardScreen extends StatelessWidget {
             SizedBox(width: responsive.wp(1.5)),
           ],
 
-          // Label : Value (centered format)
+          // Label : Value (centered format) - Auto-scaling text
           Flexible(
-            child: AppText.bodyLarge(
+            child: AutoSizeText(
               '$label : $value',
-              color: AppColors.white,
-              fontWeight: FontWeight.w400,
+              style: TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w400,
+                fontSize: 14,
+              ),
+              maxFontSize: 14,
+              minFontSize: 9,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
             ),
@@ -1033,7 +1043,7 @@ class LedgerDashboardScreen extends StatelessWidget {
         : 'No note added';
 
     return ListItemWidget(
-      itemMargin: EdgeInsets.symmetric(horizontal: responsive.wp(4),vertical: responsive.hp(0.2)),
+      itemMargin: EdgeInsets.symmetric(horizontal: responsive.wp(4), vertical: responsive.hp(0.2)),
       title: noteTitle,
       subtitle: formattedDate,
       subtitleColor: AppColors.white,
@@ -1051,10 +1061,18 @@ class LedgerDashboardScreen extends StatelessWidget {
           BlendMode.srcIn,
         ),
       ),
-      subtitleSuffix: AppText.headlineMedium(
+      // Use AutoSizeText for balance to prevent overflow
+      subtitleSuffix: AutoSizeText(
         'Bal. - ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
-        color: AppColors.white,
-        fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
+        style: TextStyle(
+          color: AppColors.white,
+          fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
+          fontSize: 12,
+        ),
+        maxFontSize: 12,
+        minFontSize: 8,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       subtitleFontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       amount: formattedAmount,

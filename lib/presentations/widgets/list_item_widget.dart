@@ -201,17 +201,21 @@ class ListItemWidget extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(width: responsive.spacing(3)),
-                                // Amount number - bigger font
-                                AppText.searchbar4(
-                                  amount!.replaceAll('₹', '').trim(),
-                                  color: isPositiveAmount == true
-                                      ? AppColors.primeryamount
-                                      : isPositiveAmount == false
-                                          ? AppColors.red500
-                                          : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                                  fontWeight: FontWeight.w600,
-                                  maxLines: 1,
-                                  minFontSize: 14,
+                                // Amount number - bigger font with auto-shrink
+                                // Using ConstrainedBox to limit max width for auto-shrink
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxWidth: responsive.wp(25)),
+                                  child: AppText.searchbar4(
+                                    amount!.replaceAll('₹', '').trim(),
+                                    color: isPositiveAmount == true
+                                        ? AppColors.primeryamount
+                                        : isPositiveAmount == false
+                                            ? AppColors.red500
+                                            : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
+                                    fontWeight: FontWeight.w600,
+                                    maxLines: 1,
+                                    minFontSize: 10,
+                                  ),
                                 ),
                               ],
                             ),

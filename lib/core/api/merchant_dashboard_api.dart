@@ -56,7 +56,6 @@ class MerchantDashboardApi {
       debugPrint('   - Today Out: ₹${dashboardModel.todayOut}');
       debugPrint('   - Overall Given: ₹${dashboardModel.overallGiven}');
       debugPrint('   - Overall Received: ₹${dashboardModel.overallReceived}');
-      debugPrint('   - Total Net Balance: ₹${dashboardModel.totalNetBalance}');
       debugPrint('   - Customer Balance: ₹${dashboardModel.party.customer.netBalance}');
       debugPrint('   - Supplier Balance: ₹${dashboardModel.party.supplier.netBalance}');
       debugPrint('   - Employee Balance: ₹${dashboardModel.party.employee.netBalance}');

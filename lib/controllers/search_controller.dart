@@ -42,11 +42,11 @@ class SearchController extends GetxController {
   /// Search summary (counts and totals)
   final summary = SearchSummary.empty().obs;
 
-  /// Current sort option
-  final sortBy = SearchSortBy.name.obs;
+  /// Current sort option (default: transaction_date - newest first)
+  final sortBy = SearchSortBy.recent.obs;
 
-  /// Current sort order
-  final sortOrder = SearchSortOrder.ascending.obs;
+  /// Current sort order (default: descending - newest first)
+  final sortOrder = SearchSortOrder.descending.obs;
 
   // ============================================================
   // FILTER STATE
@@ -289,25 +289,43 @@ class SearchController extends GetxController {
   void _sortResults(List<SearchResultItem> results) {
     final isAsc = sortOrder.value == SearchSortOrder.ascending;
 
+    debugPrint('📊 _sortResults()');
+    debugPrint('   Sort by: ${sortBy.value}');
+    debugPrint('   Sort order: ${isAsc ? "ascending" : "descending"}');
+
     switch (sortBy.value) {
       case SearchSortBy.name:
         results.sort((a, b) => isAsc
             ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
             : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        debugPrint('   ✅ Sorted by name');
         break;
 
       case SearchSortBy.balance:
         results.sort((a, b) => isAsc
             ? a.balance.compareTo(b.balance)
             : b.balance.compareTo(a.balance));
+        debugPrint('   ✅ Sorted by balance');
         break;
 
       case SearchSortBy.recent:
-        // Sort by ID (newer entries have higher IDs)
-        results.sort((a, b) => isAsc
-            ? a.id.compareTo(b.id)
-            : b.id.compareTo(a.id));
+        // ✅ FIX: Sort by actual date (updatedAt or createdAt), NOT by ID
+        results.sort((a, b) {
+          final dateA = a.updatedAt ?? a.createdAt ?? DateTime(1970);
+          final dateB = b.updatedAt ?? b.createdAt ?? DateTime(1970);
+          debugPrint('   Comparing: ${a.name} (${dateA}) vs ${b.name} (${dateB})');
+          return isAsc ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+        });
+        debugPrint('   ✅ Sorted by transaction_date (updatedAt/createdAt)');
         break;
+    }
+
+    // Debug: Show sorted order
+    debugPrint('   📋 Sorted order:');
+    for (int i = 0; i < results.length && i < 5; i++) {
+      final item = results[i];
+      final date = item.updatedAt ?? item.createdAt;
+      debugPrint('      ${i + 1}. ${item.name} - ${date?.toLocal()}');
     }
   }
 
@@ -367,7 +385,7 @@ class SearchController extends GetxController {
           sortBy.value = SearchSortBy.recent;
           break;
         case 'default':
-          sortBy.value = SearchSortBy.name;
+          sortBy.value = SearchSortBy.recent;
           break;
       }
     }
@@ -400,7 +418,11 @@ class SearchController extends GetxController {
     final filterTransaction = filters['transactionFilter'] as String?;
     if (filterTransaction != null) {
       transactionFilter.value = filterTransaction;
-      debugPrint('💰 Transaction filter: $filterTransaction');
+      debugPrint('═══════════════════════════════════════════════════════════');
+      debugPrint('💰 TRANSACTION FILTER CHANGED: $filterTransaction');
+      debugPrint('   in_transaction = Show positive balance (customer owes you)');
+      debugPrint('   out_transaction = Show negative balance (you owe customer)');
+      debugPrint('═══════════════════════════════════════════════════════════');
     }
 
     // Handle Reminder Filter
@@ -432,30 +454,48 @@ class SearchController extends GetxController {
 
   /// Show all ledgers with filters applied (without search query)
   void showAllWithFilters() {
-    debugPrint('🔍 Showing all ledgers with filters (no search query)');
+    debugPrint('═══════════════════════════════════════════════════════════');
+    debugPrint('🔍 showAllWithFilters() called');
+    debugPrint('   Transaction Filter: ${transactionFilter.value}');
+    debugPrint('═══════════════════════════════════════════════════════════');
 
     // Convert all ledgers to SearchResultItem
     final allResults = allLedgers.map((ledger) {
-      return SearchResultItem.fromLedger(ledger);
+      final item = SearchResultItem.fromLedger(ledger);
+      debugPrint('📦 Ledger: ${ledger.name}');
+      debugPrint('   currentBalance: ${ledger.currentBalance}');
+      debugPrint('   transactionType (opening): ${ledger.transactionType}');
+      debugPrint('   → balanceType (from currentBalance): ${item.balanceType}');
+      return item;
     }).toList();
 
-    debugPrint('📋 Total ledgers: ${allResults.length}');
+    debugPrint('───────────────────────────────────────────────────────────');
+    debugPrint('📋 Total ledgers converted: ${allResults.length}');
+
+    // Debug: Show distribution
+    final inItems = allResults.where((item) => item.balanceType == 'IN').toList();
+    final outItems = allResults.where((item) => item.balanceType == 'OUT').toList();
+    debugPrint('📊 Distribution BEFORE filter:');
+    debugPrint('   IN (positive balance): ${inItems.length}');
+    debugPrint('   OUT (negative balance): ${outItems.length}');
 
     // Apply filters
     var filteredResults = _applyFilters(allResults);
+    debugPrint('───────────────────────────────────────────────────────────');
     debugPrint('🔍 After filters: ${filteredResults.length} results');
 
     // Sort results
     _sortResults(filteredResults);
 
     searchResults.value = filteredResults;
+    debugPrint('═══════════════════════════════════════════════════════════');
   }
 
   /// Update flag to indicate if filters are active (including sort)
   void _updateActiveFiltersFlag() {
-    // Check if sort is non-default (default is name + ascending)
-    final isSortActive = sortBy.value != SearchSortBy.name ||
-        sortOrder.value != SearchSortOrder.ascending;
+    // Check if sort is non-default (default is transaction_date + descending)
+    final isSortActive = sortBy.value != SearchSortBy.recent ||
+        sortOrder.value != SearchSortOrder.descending;
 
     hasActiveFilters.value = isSortActive ||
         dateFilter.value != 'all_time' ||
@@ -468,18 +508,32 @@ class SearchController extends GetxController {
 
   /// Apply all filters to a list of results
   List<SearchResultItem> _applyFilters(List<SearchResultItem> results) {
+    debugPrint('🔧 _applyFilters() started');
+    debugPrint('   Input: ${results.length} items');
+    debugPrint('   Active filters:');
+    debugPrint('      dateFilter: ${dateFilter.value}');
+    debugPrint('      transactionFilter: ${transactionFilter.value}');
+    debugPrint('      userFilter: ${userFilter.value}');
+
     var filtered = results.toList();
 
     // Apply Date Filter
+    final beforeDate = filtered.length;
     filtered = _applyDateFilter(filtered);
+    debugPrint('   After date filter: $beforeDate → ${filtered.length}');
 
     // Apply Transaction Filter (IN/OUT)
+    final beforeTransaction = filtered.length;
     filtered = _applyTransactionFilter(filtered);
+    debugPrint('   After transaction filter: $beforeTransaction → ${filtered.length}');
 
     // Apply User Filter (partyType) - Note: Already filtered by partyType in fetch
     // This is for additional filtering if user selects different type
+    final beforeUser = filtered.length;
     filtered = _applyUserFilter(filtered);
+    debugPrint('   After user filter: $beforeUser → ${filtered.length}');
 
+    debugPrint('🔧 _applyFilters() done - Final: ${filtered.length} items');
     return filtered;
   }
 
@@ -528,17 +582,42 @@ class SearchController extends GetxController {
   }
 
   /// Apply transaction filter (IN/OUT)
-  /// ✅ FIX: Use balanceType for filtering
+  /// ✅ balanceType is derived from currentBalance SIGN in SearchResultItem.fromLedger()
   List<SearchResultItem> _applyTransactionFilter(List<SearchResultItem> results) {
+    debugPrint('🎯 _applyTransactionFilter()');
+    debugPrint('   Filter value: "${transactionFilter.value}"');
+    debugPrint('   Input items: ${results.length}');
+
+    // Show all items with their balanceType
+    for (var item in results) {
+      debugPrint('   → ${item.name}: balance=₹${item.balance}, balanceType=${item.balanceType}');
+    }
+
+    List<SearchResultItem> filtered;
     switch (transactionFilter.value) {
       case 'in_transaction':
-        // IN = Positive (Receivable) - Customer owes you
-        return results.where((item) => item.balanceType == 'IN').toList();
+        // IN = Positive balance (currentBalance >= 0)
+        filtered = results.where((item) => item.balanceType == 'IN').toList();
+        debugPrint('   ✅ Filtering for IN (positive balance)');
+        debugPrint('   ✅ Found ${filtered.length} items with balanceType == "IN"');
+        for (var item in filtered) {
+          debugPrint('      ✓ ${item.name}: ₹${item.balance} (${item.balanceType})');
+        }
+        return filtered;
+
       case 'out_transaction':
-        // OUT = Negative (Payable) - You owe customer
-        return results.where((item) => item.balanceType == 'OUT').toList();
+        // OUT = Negative balance (currentBalance < 0)
+        filtered = results.where((item) => item.balanceType == 'OUT').toList();
+        debugPrint('   ❌ Filtering for OUT (negative balance)');
+        debugPrint('   ❌ Found ${filtered.length} items with balanceType == "OUT"');
+        for (var item in filtered) {
+          debugPrint('      ✓ ${item.name}: ₹${item.balance} (${item.balanceType})');
+        }
+        return filtered;
+
       case 'all_transaction':
       default:
+        debugPrint('   📋 No filter applied (all_transaction)');
         return results;
     }
   }
@@ -558,8 +637,10 @@ class SearchController extends GetxController {
     }
   }
 
-  /// Clear all filters
+  /// Clear all filters (reset to defaults: transaction_date descending)
   void clearFilters() {
+    sortBy.value = SearchSortBy.recent;
+    sortOrder.value = SearchSortOrder.descending;
     dateFilter.value = 'all_time';
     transactionFilter.value = 'all_transaction';
     reminderFilter.value = 'all';
@@ -580,10 +661,27 @@ class SearchController extends GetxController {
   // UTILITY METHODS
   // ============================================================
 
-  /// Clear search
+  /// Clear search and reset state for fresh start
+  /// Resets all filters to defaults so RecentSearchesWidget shows first
   void clearSearch() {
     searchQuery.value = '';
     searchResults.clear();
+
+    // Reset all filters to defaults
+    sortBy.value = SearchSortBy.recent;
+    sortOrder.value = SearchSortOrder.descending;
+    dateFilter.value = 'all_time';
+    transactionFilter.value = 'all_transaction';
+    reminderFilter.value = 'all';
+    userFilter.value = 'all';
+    customDateFrom.value = null;
+    customDateTo.value = null;
+    hasActiveFilters.value = false;
+
+    // Disable loading state if data is cached
+    if (allLedgers.isNotEmpty) {
+      isInitialLoading.value = false;
+    }
   }
 
   /// Refresh data

@@ -346,61 +346,66 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText.headlineLarge(
-                  'Closing Balance',
-                  color: AppColors.white.withOpacity(0.8),
-                  fontWeight: FontWeight.w400,
-                ),
-                SizedBox(height: responsive.hp(1)),
-                Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
-                      child: Builder(
-                        builder: (context) {
-                          // ✅ FIX: Use currentBalance SIGN for positive/negative
-                          final isPositive = BalanceHelper.isPositive(
-                            currentBalance: balance,
-                            itemName: 'LedgerDetail: Closing Balance Icon',
-                          );
-                          return SvgPicture.asset(
-                            AppIcons.vectoeIc3,
-                            width: responsive.iconSizeSmall + 5,
-                            height: responsive.iconSizeSmall + 5,
-                            colorFilter: ColorFilter.mode(
-                              isPositive
+            // Wrap in Expanded to give bounded width for Flexible to work
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText.headlineLarge(
+                    'Closing Balance',
+                    color: AppColors.white.withOpacity(0.8),
+                    fontWeight: FontWeight.w400,
+                  ),
+                  SizedBox(height: responsive.hp(1)),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
+                        child: Builder(
+                          builder: (context) {
+                            // ✅ FIX: Use currentBalance SIGN for positive/negative
+                            final isPositive = BalanceHelper.isPositive(
+                              currentBalance: balance,
+                              itemName: 'LedgerDetail: Closing Balance Icon',
+                            );
+                            return SvgPicture.asset(
+                              AppIcons.vectoeIc3,
+                              width: responsive.iconSizeSmall + 5,
+                              height: responsive.iconSizeSmall + 5,
+                              colorFilter: ColorFilter.mode(
+                                isPositive
+                                    ? AppColors.primeryamount  // Green for positive
+                                    : AppColors.red500,         // Red for negative
+                                BlendMode.srcIn,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(width: responsive.wp(1),),
+                      Flexible(
+                        child: Builder(
+                          builder: (context) {
+                            // ✅ FIX: Use currentBalance SIGN for positive/negative
+                            final isPositive = BalanceHelper.isPositive(
+                              currentBalance: balance,
+                              itemName: 'LedgerDetail: Closing Balance Amount',
+                            );
+                            return AppText.displayMedium1(
+                              '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
+                              // Green for positive (IN), Red for negative (OUT)
+                              color: isPositive
                                   ? AppColors.primeryamount  // Green for positive
                                   : AppColors.red500,         // Red for negative
-                              BlendMode.srcIn,
-                            ),
-                          );
-                        },
+                              fontWeight: FontWeight.w700,
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    SizedBox(width: responsive.wp(1),),
-                    Builder(
-                      builder: (context) {
-                        // ✅ FIX: Use currentBalance SIGN for positive/negative
-                        final isPositive = BalanceHelper.isPositive(
-                          currentBalance: balance,
-                          itemName: 'LedgerDetail: Closing Balance Amount',
-                        );
-                        return AppText.displayMedium1(
-                          '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
-                          // Green for positive (IN), Red for negative (OUT)
-                          color: isPositive
-                              ? AppColors.primeryamount  // Green for positive
-                              : AppColors.red500,         // Red for negative
-                          fontWeight: FontWeight.w700,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
             // Stack with 3 SVG icons
             SizedBox(

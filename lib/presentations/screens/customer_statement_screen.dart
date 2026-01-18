@@ -64,7 +64,7 @@ class CustomerStatementScreen extends StatelessWidget {
                 },
               );
             },
-            // Filter callback - opens filter bottom sheet
+              // Filter callback - opens filter bottom sheet
             onFiltersApplied: (filters) => controller.handleFiltersApplied(filters),
             // 🔥 Pass current filter values to restore previous selections (same as search_screen.dart)
             currentSortBy: controller.sortBy.value,
@@ -196,11 +196,12 @@ class CustomerStatementScreen extends StatelessWidget {
     CustomerStatementModel statement,
     CustomerStatementController controller,
   ) {
-    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
-    final isPositive = BalanceHelper.isPositive(
-      currentBalance: statement.netBalance,
-      itemName: 'Statement: Header Net Balance',
-    );
+    // ✅ Use Dashboard API data: partyNetBalance and partyNetBalanceType
+    final netBalance = controller.partyNetBalance;
+    final netBalanceType = controller.partyNetBalanceType;
+    final isPositive = netBalanceType == 'IN';
+
+    debugPrint('📊 Header Card - Net Balance: ₹$netBalance, Type: $netBalanceType, IsPositive: $isPositive');
 
     return Stack(
         children:[
@@ -223,17 +224,19 @@ class CustomerStatementScreen extends StatelessWidget {
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
-                    AppText.displaySmall(
-                      '₹${Formatters.formatAmountWithCommas(statement.netBalance.abs().toString())}',
-                      color: isPositive
-                          ? AppColors.primeryamount
-                          : AppColors.red500,
-                      fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: AppText.displaySmall(
+                        '₹${Formatters.formatAmountWithCommas(netBalance.abs().toString())}',
+                        color: isPositive
+                            ? AppColors.primeryamount
+                            : AppColors.red500,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
                 AppText.headlineLarge1(
-                  '${statement.totalCustomers} ${controller.customerLabel}',
+                  '${controller.partyTotal} ${controller.customerLabel}',
                   color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                   fontWeight: FontWeight.w400,
                 ),
@@ -243,7 +246,7 @@ class CustomerStatementScreen extends StatelessWidget {
     );
   }
 
-  /// Summary Section with Yesterday IN/OUT
+  /// Summary Section with Today IN/OUT (from Dashboard API)
   Widget _buildSummarySection(
     AdvancedResponsiveHelper responsive,
     bool isDark,
@@ -254,6 +257,10 @@ class CustomerStatementScreen extends StatelessWidget {
     String? baseIconOut,
     String? topRightIconOut,
   ) {
+    // Use Dashboard API data for today IN/OUT
+    final todayIn = controller.todayIn;
+    final todayOut = controller.todayOut;
+
     return  Stack(
       children:[
         Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.bottom)),
@@ -261,7 +268,7 @@ class CustomerStatementScreen extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: responsive.wp(1),vertical: responsive.hp(2)),
         child: Row(
           children: [
-            // Total IN Yesterday
+            // Total IN Today
             Expanded(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: responsive.wp(1)),
@@ -311,7 +318,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     AppText.headlineMedium(
-                      'Total amount in yesterday',
+                      'Total amount in today',
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
@@ -329,7 +336,7 @@ class CustomerStatementScreen extends StatelessWidget {
                         ),
                         SizedBox(width: responsive.wp(0.8)),
                         AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(statement.yesterdayTotalIn.toString()),
+                          Formatters.formatAmountWithCommas(todayIn.toString()),
                           color: AppColors.primeryamount,
                           fontWeight: FontWeight.w600,
                         ),
@@ -339,7 +346,7 @@ class CustomerStatementScreen extends StatelessWidget {
                 ),
               ),
             ),
-            // Total OUT Yesterday
+            // Total OUT Today
             Expanded(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: responsive.wp(1)),
@@ -389,7 +396,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     AppText.headlineMedium(
-                      'Total amount out yesterday',
+                      'Total amount out today',
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
@@ -407,7 +414,7 @@ class CustomerStatementScreen extends StatelessWidget {
                         ),
                         SizedBox(width: responsive.wp(0.9)),
                         AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(statement.yesterdayTotalOut.toString()),
+                          Formatters.formatAmountWithCommas(todayOut.toString()),
                           color: AppColors.red500,
                           fontWeight: FontWeight.w600,
                         ),
@@ -536,18 +543,9 @@ class CustomerStatementScreen extends StatelessWidget {
   }
 
   /// Format DateTime for display
+  /// ✅ Always show real date format (not Today/Yesterday)
   String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final transactionDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-
-    if (transactionDate == today) {
-      return 'Today, ${DateFormat('HH:mm').format(dateTime)}';
-    } else if (transactionDate == yesterday) {
-      return 'Yesterday, ${DateFormat('HH:mm').format(dateTime)}';
-    } else {
-      return DateFormat('dd MMM yyyy, HH:mm').format(dateTime);
-    }
+    // Always show actual date: "18 Jan 2026, 14:30"
+    return DateFormat('dd MMM yyyy, HH:mm').format(dateTime);
   }
 }

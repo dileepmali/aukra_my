@@ -16,52 +16,22 @@ class AccountController extends GetxController {
   // Get LedgerController for counts
   LedgerController get _ledgerController => Get.find<LedgerController>();
 
-  // Computed properties
-  int get totalCustomers => _ledgerController.customers.length;
-  int get totalSuppliers => _ledgerController.suppliers.length;
-  int get totalEmployees => _ledgerController.employers.length;
+  // Computed properties - Use API total count
+  int get totalCustomers => dashboardData.value?.party.customer.total ?? _ledgerController.customers.length;
+  int get totalSuppliers => dashboardData.value?.party.supplier.total ?? _ledgerController.suppliers.length;
+  int get totalEmployees => dashboardData.value?.party.employee.total ?? _ledgerController.employers.length;
 
-  // Dashboard data getters
-  double get totalNetBalance {
-    if (dashboardData.value == null) return 0.0;
-    return dashboardData.value!.totalNetBalance;
-  }
+  // Net Balance from Dashboard API (directly from API response)
+  double get totalNetBalance => dashboardData.value?.netBalance ?? 0.0;
+  double get customerNetBalance => dashboardData.value?.party.customer.netBalance ?? 0.0;
+  double get supplierNetBalance => dashboardData.value?.party.supplier.netBalance ?? 0.0;
+  double get employeeNetBalance => dashboardData.value?.party.employee.netBalance ?? 0.0;
 
-  double get customerNetBalance {
-    if (dashboardData.value == null) return 0.0;
-    return dashboardData.value!.party.customer.netBalance;
-  }
-
-  double get supplierNetBalance {
-    if (dashboardData.value == null) return 0.0;
-    return dashboardData.value!.party.supplier.netBalance;
-  }
-
-  double get employeeNetBalance {
-    if (dashboardData.value == null) return 0.0;
-    return dashboardData.value!.party.employee.netBalance;
-  }
-
-  // Balance type getters for consistent positive/negative logic
-  String get totalBalanceType {
-    if (dashboardData.value == null) return 'OUT';
-    return dashboardData.value!.balanceType;
-  }
-
-  String get customerBalanceType {
-    if (dashboardData.value == null) return 'OUT';
-    return dashboardData.value!.party.customer.balanceType;
-  }
-
-  String get supplierBalanceType {
-    if (dashboardData.value == null) return 'OUT';
-    return dashboardData.value!.party.supplier.balanceType;
-  }
-
-  String get employeeBalanceType {
-    if (dashboardData.value == null) return 'OUT';
-    return dashboardData.value!.party.employee.balanceType;
-  }
+  // Balance type from Dashboard API (directly from API response)
+  String get totalBalanceType => dashboardData.value?.netBalanceType ?? 'OUT';
+  String get customerBalanceType => dashboardData.value?.party.customer.netBalanceType ?? 'OUT';
+  String get supplierBalanceType => dashboardData.value?.party.supplier.netBalanceType ?? 'OUT';
+  String get employeeBalanceType => dashboardData.value?.party.employee.netBalanceType ?? 'OUT';
 
   @override
   void onInit() {

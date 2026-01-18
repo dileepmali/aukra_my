@@ -425,18 +425,39 @@ class LedgerController extends GetxController {
     }).toList();
   }
 
-  /// Apply transaction filter (IN/OUT based on transactionType)
-  /// ✅ FIX: Use transactionType instead of currentBalance
+  /// Apply transaction filter (IN/OUT based on currentBalance sign)
+  /// ✅ FIX: Use currentBalance SIGN (not transactionType which is opening balance type)
+  /// This matches BalanceHelper.isPositive() logic used in ledger_screen.dart
   List<LedgerModel> _applyTransactionFilter(List<LedgerModel> ledgers) {
+    debugPrint('🔍 Applying transaction filter: ${transactionFilter.value}');
+    debugPrint('   Input: ${ledgers.length} ledgers');
+
+    // Debug: Show balance distribution
+    final positiveItems = ledgers.where((l) => l.currentBalance >= 0).length;
+    final negativeItems = ledgers.where((l) => l.currentBalance < 0).length;
+    debugPrint('   Distribution: Positive(IN)=$positiveItems, Negative(OUT)=$negativeItems');
+
+    List<LedgerModel> filtered;
     switch (transactionFilter.value) {
       case 'in_transaction':
-        // IN = Positive (Receivable) - Customer owes you
-        return ledgers.where((l) => l.transactionType == 'IN').toList();
+        // IN = Positive balance (>= 0) - Customer owes you / Receivable
+        filtered = ledgers.where((l) => l.currentBalance >= 0).toList();
+        debugPrint('   ✅ Filtering IN (positive balance): ${filtered.length} results');
+        for (var l in filtered.take(5)) {
+          debugPrint('      - ${l.name}: ₹${l.currentBalance}');
+        }
+        return filtered;
       case 'out_transaction':
-        // OUT = Negative (Payable) - You owe customer
-        return ledgers.where((l) => l.transactionType == 'OUT').toList();
+        // OUT = Negative balance (< 0) - You owe customer / Payable
+        filtered = ledgers.where((l) => l.currentBalance < 0).toList();
+        debugPrint('   ❌ Filtering OUT (negative balance): ${filtered.length} results');
+        for (var l in filtered.take(5)) {
+          debugPrint('      - ${l.name}: ₹${l.currentBalance}');
+        }
+        return filtered;
       case 'all_transaction':
       default:
+        debugPrint('   📋 No filter (all transactions): ${ledgers.length} results');
         return ledgers;
     }
   }

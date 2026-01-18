@@ -1,26 +1,15 @@
 /// Model for Customer Statement Screen
-/// This model represents the aggregated data for customer statements
+/// This model represents the customer list only
+/// NOTE: netBalance, totalCustomers, yesterdayIn/Out are now from Dashboard API
 class CustomerStatementModel {
-  final double netBalance;
-  final int totalCustomers;
-  final double yesterdayTotalIn;
-  final double yesterdayTotalOut;
   final List<CustomerStatementItem> customers;
 
   CustomerStatementModel({
-    required this.netBalance,
-    required this.totalCustomers,
-    required this.yesterdayTotalIn,
-    required this.yesterdayTotalOut,
     required this.customers,
   });
 
   factory CustomerStatementModel.fromJson(Map<String, dynamic> json) {
     return CustomerStatementModel(
-      netBalance: (json['netBalance'] ?? 0).toDouble(),
-      totalCustomers: json['totalCustomers'] ?? 0,
-      yesterdayTotalIn: (json['yesterdayTotalIn'] ?? 0).toDouble(),
-      yesterdayTotalOut: (json['yesterdayTotalOut'] ?? 0).toDouble(),
       customers: (json['customers'] as List<dynamic>?)
               ?.map((item) => CustomerStatementItem.fromJson(item))
               .toList() ??
@@ -30,17 +19,9 @@ class CustomerStatementModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'netBalance': netBalance,
-      'totalCustomers': totalCustomers,
-      'yesterdayTotalIn': yesterdayTotalIn,
-      'yesterdayTotalOut': yesterdayTotalOut,
       'customers': customers.map((item) => item.toJson()).toList(),
     };
   }
-
-  /// Get balance type: 'IN' = Receivable, 'OUT' = Payable
-  /// This follows the same pattern as transactionType for consistency
-  String get balanceType => netBalance >= 0 ? 'IN' : 'OUT';
 }
 
 /// Individual customer item in statement

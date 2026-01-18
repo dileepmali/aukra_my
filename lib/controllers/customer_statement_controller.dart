@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/customer_statement_api.dart';
+import '../core/api/merchant_dashboard_api.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import '../models/customer_statement_model.dart';
+import '../models/merchant_dashboard_model.dart';
 
 /// Controller for Customer Statement Screen
 class CustomerStatementController extends GetxController {
   final CustomerStatementApi _statementApi = CustomerStatementApi();
+  final MerchantDashboardApi _dashboardApi = MerchantDashboardApi();
 
   // Observable variables
   final isLoading = false.obs;
@@ -15,19 +18,79 @@ class CustomerStatementController extends GetxController {
   final statementData = Rxn<CustomerStatementModel>();
   final searchQuery = ''.obs;
 
+  // Dashboard data from GET /api/merchant/{merchantId}/dashboard
+  final dashboardData = Rxn<MerchantDashboardModel>();
+
   // Party type: 'CUSTOMER', 'SUPPLIER', 'EMPLOYEE'
   String partyType = 'CUSTOMER';
   String partyTypeLabel = 'Customer';
+
+  // ============================================================
+  // DASHBOARD API DATA GETTERS
+  // ============================================================
+
+  /// Get net balance for current party type from Dashboard API
+  double get partyNetBalance {
+    if (dashboardData.value == null) return 0.0;
+    switch (partyType) {
+      case 'CUSTOMER':
+        return dashboardData.value!.party.customer.netBalance;
+      case 'SUPPLIER':
+        return dashboardData.value!.party.supplier.netBalance;
+      case 'EMPLOYEE':
+        return dashboardData.value!.party.employee.netBalance;
+      default:
+        return 0.0;
+    }
+  }
+
+  /// Get net balance type for current party type from Dashboard API
+  String get partyNetBalanceType {
+    if (dashboardData.value == null) return 'OUT';
+    switch (partyType) {
+      case 'CUSTOMER':
+        return dashboardData.value!.party.customer.netBalanceType;
+      case 'SUPPLIER':
+        return dashboardData.value!.party.supplier.netBalanceType;
+      case 'EMPLOYEE':
+        return dashboardData.value!.party.employee.netBalanceType;
+      default:
+        return 'OUT';
+    }
+  }
+
+  /// Get total count for current party type from Dashboard API
+  int get partyTotal {
+    if (dashboardData.value == null) return 0;
+    switch (partyType) {
+      case 'CUSTOMER':
+        return dashboardData.value!.party.customer.total;
+      case 'SUPPLIER':
+        return dashboardData.value!.party.supplier.total;
+      case 'EMPLOYEE':
+        return dashboardData.value!.party.employee.total;
+      default:
+        return 0;
+    }
+  }
+
+  /// Get today's IN from Dashboard API
+  double get todayIn => dashboardData.value?.todayIn ?? 0.0;
+
+  /// Get today's OUT from Dashboard API
+  double get todayOut => dashboardData.value?.todayOut ?? 0.0;
 
   // ============================================================
   // FILTER STATE (same as SearchController)
   // ============================================================
 
   /// Sort by: name, amount, transaction_date
-  final sortBy = 'name'.obs;
+  /// Default: transaction_date (most recent first)
+  final sortBy = 'transaction_date'.obs;
 
   /// Sort order: asc, desc
-  final sortOrder = 'asc'.obs;
+  /// Default: desc (newest first)
+  final sortOrder = 'desc'.obs;
 
   /// Date filter: today, yesterday, older_week, older_month, all_time, custom
   final dateFilter = 'all_time'.obs;
@@ -61,8 +124,36 @@ class CustomerStatementController extends GetxController {
 
     debugPrint('📊 CustomerStatementController initialized for: $partyType');
 
-    // Fetch statement data
-    fetchStatement();
+    // Fetch statement data and dashboard data
+    fetchAllData();
+  }
+
+  /// Fetch all data (statement + dashboard)
+  Future<void> fetchAllData() async {
+    await Future.wait([
+      fetchStatement(),
+      fetchDashboard(),
+    ]);
+  }
+
+  /// Fetch dashboard data from GET /api/merchant/{merchantId}/dashboard
+  Future<void> fetchDashboard() async {
+    try {
+      debugPrint('📊 Fetching dashboard data for $partyType...');
+
+      final data = await _dashboardApi.getMerchantDashboard();
+      dashboardData.value = data;
+
+      debugPrint('✅ Dashboard loaded successfully');
+      debugPrint('   - Party Net Balance: ₹$partyNetBalance');
+      debugPrint('   - Party Net Balance Type: $partyNetBalanceType');
+      debugPrint('   - Party Total: $partyTotal');
+      debugPrint('   - Today IN: ₹$todayIn');
+      debugPrint('   - Today OUT: ₹$todayOut');
+    } catch (e) {
+      debugPrint('❌ Error fetching dashboard: $e');
+      // Don't set error message - dashboard is secondary data
+    }
   }
 
   /// Fetch statement data
@@ -80,10 +171,7 @@ class CustomerStatementController extends GetxController {
       statementData.value = data;
 
       debugPrint('✅ Statement loaded successfully');
-      debugPrint('   - Net Balance: ₹${data.netBalance}');
-      debugPrint('   - Total ${partyTypeLabel}s: ${data.totalCustomers}');
-      debugPrint('   - Yesterday IN: ₹${data.yesterdayTotalIn}');
-      debugPrint('   - Yesterday OUT: ₹${data.yesterdayTotalOut}');
+      debugPrint('   - Total customers in list: ${data.customers.length}');
     } catch (e) {
       debugPrint('❌ Error fetching statement: $e');
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
@@ -92,9 +180,9 @@ class CustomerStatementController extends GetxController {
     }
   }
 
-  /// Refresh statement data
+  /// Refresh statement data and dashboard data
   Future<void> refreshStatement() async {
-    await fetchStatement();
+    await fetchAllData();
   }
 
   /// Get filtered customers based on search query AND filters
@@ -182,7 +270,8 @@ class CustomerStatementController extends GetxController {
 
   /// Update flag to indicate if filters are active
   void _updateActiveFiltersFlag() {
-    final isSortActive = sortBy.value != 'name' || sortOrder.value != 'asc';
+    // Default is now transaction_date desc (most recent first)
+    final isSortActive = sortBy.value != 'transaction_date' || sortOrder.value != 'desc';
 
     hasActiveFilters.value = isSortActive ||
         dateFilter.value != 'all_time' ||
@@ -248,68 +337,53 @@ class CustomerStatementController extends GetxController {
   }
 
   /// Apply sorting to customers
-  /// ✅ Today's data always shows at TOP, then sorted by selected criteria
+  /// Sort by selected criteria (default: transaction_date descending)
   List<CustomerStatementItem> _applySorting(List<CustomerStatementItem> customers) {
     final isAsc = sortOrder.value == 'asc';
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final sortedList = customers.toList();
 
-    // ✅ Step 1: Separate today's customers from others
-    final todayCustomers = <CustomerStatementItem>[];
-    final otherCustomers = <CustomerStatementItem>[];
+    switch (sortBy.value) {
+      case 'name':
+        sortedList.sort((a, b) => isAsc
+            ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
+            : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        break;
 
-    for (final customer in customers) {
-      final itemDate = customer.lastTransactionDate;
-      final itemDateOnly = DateTime(itemDate.year, itemDate.month, itemDate.day);
+      case 'amount':
+        sortedList.sort((a, b) => isAsc
+            ? a.balance.compareTo(b.balance)
+            : b.balance.compareTo(a.balance));
+        break;
 
-      if (itemDateOnly.isAtSameMomentAs(today)) {
-        todayCustomers.add(customer);
-      } else {
-        otherCustomers.add(customer);
-      }
+      case 'transaction_date':
+        sortedList.sort((a, b) => isAsc
+            ? a.lastTransactionDate.compareTo(b.lastTransactionDate)
+            : b.lastTransactionDate.compareTo(a.lastTransactionDate));
+        break;
+
+      default:
+        // Default: sort by date descending (newest first)
+        sortedList.sort((a, b) => b.lastTransactionDate.compareTo(a.lastTransactionDate));
     }
 
-    // ✅ Step 2: Sort each group by selected criteria
-    void sortList(List<CustomerStatementItem> list) {
-      switch (sortBy.value) {
-        case 'name':
-          list.sort((a, b) => isAsc
-              ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
-              : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
-          break;
+    debugPrint('📊 Sorting: ${sortBy.value} ${sortOrder.value}, Total: ${sortedList.length}');
 
-        case 'amount':
-          list.sort((a, b) => isAsc
-              ? a.balance.compareTo(b.balance)
-              : b.balance.compareTo(a.balance));
-          break;
-
-        case 'transaction_date':
-          list.sort((a, b) => isAsc
-              ? a.lastTransactionDate.compareTo(b.lastTransactionDate)
-              : b.lastTransactionDate.compareTo(a.lastTransactionDate));
-          break;
-
-        default:
-          // Default: sort by name ascending
-          list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      }
+    // Debug: Print sorted list with dates
+    debugPrint('📋 ========== SORTED LIST ==========');
+    for (int i = 0; i < sortedList.length; i++) {
+      final customer = sortedList[i];
+      final date = customer.lastTransactionDate;
+      debugPrint('   ${i + 1}. ${customer.name} - Date: ${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}');
     }
+    debugPrint('📋 ==================================');
 
-    // Sort both groups
-    sortList(todayCustomers);
-    sortList(otherCustomers);
-
-    // ✅ Step 3: Today's customers FIRST, then others
-    debugPrint('📊 Sorting: Today\'s customers: ${todayCustomers.length}, Others: ${otherCustomers.length}');
-
-    return [...todayCustomers, ...otherCustomers];
+    return sortedList;
   }
 
-  /// Clear all filters
+  /// Clear all filters (reset to defaults: sort by date descending)
   void clearFilters() {
-    sortBy.value = 'name';
-    sortOrder.value = 'asc';
+    sortBy.value = 'transaction_date';
+    sortOrder.value = 'desc';
     dateFilter.value = 'all_time';
     transactionFilter.value = 'all_transaction';
     reminderFilter.value = 'all';

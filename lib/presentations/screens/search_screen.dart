@@ -41,8 +41,16 @@ class _SearchScreenState extends State<SearchScreen> {
     // Use existing controller if available, otherwise create new one
     if (Get.isRegistered<app.SearchController>()) {
       _controller = Get.find<app.SearchController>();
+      // Clear previous search state to show recent searches
+      _controller.clearSearch();
+      // Disable loading if data is already cached
+      if (_controller.allLedgers.isNotEmpty) {
+        _controller.isInitialLoading.value = false;
+      }
+      debugPrint('🔍 SearchScreen: Reusing existing controller, cleared search state');
     } else {
       _controller = Get.put(app.SearchController());
+      debugPrint('🔍 SearchScreen: Created new controller');
     }
 
     // Auto-focus search field when screen opens
@@ -147,25 +155,37 @@ class _SearchScreenState extends State<SearchScreen> {
         )),
       ),
       body: Obx(() {
+        // Debug: Log current state
+        debugPrint('🔍 Body Obx rebuild:');
+        debugPrint('   - isInitialLoading: ${_controller.isInitialLoading.value}');
+        debugPrint('   - allLedgers: ${_controller.allLedgers.length}');
+        debugPrint('   - searchResults: ${_controller.searchResults.length}');
+        debugPrint('   - searchQuery: "${_controller.searchQuery.value}"');
+        debugPrint('   - hasActiveFilters: ${_controller.hasActiveFilters.value}');
+
         // Show initial loading ONLY if we don't have any cached data
         // This prevents showing loading on every navigation
         if (_controller.isInitialLoading.value && _controller.allLedgers.isEmpty) {
+          debugPrint('   → Showing: LOADING STATE');
           return _buildLoadingState(responsive, isDark);
         }
 
         // Show error state (only if no cached data available)
         if (_controller.errorMessage.value.isNotEmpty && _controller.allLedgers.isEmpty) {
+          debugPrint('   → Showing: ERROR STATE');
           return _buildErrorState(responsive, isDark);
         }
 
         // Show search results if we have any (from search or filters)
         // This check comes FIRST to show results even when default filter is applied
         if (_controller.searchResults.isNotEmpty) {
+          debugPrint('   → Showing: SEARCH RESULTS');
           return _buildSearchResults(responsive, isDark);
         }
 
         // Show recent searches when not searching AND no filters active AND no results
         if (_controller.searchQuery.value.isEmpty && !_controller.hasActiveFilters.value) {
+          debugPrint('   → Showing: RECENT SEARCHES');
           return RecentSearchesWidget(
             key: ValueKey(_recentSearchesKey),
             onSearchTap: _handleRecentSearchTap,
@@ -174,6 +194,7 @@ class _SearchScreenState extends State<SearchScreen> {
         }
 
         // Show no results (for search or filters)
+        debugPrint('   → Showing: NO RESULTS STATE');
         return _buildNoResultsState(responsive, isDark);
       }),
     );

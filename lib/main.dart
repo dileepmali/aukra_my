@@ -12,6 +12,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
 import 'app/localizations/l10n/app_localizations.dart';
+import 'app/themes/app_fonts.dart';
 import 'app/themes/app_themes.dart';
 import 'controllers/localization_controller.dart';
 import 'controllers/theme_controller.dart';
@@ -90,8 +91,17 @@ class MyApp extends StatelessWidget {
           fallbackLocale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          theme: AppThemes.lightTheme,
-          darkTheme: AppThemes.darkTheme,
+          // 🔤 Font Family: Tahoma (from assets/fonts/tahoma/tahoma.ttf)
+          theme: AppThemes.lightTheme.copyWith(
+            textTheme: AppThemes.lightTheme.textTheme.apply(
+              fontFamily: AppFonts.primary,
+            ),
+          ),
+          darkTheme: AppThemes.darkTheme.copyWith(
+            textTheme: AppThemes.darkTheme.textTheme.apply(
+              fontFamily: AppFonts.primary,
+            ),
+          ),
           themeMode: themeController.themeMode,
           initialRoute: AppRoutes.splash, // Use initialRoute to trigger binding
           getPages: getPages,

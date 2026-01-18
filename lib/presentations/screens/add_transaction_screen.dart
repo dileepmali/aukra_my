@@ -561,8 +561,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
       padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center, // Align items to bottom
+        crossAxisAlignment: CrossAxisAlignment.center, // Align items to center
         children: [
         Padding(
           padding: EdgeInsets.only(top: responsive.hp(1.5)), // Fine-tune vertical position
@@ -576,42 +575,48 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             ),
           ),
         ),
-        IntrinsicWidth(
-          child: TextField(
-            controller: controller.amountController,
-            focusNode: controller.amountFocusNode,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            textInputAction: TextInputAction.next, // ✅ Changed from done to next
-            textAlign: TextAlign.left,
-            cursorColor: isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary1,
-            cursorWidth: 3,
-            cursorHeight: responsive.fontSize(40),
-            onSubmitted: (value) {
-              // ✅ Auto-focus note field when user presses next
-              controller.noteFocusNode.requestFocus();
-            },
-            style: TextStyle(
-              color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-              fontSize: responsive.fontSize(60),
-              fontWeight: FontWeight.w900,
-              fontFamily: 'Poppins',
+        // Flexible with ConstrainedBox for auto-shrink on large amounts
+        Flexible(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: responsive.wp(75)), // Max 75% of screen width
+            child: IntrinsicWidth(
+              child: TextField(
+                controller: controller.amountController,
+                focusNode: controller.amountFocusNode,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                textInputAction: TextInputAction.next, // ✅ Changed from done to next
+                textAlign: TextAlign.left,
+                cursorColor: isDark ? AppColors.splaceSecondary2 : AppColorsLight.splaceSecondary1,
+                cursorWidth: 3,
+                cursorHeight: responsive.fontSize(40),
+                onSubmitted: (value) {
+                  // ✅ Auto-focus note field when user presses next
+                  controller.noteFocusNode.requestFocus();
+                },
+                style: TextStyle(
+                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                  fontSize: responsive.fontSize(60),
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'Poppins',
 
-            ),
-            decoration: InputDecoration(
-              hintText: '0.00',
-              hintStyle: TextStyle(
-                color: isDark
-                    ? AppColors.white.withOpacity(0.3)
-                    : AppColorsLight.textSecondary.withOpacity(0.3),
-                fontSize: responsive.fontSize(60),
-                fontWeight: FontWeight.w900,
-                fontFamily: 'Poppins',
+                ),
+                decoration: InputDecoration(
+                  hintText: '0.00',
+                  hintStyle: TextStyle(
+                    color: isDark
+                        ? AppColors.white.withOpacity(0.3)
+                        : AppColorsLight.textSecondary.withOpacity(0.3),
+                    fontSize: responsive.fontSize(60),
+                    fontWeight: FontWeight.w900,
+                    fontFamily: 'Poppins',
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  filled: false,
+                  fillColor: Colors.transparent,
+                ),
               ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              filled: false,
-              fillColor: Colors.transparent,
             ),
           ),
         ),

@@ -8,6 +8,7 @@ import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../controllers/customer_form_controller.dart';
+import '../../controllers/account_controller.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
 import '../widgets/text_filed/custom_text_field.dart';
 import '../../buttons/dialog_botton.dart';
@@ -15,6 +16,7 @@ import '../../buttons/app_button.dart';
 import '../widgets/custom_app_bar/custom_app_bar.dart';
 import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/custom_single_border_color.dart';
+import '../../core/utils/formatters.dart';
 
 class CustomerFormScreen extends StatelessWidget {
   const CustomerFormScreen({Key? key}) : super(key: key);
