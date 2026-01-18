@@ -248,34 +248,62 @@ class CustomerStatementController extends GetxController {
   }
 
   /// Apply sorting to customers
+  /// ✅ Today's data always shows at TOP, then sorted by selected criteria
   List<CustomerStatementItem> _applySorting(List<CustomerStatementItem> customers) {
     final isAsc = sortOrder.value == 'asc';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
-    switch (sortBy.value) {
-      case 'name':
-        customers.sort((a, b) => isAsc
-            ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
-            : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
-        break;
+    // ✅ Step 1: Separate today's customers from others
+    final todayCustomers = <CustomerStatementItem>[];
+    final otherCustomers = <CustomerStatementItem>[];
 
-      case 'amount':
-        customers.sort((a, b) => isAsc
-            ? a.balance.compareTo(b.balance)
-            : b.balance.compareTo(a.balance));
-        break;
+    for (final customer in customers) {
+      final itemDate = customer.lastTransactionDate;
+      final itemDateOnly = DateTime(itemDate.year, itemDate.month, itemDate.day);
 
-      case 'transaction_date':
-        customers.sort((a, b) => isAsc
-            ? a.lastTransactionDate.compareTo(b.lastTransactionDate)
-            : b.lastTransactionDate.compareTo(a.lastTransactionDate));
-        break;
-
-      default:
-        // Default: sort by name ascending
-        customers.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      if (itemDateOnly.isAtSameMomentAs(today)) {
+        todayCustomers.add(customer);
+      } else {
+        otherCustomers.add(customer);
+      }
     }
 
-    return customers;
+    // ✅ Step 2: Sort each group by selected criteria
+    void sortList(List<CustomerStatementItem> list) {
+      switch (sortBy.value) {
+        case 'name':
+          list.sort((a, b) => isAsc
+              ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
+              : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          break;
+
+        case 'amount':
+          list.sort((a, b) => isAsc
+              ? a.balance.compareTo(b.balance)
+              : b.balance.compareTo(a.balance));
+          break;
+
+        case 'transaction_date':
+          list.sort((a, b) => isAsc
+              ? a.lastTransactionDate.compareTo(b.lastTransactionDate)
+              : b.lastTransactionDate.compareTo(a.lastTransactionDate));
+          break;
+
+        default:
+          // Default: sort by name ascending
+          list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      }
+    }
+
+    // Sort both groups
+    sortList(todayCustomers);
+    sortList(otherCustomers);
+
+    // ✅ Step 3: Today's customers FIRST, then others
+    debugPrint('📊 Sorting: Today\'s customers: ${todayCustomers.length}, Others: ${otherCustomers.length}');
+
+    return [...todayCustomers, ...otherCustomers];
   }
 
   /// Clear all filters

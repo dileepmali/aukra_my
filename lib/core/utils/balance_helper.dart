@@ -19,24 +19,46 @@ class BalanceHelper {
   static bool debugMode = false;
 
   /// Check if balance is positive
-  /// Use either transactionType or balanceType (both follow same logic)
   ///
-  /// Returns true if "IN" (positive/receivable)
-  /// Returns false if "OUT" (negative/payable)
+  /// ✅ PRIORITY: currentBalance (sign) > balanceType > transactionType
+  ///
+  /// If currentBalance is provided, uses balance SIGN:
+  /// - Positive balance (>= 0) = GREEN (customer owes you - Receivable)
+  /// - Negative balance (< 0) = RED (you owe customer - Payable)
+  ///
+  /// If only transactionType/balanceType provided (API's type is inverted, avoid using):
+  /// - "IN" = positive, "OUT" = negative
   static bool isPositive({
     String? transactionType,
     String? balanceType,
+    double? currentBalance, // ✅ NEW: Use balance sign (recommended)
     String? itemName, // Optional: for debug logging
   }) {
-    // Priority: balanceType > transactionType
+    bool result;
+
+    // ✅ PRIORITY 1: Use balance SIGN if currentBalance is provided
+    if (currentBalance != null) {
+      result = currentBalance >= 0;
+
+      // 🧪 DEBUG LOG
+      if (debugMode) {
+        debugPrint('🧪 BalanceHelper.isPositive()');
+        debugPrint('   Item: ${itemName ?? "N/A"}');
+        debugPrint('   Balance: ₹$currentBalance');
+        debugPrint('   Result: ${result ? "POSITIVE ✅ (GREEN)" : "NEGATIVE ❌ (RED)"}');
+      }
+      return result;
+    }
+
+    // PRIORITY 2: Use balanceType or transactionType (fallback - API type may be inverted)
     final type = balanceType ?? transactionType ?? 'OUT';
-    final result = type == 'IN';
+    result = type == 'IN';
 
     // 🧪 DEBUG LOG
     if (debugMode) {
       debugPrint('🧪 BalanceHelper.isPositive()');
       debugPrint('   Item: ${itemName ?? "N/A"}');
-      debugPrint('   Type: $type');
+      debugPrint('   Type: $type (⚠️ API type - may be inverted)');
       debugPrint('   Result: ${result ? "POSITIVE ✅ (GREEN)" : "NEGATIVE ❌ (RED)"}');
     }
 

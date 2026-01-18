@@ -197,9 +197,9 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildHeaderCard(AdvancedResponsiveHelper responsive, bool isDark) {
-    // ✅ FIX: Use balanceType for positive/negative (centralized logic)
+    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
     final isPositive = BalanceHelper.isPositive(
-      balanceType: _accountController.totalBalanceType,
+      currentBalance: _accountController.totalNetBalance,
       itemName: 'Account: Total Net Balance',
     );
 
@@ -257,9 +257,9 @@ class _AccountScreenState extends State<AccountScreen> {
     required String balanceType,
     required VoidCallback onViewAll,
   }) {
-    // ✅ FIX: Use balanceType for positive/negative (centralized logic)
+    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
     final isPositive = BalanceHelper.isPositive(
-      balanceType: balanceType,
+      currentBalance: balance,
       itemName: 'Account: $title',
     );
 

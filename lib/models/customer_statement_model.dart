@@ -90,4 +90,10 @@ class CustomerStatementItem {
       'mobileNumber': mobileNumber,
     };
   }
+
+  /// ✅ Get signed balance (balance with correct sign)
+  /// API returns balance as absolute value, balanceType indicates direction
+  /// IN = positive (customer owes you - Receivable)
+  /// OUT = negative (you owe customer - Payable)
+  double get signedBalance => balanceType == 'IN' ? balance : -balance;
 }

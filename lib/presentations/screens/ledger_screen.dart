@@ -385,13 +385,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     }
 
                     // Debug: Print balance and transaction type
-                    debugPrint('💰 ${customer.name}: CurrentBalance=${customer.currentBalance}, Type=${customer.transactionType}');
+                    debugPrint('💰 ${customer.name}: CurrentBalance=${customer.currentBalance}');
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
-                    // ✅ FIX: Use transactionType for positive/negative (centralized logic)
+                    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
                     final isPositive = BalanceHelper.isPositive(
-                      transactionType: customer.transactionType,
+                      currentBalance: customer.currentBalance,
                       itemName: 'Customer: ${customer.name}',
                     );
 
@@ -503,9 +503,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
-                    // ✅ FIX: Use transactionType for positive/negative (centralized logic)
+                    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
                     final isPositive = BalanceHelper.isPositive(
-                      transactionType: supplier.transactionType,
+                      currentBalance: supplier.currentBalance,
                       itemName: 'Supplier: ${supplier.name}',
                     );
 
@@ -618,9 +618,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
-                    // ✅ FIX: Use transactionType for positive/negative (centralized logic)
+                    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
                     final isPositive = BalanceHelper.isPositive(
-                      transactionType: employer.transactionType,
+                      currentBalance: employer.currentBalance,
                       itemName: 'Employee: ${employer.name}',
                     );
 

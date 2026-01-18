@@ -196,9 +196,9 @@ class CustomerStatementScreen extends StatelessWidget {
     CustomerStatementModel statement,
     CustomerStatementController controller,
   ) {
-    // ✅ FIX: Use balanceType for positive/negative (centralized logic)
+    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
     final isPositive = BalanceHelper.isPositive(
-      balanceType: statement.balanceType,
+      currentBalance: statement.netBalance,
       itemName: 'Statement: Header Net Balance',
     );
 
@@ -460,9 +460,12 @@ class CustomerStatementScreen extends StatelessWidget {
     CustomerStatementItem customer,
     CustomerStatementController controller,
   ) {
-    // ✅ FIX: Use centralized BalanceHelper for consistent logic
+    // 🧪 DEBUG: Check balance values
+    debugPrint('💰 Statement: ${customer.name} - balance: ${customer.balance}, signedBalance: ${customer.signedBalance}, balanceType: ${customer.balanceType}');
+
+    // ✅ FIX: Use signedBalance (calculated from abs balance + balanceType)
     final isPositive = BalanceHelper.isPositive(
-      balanceType: customer.balanceType,
+      currentBalance: customer.signedBalance,
       itemName: 'Statement Item: ${customer.name}',
     );
 

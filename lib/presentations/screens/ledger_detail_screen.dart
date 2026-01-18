@@ -361,9 +361,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
                       child: Builder(
                         builder: (context) {
-                          // ✅ FIX: Use BalanceHelper for consistent logic
+                          // ✅ FIX: Use currentBalance SIGN for positive/negative
                           final isPositive = BalanceHelper.isPositive(
-                            transactionType: detail.transactionType,
+                            currentBalance: balance,
                             itemName: 'LedgerDetail: Closing Balance Icon',
                           );
                           return SvgPicture.asset(
@@ -383,9 +383,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                     SizedBox(width: responsive.wp(1),),
                     Builder(
                       builder: (context) {
-                        // ✅ FIX: Use BalanceHelper for consistent logic
+                        // ✅ FIX: Use currentBalance SIGN for positive/negative
                         final isPositive = BalanceHelper.isPositive(
-                          transactionType: detail.transactionType,
+                          currentBalance: balance,
                           itemName: 'LedgerDetail: Closing Balance Amount',
                         );
                         return AppText.displayMedium1(
@@ -546,6 +546,18 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     // Underline: Only for DELETED transactions
     final isDeleted = transaction.isDelete;
 
+    // ✅ Use API's currentBalance (server-calculated running balance)
+    // This is correct because it matches closing balance
+    final runningBalance = transaction.currentBalance;
+
+    // ✅ Use balance SIGN for color (not API's balanceType which is inverted)
+    // Positive balance = Green (customer owes you - Receivable)
+    // Negative balance = Red (you owe customer - Payable)
+    final isBalancePositive = runningBalance >= 0;
+
+    // 🧪 DEBUG: Show running balance info
+    debugPrint('   💰 Subtitle Balance - ID: ${transaction.id}, Balance: ₹$runningBalance, Color: ${isBalancePositive ? "GREEN" : "RED"}');
+
     return ListItemWidget(
       title: noteTitle,
       subtitle: formattedDate,
@@ -560,11 +572,12 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         ),
       ),
       subtitleSuffix: AppText.headlineMedium(
-        'Bal. ₹${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.currentBalance.abs())}',
-        color: AppColors.textDisabled,
-        fontWeight: FontWeight.w600,
+        // ✅ Add +/- sign based on balance: Positive = +, Negative = -
+        'Bal. ${isBalancePositive ? '+' : '-'} ₹ ${NumberFormat('#,##,##0.00', 'en_IN').format(runningBalance.abs())}',
+        color: AppColors.textDisabled,       // 🔴 Red for negative (देना है)
+        fontWeight: FontWeight.w500,
       ),
-      subtitleFontWeight: FontWeight.w600,
+      subtitleFontWeight: FontWeight.w500,
       amount: formattedAmount,
       isPositiveAmount: isPositive,  // IN = Blue, OUT = RED ✅
       showBorder: true,
