@@ -19,6 +19,7 @@ import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/custom_single_border_color.dart';
 import '../widgets/list_item_widget.dart';
 import 'search_screen.dart';
+import '../../core/utils/balance_helper.dart';
 
 class CustomerStatementScreen extends StatelessWidget {
   const CustomerStatementScreen({super.key});
@@ -195,7 +196,11 @@ class CustomerStatementScreen extends StatelessWidget {
     CustomerStatementModel statement,
     CustomerStatementController controller,
   ) {
-    final isPositive = statement.netBalance >= 0;
+    // ✅ FIX: Use balanceType for positive/negative (centralized logic)
+    final isPositive = BalanceHelper.isPositive(
+      balanceType: statement.balanceType,
+      itemName: 'Statement: Header Net Balance',
+    );
 
     return Stack(
         children:[
@@ -455,7 +460,11 @@ class CustomerStatementScreen extends StatelessWidget {
     CustomerStatementItem customer,
     CustomerStatementController controller,
   ) {
-    final isPositive = customer.balanceType == 'IN';
+    // ✅ FIX: Use centralized BalanceHelper for consistent logic
+    final isPositive = BalanceHelper.isPositive(
+      balanceType: customer.balanceType,
+      itemName: 'Statement Item: ${customer.name}',
+    );
 
     return ListItemWidget(
       title: customer.name,

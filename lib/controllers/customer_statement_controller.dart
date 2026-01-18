@@ -232,12 +232,14 @@ class CustomerStatementController extends GetxController {
   }
 
   /// Apply transaction filter (IN/OUT)
+  /// ✅ FIX: Use balanceType for filtering
   List<CustomerStatementItem> _applyTransactionFilter(List<CustomerStatementItem> customers) {
     switch (transactionFilter.value) {
       case 'in_transaction':
+        // IN = Positive (Receivable) - Customer owes you
         return customers.where((c) => c.balanceType == 'IN').toList();
       case 'out_transaction':
-      case 'old_transaction':
+        // OUT = Negative (Payable) - You owe customer
         return customers.where((c) => c.balanceType == 'OUT').toList();
       case 'all_transaction':
       default:

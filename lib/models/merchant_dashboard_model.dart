@@ -45,6 +45,10 @@ class MerchantDashboardModel {
   /// Check if merchant is in credit (owes money)
   bool get isInCredit => overallReceived > overallGiven;
 
+  /// Get balance type: 'IN' = Receivable, 'OUT' = Payable
+  /// This follows the same pattern as transactionType for consistency
+  String get balanceType => totalNetBalance >= 0 ? 'IN' : 'OUT';
+
   /// Get formatted total net balance
   String getFormattedTotalBalance() {
     return '₹${totalNetBalance.abs().toStringAsFixed(2)}';
@@ -114,6 +118,10 @@ class MerchantPartyData {
 
   /// Check if in credit for this party type (you owe them)
   bool get isInCredit => overallReceived > overallGiven;
+
+  /// Get balance type: 'IN' = Receivable, 'OUT' = Payable
+  /// This follows the same pattern as transactionType for consistency
+  String get balanceType => netBalance >= 0 ? 'IN' : 'OUT';
 
   /// Get formatted net balance
   String getFormattedBalance() {

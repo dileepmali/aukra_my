@@ -22,10 +22,12 @@ class LedgerController extends GetxController {
   // ============================================================
 
   /// Sort by: name, amount, transaction_date
-  final sortBy = 'name'.obs;
+  /// Default: transaction_date (so recently updated items appear first)
+  final sortBy = 'transaction_date'.obs;
 
   /// Sort order: asc, desc
-  final sortOrder = 'asc'.obs;
+  /// Default: desc (newest first, so recently updated items appear at top)
+  final sortOrder = 'desc'.obs;
 
   /// Date filter: today, yesterday, older_week, older_month, all_time, custom
   final dateFilter = 'all_time'.obs;
@@ -371,7 +373,8 @@ class LedgerController extends GetxController {
 
   /// Update flag to indicate if filters are active
   void _updateActiveFiltersFlag() {
-    final isSortActive = sortBy.value != 'name' || sortOrder.value != 'asc';
+    // Default is now transaction_date desc (recently updated first)
+    final isSortActive = sortBy.value != 'transaction_date' || sortOrder.value != 'desc';
 
     hasActiveFilters.value = isSortActive ||
         dateFilter.value != 'all_time' ||
@@ -422,16 +425,16 @@ class LedgerController extends GetxController {
     }).toList();
   }
 
-  /// Apply transaction filter (IN/OUT based on currentBalance)
+  /// Apply transaction filter (IN/OUT based on transactionType)
+  /// ✅ FIX: Use transactionType instead of currentBalance
   List<LedgerModel> _applyTransactionFilter(List<LedgerModel> ledgers) {
     switch (transactionFilter.value) {
       case 'in_transaction':
-        // Positive balance = They owe you (IN)
-        return ledgers.where((l) => l.currentBalance >= 0).toList();
+        // IN = Positive (Receivable) - Customer owes you
+        return ledgers.where((l) => l.transactionType == 'IN').toList();
       case 'out_transaction':
-      case 'old_transaction':
-        // Negative balance = You owe them (OUT)
-        return ledgers.where((l) => l.currentBalance < 0).toList();
+        // OUT = Negative (Payable) - You owe customer
+        return ledgers.where((l) => l.transactionType == 'OUT').toList();
       case 'all_transaction':
       default:
         return ledgers;
@@ -471,10 +474,10 @@ class LedgerController extends GetxController {
     return ledgers;
   }
 
-  /// Clear all filters
+  /// Clear all filters (reset to defaults: sort by date descending)
   void clearFilters() {
-    sortBy.value = 'name';
-    sortOrder.value = 'asc';
+    sortBy.value = 'transaction_date';
+    sortOrder.value = 'desc';
     dateFilter.value = 'all_time';
     transactionFilter.value = 'all_transaction';
     customDateFrom.value = null;

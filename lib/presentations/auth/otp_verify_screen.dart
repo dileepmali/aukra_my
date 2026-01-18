@@ -333,7 +333,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Top spacing
-                                    SizedBox(height: isKeyboardVisible ? responsive.spaceXS : responsive.spaceXS),
+                                    SizedBox(height: isKeyboardVisible ? responsive.space2XSSS : responsive.space2XSSS),
 
                                     // Content section
                                     Flexible(
@@ -343,10 +343,10 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                                         children: [
                                           // Dynamic title
                                           Container(
-                                            height: isKeyboardVisible ? responsive.hp(4) : responsive.hp(4),
+                                            height: isKeyboardVisible ? responsive.hp(4) : responsive.hp(5),
                                             alignment: Alignment.centerLeft,
                                             child: AppText.displayMedium3(
-                                              carouselController!.getCurrentTitle(context),
+                                              _getLocalizedText(data['title'] ?? '', context),
                                               color: isDark ? Colors.white : AppColorsLight.textPrimary,
                                               maxLines: 1,
                                               minFontSize: 13,
@@ -356,13 +356,11 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                                             ),
                                           ),
 
-                                          SizedBox(height: isKeyboardVisible ? responsive.hp(0) : responsive.hp(0.2)),
-
                                           // Dynamic subtitle
                                           Container(
                                             height: isKeyboardVisible ? responsive.hp(9) : responsive.hp(9),
                                             child: AppText.headlineLarge(
-                                              carouselController!.getCurrentSubtitle(context),
+                                              _getLocalizedText(data['subtitle'] ?? '', context),
                                               color: isDark ? Colors.grey[300] : AppColorsLight.textSecondary,
                                               maxLines: 4,
                                               minFontSize: 10,
@@ -669,6 +667,32 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
 
   double _getButtonHeight(AdvancedResponsiveHelper responsive) {
     return  responsive.hp(9);
+  }
+
+  /// Convert localization key to localized string
+  String _getLocalizedText(String key, BuildContext context) {
+    return AppStrings.getLocalizedString(context, (localizations) {
+      switch(key) {
+        case 'onboardingTitle1':
+          return localizations.onboardingTitle1;
+        case 'onboardingTitle2':
+          return localizations.onboardingTitle2;
+        case 'onboardingTitle3':
+          return localizations.onboardingTitle3;
+        case 'onboardingTitle4':
+          return localizations.onboardingTitle4;
+        case 'onboardingSubtitle1':
+          return localizations.onboardingSubtitle1;
+        case 'onboardingSubtitle2':
+          return localizations.onboardingSubtitle2;
+        case 'onboardingSubtitle3':
+          return localizations.onboardingSubtitle3;
+        case 'onboardingSubtitle4':
+          return localizations.onboardingSubtitle4;
+        default:
+          return 'Loading...';
+      }
+    });
   }
 
 Future<void> _handleVerifyOtp() async {

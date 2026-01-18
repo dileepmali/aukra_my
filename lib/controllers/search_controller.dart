@@ -123,6 +123,7 @@ class SearchController extends GetxController {
   }
 
   /// Calculate search summary from all ledgers
+  /// ✅ FIX: Use transactionType instead of currentBalance
   void _calculateSummary() {
     int inCount = 0;
     int outCount = 0;
@@ -130,9 +131,9 @@ class SearchController extends GetxController {
     double totalOut = 0;
 
     for (var ledger in allLedgers) {
-      if (ledger.currentBalance >= 0) {
+      if (ledger.transactionType == 'IN') {
         inCount++;
-        totalIn += ledger.currentBalance;
+        totalIn += ledger.currentBalance.abs();
       } else {
         outCount++;
         totalOut += ledger.currentBalance.abs();
@@ -252,10 +253,11 @@ class SearchController extends GetxController {
       }
 
       // Search by Balance Type (IN/OUT)
+      // ✅ FIX: Use transactionType instead of currentBalance
       if (matchedField == null &&
           isBalanceTypeQuery &&
           config.enabledFields.contains(SearchableField.balanceType)) {
-        final balanceType = ledger.currentBalance >= 0 ? 'in' : 'out';
+        final balanceType = ledger.transactionType.toLowerCase();
         if (queryLower == balanceType) {
           matchedField = SearchableField.balanceType;
         }
@@ -526,12 +528,14 @@ class SearchController extends GetxController {
   }
 
   /// Apply transaction filter (IN/OUT)
+  /// ✅ FIX: Use balanceType for filtering
   List<SearchResultItem> _applyTransactionFilter(List<SearchResultItem> results) {
     switch (transactionFilter.value) {
       case 'in_transaction':
+        // IN = Positive (Receivable) - Customer owes you
         return results.where((item) => item.balanceType == 'IN').toList();
       case 'out_transaction':
-      case 'old_transaction':
+        // OUT = Negative (Payable) - You owe customer
         return results.where((item) => item.balanceType == 'OUT').toList();
       case 'all_transaction':
       default:

@@ -42,6 +42,27 @@ class AccountController extends GetxController {
     return dashboardData.value!.party.employee.netBalance;
   }
 
+  // Balance type getters for consistent positive/negative logic
+  String get totalBalanceType {
+    if (dashboardData.value == null) return 'OUT';
+    return dashboardData.value!.balanceType;
+  }
+
+  String get customerBalanceType {
+    if (dashboardData.value == null) return 'OUT';
+    return dashboardData.value!.party.customer.balanceType;
+  }
+
+  String get supplierBalanceType {
+    if (dashboardData.value == null) return 'OUT';
+    return dashboardData.value!.party.supplier.balanceType;
+  }
+
+  String get employeeBalanceType {
+    if (dashboardData.value == null) return 'OUT';
+    return dashboardData.value!.party.employee.balanceType;
+  }
+
   @override
   void onInit() {
     super.onInit();

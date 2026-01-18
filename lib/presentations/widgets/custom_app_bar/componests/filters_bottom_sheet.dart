@@ -525,7 +525,7 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
     final transactionOptions = [
       {'key': 'all_transaction', 'title': 'All transaction'},
       {'key': 'in_transaction', 'title': 'In transaction'},
-      {'key': 'old_transaction', 'title': 'Old transaction'},
+      {'key': 'out_transaction', 'title': 'Out transaction'},
     ];
 
     return Column(

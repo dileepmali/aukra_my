@@ -18,6 +18,7 @@ import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/list_item_widget.dart';
 import '../../controllers/ledger_controller.dart';
 import '../widgets/bottom_sheets/business_bottom_sheet.dart';
+import '../../core/utils/balance_helper.dart';
 
 class LedgerScreen extends StatefulWidget {
   final ValueChanged<int>? onTabChanged;
@@ -388,10 +389,11 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
-                    // 🔥 FIX: Color based on balance value, not transactionType
-                    // Positive balance = Blue (they owe you)
-                    // Negative balance = Red (you owe them)
-                    final isPositive = customer.currentBalance >= 0;
+                    // ✅ FIX: Use transactionType for positive/negative (centralized logic)
+                    final isPositive = BalanceHelper.isPositive(
+                      transactionType: customer.transactionType,
+                      itemName: 'Customer: ${customer.name}',
+                    );
 
                     return ListItemWidget(
                       title: customer.name.isNotEmpty ? customer.name : 'Customer #${index + 1}',
@@ -501,10 +503,11 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
-                    // 🔥 FIX: Color based on balance value, not transactionType
-                    // Positive balance = Blue (they owe you)
-                    // Negative balance = Red (you owe them)
-                    final isPositive = supplier.currentBalance >= 0;
+                    // ✅ FIX: Use transactionType for positive/negative (centralized logic)
+                    final isPositive = BalanceHelper.isPositive(
+                      transactionType: supplier.transactionType,
+                      itemName: 'Supplier: ${supplier.name}',
+                    );
 
                     return ListItemWidget(
                       title: supplier.name.isNotEmpty ? supplier.name : 'Supplier #${index + 1}',
@@ -615,10 +618,11 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                     // Format amount - use currentBalance instead of openingBalance
                     final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
-                    // 🔥 FIX: Color based on balance value, not transactionType
-                    // Positive balance = Blue (they owe you)
-                    // Negative balance = Red (you owe them)
-                    final isPositive = employer.currentBalance >= 0;
+                    // ✅ FIX: Use transactionType for positive/negative (centralized logic)
+                    final isPositive = BalanceHelper.isPositive(
+                      transactionType: employer.transactionType,
+                      itemName: 'Employee: ${employer.name}',
+                    );
 
                     return ListItemWidget(
                       title: employer.name.isNotEmpty ? employer.name : 'Employer #${index + 1}',

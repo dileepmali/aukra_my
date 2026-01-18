@@ -123,7 +123,8 @@ class UserPreferenceController extends GetxController {
   }
 
   /// Create new preference (first time setup)
-  Future<bool> createPreference(UserPreferenceModel newPreference) async {
+  /// [silent] - If true, don't show error/success messages (for background operations)
+  Future<bool> createPreference(UserPreferenceModel newPreference, {bool silent = false}) async {
     try {
       isSaving.value = true;
       errorMessage.value = '';
@@ -140,20 +141,20 @@ class UserPreferenceController extends GetxController {
         );
         hasLoaded.value = true;
         debugPrint('✅ Preference created successfully');
-        _showSuccess('Preferences saved successfully');
+        if (!silent) _showSuccess('Preferences saved successfully');
         return true;
       } else {
         final error = _apiService.errorMessage ?? 'Failed to create preference';
         errorMessage.value = error;
         _updateStatus(UserPreferenceStatus.error);
-        _showError(error);
+        if (!silent) _showError(error);
         return false;
       }
     } catch (e) {
       debugPrint('❌ Error creating preference: $e');
       errorMessage.value = 'An error occurred';
       _updateStatus(UserPreferenceStatus.error);
-      _showError('An error occurred while saving preferences');
+      if (!silent) _showError('An error occurred while saving preferences');
       return false;
     } finally {
       isSaving.value = false;
@@ -161,7 +162,8 @@ class UserPreferenceController extends GetxController {
   }
 
   /// Update existing preference
-  Future<bool> updatePreference(UserPreferenceModel updatedPreference) async {
+  /// [silent] - If true, don't show error/success messages (for background operations)
+  Future<bool> updatePreference(UserPreferenceModel updatedPreference, {bool silent = false}) async {
     try {
       isSaving.value = true;
       errorMessage.value = '';
@@ -177,20 +179,20 @@ class UserPreferenceController extends GetxController {
           status: UserPreferenceStatus.success,
         );
         debugPrint('✅ Preference updated successfully');
-        _showSuccess('Preferences updated successfully');
+        if (!silent) _showSuccess('Preferences updated successfully');
         return true;
       } else {
         final error = _apiService.errorMessage ?? 'Failed to update preference';
         errorMessage.value = error;
         _updateStatus(UserPreferenceStatus.error);
-        _showError(error);
+        if (!silent) _showError(error);
         return false;
       }
     } catch (e) {
       debugPrint('❌ Error updating preference: $e');
       errorMessage.value = 'An error occurred';
       _updateStatus(UserPreferenceStatus.error);
-      _showError('An error occurred while updating preferences');
+      if (!silent) _showError('An error occurred while updating preferences');
       return false;
     } finally {
       isSaving.value = false;
@@ -236,12 +238,13 @@ class UserPreferenceController extends GetxController {
   // ============================================================
 
   /// Update language
-  Future<bool> setLanguage(String newLanguage) async {
+  /// [silent] - If true, don't show error/success messages (for background operations)
+  Future<bool> setLanguage(String newLanguage, {bool silent = false}) async {
     debugPrint('🌐 Setting language to: $newLanguage');
     final updated = preference.copyWith(language: newLanguage);
     return hasLoaded.value
-        ? await updatePreference(updated)
-        : await createPreference(updated);
+        ? await updatePreference(updated, silent: silent)
+        : await createPreference(updated, silent: silent);
   }
 
   /// Update theme
@@ -302,11 +305,13 @@ class UserPreferenceController extends GetxController {
   }
 
   /// Update all notification settings
+  /// [silent] - If true, don't show error/success messages (for background operations)
   Future<bool> setNotifications({
     bool? all,
     bool? email,
     bool? sms,
     bool? push,
+    bool silent = false,
   }) async {
     debugPrint('🔔 Updating notification settings...');
     final updated = preference.copyWith(
@@ -316,8 +321,8 @@ class UserPreferenceController extends GetxController {
       pushNotifications: push ?? preference.pushNotifications,
     );
     return hasLoaded.value
-        ? await updatePreference(updated)
-        : await createPreference(updated);
+        ? await updatePreference(updated, silent: silent)
+        : await createPreference(updated, silent: silent);
   }
 
   /// Toggle all notifications

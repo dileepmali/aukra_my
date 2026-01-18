@@ -37,6 +37,10 @@ class CustomerStatementModel {
       'customers': customers.map((item) => item.toJson()).toList(),
     };
   }
+
+  /// Get balance type: 'IN' = Receivable, 'OUT' = Payable
+  /// This follows the same pattern as transactionType for consistency
+  String get balanceType => netBalance >= 0 ? 'IN' : 'OUT';
 }
 
 /// Individual customer item in statement

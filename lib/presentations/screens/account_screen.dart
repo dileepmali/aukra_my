@@ -16,6 +16,7 @@ import '../../controllers/ledger_controller.dart';
 import '../../controllers/account_controller.dart';
 import '../../core/utils/formatters.dart';
 import '../widgets/bottom_sheets/business_bottom_sheet.dart';
+import '../../core/utils/balance_helper.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -156,6 +157,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   count: _accountController.totalCustomers,
                   countLabel: 'Customers',
                   balance: _accountController.customerNetBalance,
+                  balanceType: _accountController.customerBalanceType,
                   onViewAll: () => _navigateToLedger(0), // Tab 0 = Customers
                 ),
                 SizedBox(height: responsive.hp(1)),
@@ -169,6 +171,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   count: _accountController.totalSuppliers,
                   countLabel: 'Suppliers',
                   balance: _accountController.supplierNetBalance,
+                  balanceType: _accountController.supplierBalanceType,
                   onViewAll: () => _navigateToLedger(1), // Tab 1 = Suppliers
                 ),
                 SizedBox(height: responsive.hp(1)),
@@ -182,6 +185,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   count: _accountController.totalEmployees,
                   countLabel: 'Employees',
                   balance: _accountController.employeeNetBalance,
+                  balanceType: _accountController.employeeBalanceType,
                   onViewAll: () => _navigateToLedger(2), // Tab 2 = Employees
                 ),
               ],
@@ -193,7 +197,11 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildHeaderCard(AdvancedResponsiveHelper responsive, bool isDark) {
-    final isPositive = _accountController.totalNetBalance >= 0;
+    // ✅ FIX: Use balanceType for positive/negative (centralized logic)
+    final isPositive = BalanceHelper.isPositive(
+      balanceType: _accountController.totalBalanceType,
+      itemName: 'Account: Total Net Balance',
+    );
 
     return Stack(
       children:[
@@ -246,9 +254,14 @@ class _AccountScreenState extends State<AccountScreen> {
     required int count,
     required String countLabel,
     required double balance,
+    required String balanceType,
     required VoidCallback onViewAll,
   }) {
-    final isPositive = balance >= 0;
+    // ✅ FIX: Use balanceType for positive/negative (centralized logic)
+    final isPositive = BalanceHelper.isPositive(
+      balanceType: balanceType,
+      itemName: 'Account: $title',
+    );
 
     return Container(
       width: double.infinity,

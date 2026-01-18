@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../app/constants/app_icons.dart';
 import '../../app/themes/app_colors.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/balance_helper.dart';
 import '../../app/themes/app_colors_light.dart';
 import '../../app/themes/app_text.dart';
 import '../../controllers/ledger_detail_controller.dart';
@@ -358,22 +359,45 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                   children: [
                     Padding(
                       padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
-                      child: SvgPicture.asset(
-                        AppIcons.vectoeIc3,
-                        width: responsive.iconSizeSmall + 5 ,
-                        height: responsive.iconSizeSmall + 5,
-                        colorFilter: ColorFilter.mode(
-                          isDark ? AppColors.white : AppColorsLight.textPrimary,
-                          BlendMode.srcIn,
-                        ),
+                      child: Builder(
+                        builder: (context) {
+                          // ✅ FIX: Use BalanceHelper for consistent logic
+                          final isPositive = BalanceHelper.isPositive(
+                            transactionType: detail.transactionType,
+                            itemName: 'LedgerDetail: Closing Balance Icon',
+                          );
+                          return SvgPicture.asset(
+                            AppIcons.vectoeIc3,
+                            width: responsive.iconSizeSmall + 5,
+                            height: responsive.iconSizeSmall + 5,
+                            colorFilter: ColorFilter.mode(
+                              isPositive
+                                  ? AppColors.primeryamount  // Green for positive
+                                  : AppColors.red500,         // Red for negative
+                              BlendMode.srcIn,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     SizedBox(width: responsive.wp(1),),
-                    AppText.displayMedium1(
+                    Builder(
+                      builder: (context) {
+                        // ✅ FIX: Use BalanceHelper for consistent logic
+                        final isPositive = BalanceHelper.isPositive(
+                          transactionType: detail.transactionType,
+                          itemName: 'LedgerDetail: Closing Balance Amount',
+                        );
+                        return AppText.displayMedium1(
                           '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
-                          color: AppColors.white,
+                          // Green for positive (IN), Red for negative (OUT)
+                          color: isPositive
+                              ? AppColors.primeryamount  // Green for positive
+                              : AppColors.red500,         // Red for negative
                           fontWeight: FontWeight.w700,
-                        ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -499,8 +523,11 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     AdvancedResponsiveHelper responsive,
     bool isDark,
   ) {
-    // Determine if transaction is positive (IN) or negative (OUT)
-    final isPositive = transaction.transactionType == 'IN';
+    // ✅ FIX: Use BalanceHelper for consistent logic
+    final isPositive = BalanceHelper.isPositive(
+      transactionType: transaction.transactionType,
+      itemName: 'LedgerDetail Transaction: ${transaction.description ?? "No note"}',
+    );
 
     // Format amount - remove currency symbol as ListItemWidget adds it
     final formattedAmount = transaction.amount.toStringAsFixed(2);
@@ -533,7 +560,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         ),
       ),
       subtitleSuffix: AppText.headlineMedium(
-        'Bal. ₹${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.currentBalance)}',
+        'Bal. ₹${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.currentBalance.abs())}',
         color: AppColors.textDisabled,
         fontWeight: FontWeight.w600,
       ),
@@ -605,14 +632,6 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     );
   }
 
-  String _formatDateForBottomSheet(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('hh:mma, dd MMM yyyy').format(date);
-    } catch (e) {
-      return dateString;
-    }
-  }
 
   Widget _buildAddEntryButton(
     AdvancedResponsiveHelper responsive,

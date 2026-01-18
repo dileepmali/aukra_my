@@ -91,7 +91,8 @@ class _MainScreenState extends State<MainScreen> {
         // If hasLoaded is true, it means server has preferences - don't override
         if (!prefController.hasLoaded.value) {
           debugPrint('📱 First time user - syncing language to server...');
-          await prefController.setLanguage(currentLang);
+          // Use silent: true to avoid showing errors for background operations
+          await prefController.setLanguage(currentLang, silent: true);
         } else {
           debugPrint('📱 Preferences exist on server - skipping auto-sync');
         }

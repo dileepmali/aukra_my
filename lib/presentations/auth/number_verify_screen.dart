@@ -349,7 +349,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                             children: [
                               TextSpan(
                                 text: AppStrings.getLocalizedString(context, (localizations) => localizations.byClicking),
-                                style: AppFonts.headlineSmall(
+                                style: AppFonts.headlineSmall1(
                                   color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
                                   fontWeight: AppFonts.medium,
 
@@ -363,7 +363,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                               ),
                               TextSpan(
                                 text: 'Terms & Conditions', // Always English
-                                style: AppFonts.headlineSmall(
+                                style: AppFonts.headlineSmall1(
                                   color: AppColors.blue, // Always blue
                                 ).copyWith(
                                   decoration: TextDecoration.underline,
@@ -382,7 +382,7 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
                                       AdvancedErrorService.showError(
                                         'Could not open terms and conditions',
                                         category: ErrorCategory.general,
-                                        severity: ErrorSeverity.low,
+                                        severity: ErrorSeverity.medium,
                                       );
                                     }
                                   },

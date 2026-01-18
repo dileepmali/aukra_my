@@ -19,9 +19,14 @@ import 'controllers/user_preference_controller.dart';
 import 'core/services/contact_cache_service.dart';
 import 'core/services/device_info_service.dart';
 import 'core/services/fcm_service.dart';
+import 'core/utils/balance_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🧪 DEBUG: Enable balance debug mode to test IN/OUT positive/negative logic
+  // Uncomment below line to enable debug logs for balance testing
+  // BalanceHelper.enableDebug();
 
   // ⚡ CRITICAL ONLY: Minimal blocking initialization
   await dotenv.load(fileName: ".env");
