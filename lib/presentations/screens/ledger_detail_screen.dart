@@ -341,10 +341,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         final detail = controller.ledgerDetail.value;
         if (detail == null) return SizedBox.shrink();
 
-        // ✅ KHATABOOK LOGIC: Use calculated closing balance (applies transactionType sign)
-        // Instead of API's currentBalance which doesn't apply the sign
-        final balance = controller.getCalculatedClosingBalance();
-        debugPrint('🎯 Closing Balance Card - API: ${detail.currentBalance}, Calculated: $balance');
+        // Use API's currentBalance directly (server-calculated)
+        final balance = detail.currentBalance;
+        debugPrint('🎯 Closing Balance Card - API currentBalance: $balance');
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -572,7 +571,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
       ),
       subtitleSuffix: AppText.headlineMedium(
         // ✅ Add +/- sign based on balance: Positive = +, Negative = -
-        'Bal. ${isBalancePositive ? '+' : '-'} ₹ ${NumberFormat('#,##,##0.00', 'en_IN').format(runningBalance.abs())}',
+        'Bal. ₹ ${NumberFormat('#,##,##0.00',).format(runningBalance.abs())}',
         color: AppColors.textDisabled,       // 🔴 Red for negative (देना है)
         fontWeight: FontWeight.w500,
       ),
