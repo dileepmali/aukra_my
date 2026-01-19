@@ -13,6 +13,7 @@ import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/utils/formatters.dart';
+import '../../models/grouped_transaction_model.dart';
 
 /// Account Statement Widget - UI Only (Logic in Controller)
 class AccountStatementWidget extends StatelessWidget {
@@ -222,6 +223,48 @@ class AccountStatementWidget extends StatelessWidget {
           ),
           // Dynamic Transaction Rows (Grouped by Date)
           Obx(() {
+            // Show loading indicator
+            if (controller.isLoading.value) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: responsive.hp(4)),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.white,
+                    strokeWidth: 2.0,
+                  ),
+                ),
+              );
+            }
+
+            // Show error message if any
+            if (controller.errorMessage.value.isNotEmpty) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: responsive.hp(4)),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Failed to load data',
+                        style: TextStyle(color: AppColors.white, fontSize: responsive.fontSize(14)),
+                      ),
+                      SizedBox(height: responsive.hp(1)),
+                      GestureDetector(
+                        onTap: controller.refresh,
+                        child: Text(
+                          'Tap to retry',
+                          style: TextStyle(
+                            color: AppColors.primeryamount,
+                            fontSize: responsive.fontSize(12),
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
             final dailyGroups = controller.groupedDailyTransactions;
 
             if (dailyGroups.isEmpty) {
@@ -268,11 +311,11 @@ class AccountStatementWidget extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        dailyGroup.date,
+                        dailyGroup.formattedDate,
                         style: TextStyle(color: AppColors.white, fontSize: responsive.fontSize(12)),
                       ),
                     ),
-                    // IN Cell (Total IN for the day)
+                    // IN Cell (Total IN for the day) - GREEN color
                     ResponsiveContainer(
                       widthPercent: 23,
                       heightPercent: 6,
@@ -283,17 +326,19 @@ class AccountStatementWidget extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        dailyGroup.totalIn > 0
-                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.totalIn.toString())}'
+                        dailyGroup.inAmount > 0
+                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.inAmount.toString())}'
                             : '-',
                         style: TextStyle(
-                          color: AppColors.white,
+                          color: dailyGroup.inAmount > 0
+                              ? AppColors.successPrimary
+                              : AppColors.white,
                           fontSize: responsive.fontSize(12),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    // OUT Cell (Total OUT for the day)
+                    // OUT Cell (Total OUT for the day) - RED color
                     ResponsiveContainer(
                       widthPercent: 23,
                       heightPercent: 6,
@@ -304,17 +349,19 @@ class AccountStatementWidget extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        dailyGroup.totalOut > 0
-                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.totalOut.toString())}'
+                        dailyGroup.outAmount > 0
+                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.outAmount.toString())}'
                             : '-',
                         style: TextStyle(
-                          color: AppColors.white,
+                          color: dailyGroup.outAmount > 0
+                              ? AppColors.red500
+                              : AppColors.white,
                           fontSize: responsive.fontSize(12),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    // BAL Cell (Final balance at end of day)
+                    // BAL Cell (Final balance at end of day) - KHATABOOK LOGIC
                     ResponsiveContainer(
                       widthPercent: 23,
                       heightPercent: 6,
@@ -325,9 +372,16 @@ class AccountStatementWidget extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '₹${Formatters.formatAmountWithCommas(dailyGroup.finalBalance.toString())}',
+                        '₹${Formatters.formatAmountWithCommas(dailyGroup.balance.abs().toString())}',
                         style: TextStyle(
-                          color: AppColors.white,
+                          // ✅ KHATABOOK LOGIC:
+                          // Positive (> 0) = RED (Customer owes you - You will RECEIVE)
+                          // Negative (< 0) = GREEN (You owe customer - You will GIVE)
+                          color: dailyGroup.balance > 0
+                              ? AppColors.red500         // RED - Receivable
+                              : dailyGroup.balance < 0
+                                  ? AppColors.successPrimary  // GREEN - Payable
+                                  : AppColors.white,          // Neutral for zero
                           fontSize: responsive.fontSize(12),
                           fontWeight: FontWeight.w700,
                         ),

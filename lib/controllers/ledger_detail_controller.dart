@@ -166,9 +166,21 @@ class LedgerDetailController extends GetxController {
     runningBalances.clear();
     runningBalanceTypes.clear();
 
-    // Get opening balance from ledger detail
-    final openingBalance = ledgerDetail.value?.openingBalance ?? 0.0;
-    debugPrint('📊 Calculating running balances from opening: ₹$openingBalance');
+    // ✅ KHATABOOK LOGIC: Get opening balance and apply sign based on transactionType
+    final openingBalanceAbs = ledgerDetail.value?.openingBalance ?? 0.0;
+    final ledgerTransactionType = ledgerDetail.value?.transactionType ?? 'OUT';
+
+    // Apply sign based on transactionType:
+    // OUT = Customer owes you (positive opening balance)
+    // IN = You owe customer (negative opening balance)
+    final openingBalance = ledgerTransactionType == 'IN'
+        ? -openingBalanceAbs  // Negative: You owe customer
+        : openingBalanceAbs;  // Positive: Customer owes you
+
+    debugPrint('📊 Calculating running balances:');
+    debugPrint('   Opening Balance (abs): ₹$openingBalanceAbs');
+    debugPrint('   Ledger TransactionType: $ledgerTransactionType');
+    debugPrint('   Signed Opening Balance: ₹$openingBalance');
 
     // Get transactions and sort by date (OLDEST first for calculation)
     final transactions = List.of(transactionHistory.value!.data);
@@ -183,6 +195,7 @@ class LedgerDetailController extends GetxController {
     });
 
     // Calculate running balance for each transaction
+    // ✅ CORRECT FORMULA: Closing = Opening + IN - OUT
     double runningBalance = openingBalance;
 
     for (final transaction in transactions) {
@@ -195,12 +208,13 @@ class LedgerDetailController extends GetxController {
         continue;
       }
 
-      // OUT = customer owes more (add to balance)
-      // IN = customer paid (subtract from balance)
-      if (transaction.transactionType == 'OUT') {
-        runningBalance += transaction.amount;
+      // ✅ CORRECT FORMULA: Closing = Opening + IN - OUT
+      // IN = money received (adds to balance)
+      // OUT = money/goods given (subtracts from balance)
+      if (transaction.transactionType == 'IN') {
+        runningBalance += transaction.amount;  // IN adds
       } else {
-        runningBalance -= transaction.amount;
+        runningBalance -= transaction.amount;  // OUT subtracts
       }
 
       // Store the running balance after this transaction
@@ -225,5 +239,39 @@ class LedgerDetailController extends GetxController {
   /// Get running balance type (IN/OUT) for a transaction
   String getRunningBalanceType(int transactionId) {
     return runningBalanceTypes[transactionId] ?? 'IN';
+  }
+
+  /// ✅ CORRECT FORMULA: Closing = Opening + IN - OUT
+  /// IN increases balance (money received)
+  /// OUT decreases balance (money/goods given)
+  double getCalculatedClosingBalance() {
+    if (ledgerDetail.value == null) return 0.0;
+
+    final openingBalanceAbs = ledgerDetail.value?.openingBalance ?? 0.0;
+    final ledgerTransactionType = ledgerDetail.value?.transactionType ?? 'OUT';
+
+    // Apply sign based on transactionType:
+    // OUT = Customer owes you (positive opening balance)
+    // IN = You owe customer (negative opening balance)
+    double closingBalance = ledgerTransactionType == 'IN'
+        ? -openingBalanceAbs
+        : openingBalanceAbs;
+
+    // ✅ CORRECT FORMULA: Closing = Opening + IN - OUT
+    final transactions = transactionHistory.value?.data ?? [];
+    for (final tx in transactions) {
+      if (tx.isDelete) continue;
+
+      if (tx.transactionType == 'IN') {
+        closingBalance += tx.amount;  // IN adds to balance
+      } else {
+        closingBalance -= tx.amount;  // OUT subtracts from balance
+      }
+    }
+
+    debugPrint('💰 Calculated Closing Balance: ₹$closingBalance');
+    debugPrint('   Formula: Opening(${ledgerTransactionType == 'IN' ? '-' : '+'}$openingBalanceAbs) + IN - OUT');
+
+    return closingBalance;
   }
 }

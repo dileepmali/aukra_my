@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'global_api_function.dart';
 import '../../models/transaction_list_model.dart';
 import '../../models/transaction_detail_model.dart';
+import '../../models/grouped_transaction_model.dart';
 
 class LedgerTransactionApi {
   final ApiFetcher _apiFetcher = ApiFetcher();
@@ -195,6 +196,49 @@ class LedgerTransactionApi {
       throw Exception('Invalid response format');
     } catch (e) {
       debugPrint('❌ Fetch Transaction Details API Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get transactions grouped by date for a specific ledger
+  ///
+  /// Endpoint: GET api/ledger/{ledgerId}/transaction/groupByDate
+  /// Query params: startDate, endDate (format: YYYY-MM-DD)
+  ///
+  /// Returns daily grouped transactions with IN, OUT, and balance
+  Future<GroupedTransactionModel> getGroupedTransactionsByDate({
+    required int ledgerId,
+    required String startDate, // Format: YYYY-MM-DD
+    required String endDate, // Format: YYYY-MM-DD
+  }) async {
+    try {
+      debugPrint('📥 Fetching grouped transactions for ledger: $ledgerId');
+      debugPrint('   Date range: $startDate to $endDate');
+
+      await _apiFetcher.request(
+        url: 'api/ledger/$ledgerId/transaction/groupByDate?startDate=$startDate&endDate=$endDate',
+        method: 'GET',
+        requireAuth: true,
+      );
+
+      // Check for errors
+      if (_apiFetcher.errorMessage != null) {
+        throw Exception(_apiFetcher.errorMessage);
+      }
+
+      // Parse success response
+      if (_apiFetcher.data is Map) {
+        final groupedData = GroupedTransactionModel.fromJson(
+          _apiFetcher.data as Map<String, dynamic>,
+        );
+        debugPrint('✅ Fetched ${groupedData.data.length} grouped transactions for ledger $ledgerId');
+        return groupedData;
+      }
+
+      // Return empty model if no data
+      return GroupedTransactionModel(startDate: startDate, endDate: endDate, data: []);
+    } catch (e) {
+      debugPrint('❌ Fetch Grouped Transactions API Error: $e');
       rethrow;
     }
   }

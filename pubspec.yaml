@@ -96,7 +96,6 @@ flutter:
   assets:
     - .env
     - assets/icons/
-    - assets/logo/
     - assets/images/
     - assets/fonts/
     - assets/light_theme/icons/

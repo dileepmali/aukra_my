@@ -246,7 +246,7 @@ class CustomerStatementScreen extends StatelessWidget {
     );
   }
 
-  /// Summary Section with Today IN/OUT (from Dashboard API)
+  /// Summary Section with Yesterday IN/OUT (from Dashboard API)
   Widget _buildSummarySection(
     AdvancedResponsiveHelper responsive,
     bool isDark,
@@ -257,9 +257,11 @@ class CustomerStatementScreen extends StatelessWidget {
     String? baseIconOut,
     String? topRightIconOut,
   ) {
-    // Use Dashboard API data for today IN/OUT
-    final todayIn = controller.todayIn;
-    final todayOut = controller.todayOut;
+    // Use Dashboard API data for yesterday IN/OUT
+    // TODO: Update controller to use yesterdayIn/yesterdayOut when API provides this data
+    // Currently showing 0 as API doesn't provide yesterday data yet
+    final yesterdayIn = 0.0;  // Replace with controller.yesterdayIn when API is ready
+    final yesterdayOut = 0.0;  // Replace with controller.yesterdayOut when API is ready
 
     return  Stack(
       children:[
@@ -268,7 +270,7 @@ class CustomerStatementScreen extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: responsive.wp(1),vertical: responsive.hp(2)),
         child: Row(
           children: [
-            // Total IN Today
+            // Total IN Yesterday
             Expanded(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: responsive.wp(1)),
@@ -318,7 +320,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     AppText.headlineMedium(
-                      'Total amount in today',
+                      'Total amount in yesterday',
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
@@ -336,7 +338,7 @@ class CustomerStatementScreen extends StatelessWidget {
                         ),
                         SizedBox(width: responsive.wp(0.8)),
                         AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(todayIn.toString()),
+                          Formatters.formatAmountWithCommas(yesterdayIn.toString()),
                           color: AppColors.primeryamount,
                           fontWeight: FontWeight.w600,
                         ),
@@ -346,7 +348,7 @@ class CustomerStatementScreen extends StatelessWidget {
                 ),
               ),
             ),
-            // Total OUT Today
+            // Total OUT Yesterday
             Expanded(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: responsive.wp(1)),
@@ -396,7 +398,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     AppText.headlineMedium(
-                      'Total amount out today',
+                      'Total amount out yesterday',
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
@@ -414,7 +416,7 @@ class CustomerStatementScreen extends StatelessWidget {
                         ),
                         SizedBox(width: responsive.wp(0.9)),
                         AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(todayOut.toString()),
+                          Formatters.formatAmountWithCommas(yesterdayOut.toString()),
                           color: AppColors.red500,
                           fontWeight: FontWeight.w600,
                         ),

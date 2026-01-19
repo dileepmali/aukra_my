@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/ledger_dashboard_model.dart';
+import '../models/ledger_dashboard_summary_model.dart';
+import '../models/ledger_monthly_dashboard_model.dart';
 import '../models/ledger_detail_model.dart';
 import '../models/transaction_list_model.dart';
 import '../core/api/ledger_detail_api.dart';
@@ -11,6 +13,7 @@ class LedgerDashboardController extends GetxController {
   final Rx<LedgerDashboardModel?> dashboardData = Rx<LedgerDashboardModel?>(null);
   final Rx<LedgerDetailModel?> ledgerDetail = Rx<LedgerDetailModel?>(null);
   final Rx<TransactionListModel?> transactions = Rx<TransactionListModel?>(null);
+  final Rx<LedgerMonthlyDashboardModel?> monthlyDashboard = Rx<LedgerMonthlyDashboardModel?>(null);
   final isLoading = false.obs;
   final errorMessage = ''.obs;
 
@@ -47,7 +50,7 @@ class LedgerDashboardController extends GetxController {
     debugPrint('   - Party Type: $partyType');
   }
 
-  /// Fetch dashboard data using ledger detail and transaction APIs
+  /// Fetch dashboard data using ledger detail, transactions, and dashboard summary APIs
   Future<void> fetchDashboard() async {
     try {
       isLoading.value = true;
@@ -60,17 +63,28 @@ class LedgerDashboardController extends GetxController {
 
       debugPrint('📊 Fetching dashboard for ledger: $ledgerId');
 
-      // Fetch ledger details and transactions in parallel
+      // Fetch ledger details, transactions, and dashboard summary in parallel
       final results = await Future.wait([
         _ledgerDetailApi.getLedgerDetails(ledgerId!),
         _transactionApi.getLedgerTransactions(ledgerId: ledgerId!),
+        _ledgerDetailApi.getDashboardSummary(ledgerId!),
       ]);
 
       ledgerDetail.value = results[0] as LedgerDetailModel;
       transactions.value = results[1] as TransactionListModel;
+      final summaryData = results[2] as LedgerDashboardSummaryModel;
 
-      // Calculate dashboard statistics from transactions
-      _calculateDashboardStats();
+      // Use API data for dashboard statistics
+      _setDashboardStatsFromApi(summaryData);
+
+      // Fetch monthly dashboard separately to ensure it runs
+      debugPrint('📅 Starting monthly dashboard fetch...');
+      try {
+        monthlyDashboard.value = await _ledgerDetailApi.getMonthlyDashboard(ledgerId!);
+        debugPrint('📅 Monthly Dashboard loaded: IN=₹${monthlyDashboard.value?.totalIn}, OUT=₹${monthlyDashboard.value?.totalOut}');
+      } catch (monthlyError) {
+        debugPrint('📅 Monthly Dashboard Error: $monthlyError');
+      }
 
       debugPrint('✅ Dashboard data loaded successfully');
     } catch (e) {
@@ -79,6 +93,39 @@ class LedgerDashboardController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Set dashboard statistics from API response
+  /// Note: UI mapping:
+  ///   - "You will receive" uses dashboard.overallGiven
+  ///   - "You will give" uses dashboard.overallReceived
+  void _setDashboardStatsFromApi(LedgerDashboardSummaryModel summary) {
+    // Create party breakdown based on current party type
+    // Mapping to match UI expectations
+    PartyData currentPartyData = PartyData(
+      overallGiven: summary.overall.totalIn,     // "You will receive"
+      overallReceived: summary.overall.totalOut, // "You will give"
+    );
+
+    PartyData emptyData = PartyData(overallGiven: 0, overallReceived: 0);
+
+    dashboardData.value = LedgerDashboardModel(
+      todayIn: summary.today.totalIn,
+      todayOut: summary.today.totalOut,
+      overallGiven: summary.overall.totalIn,     // "You will receive" in UI
+      overallReceived: summary.overall.totalOut, // "You will give" in UI
+      party: PartyBreakdown(
+        customer: partyType?.toUpperCase() == 'CUSTOMER' ? currentPartyData : emptyData,
+        supplier: partyType?.toUpperCase() == 'SUPPLIER' ? currentPartyData : emptyData,
+        employee: partyType?.toUpperCase() == 'EMPLOYEE' ? currentPartyData : emptyData,
+      ),
+    );
+
+    debugPrint('📊 Dashboard Stats (from API):');
+    debugPrint('   - Today IN: ₹${summary.today.totalIn}');
+    debugPrint('   - Today OUT: ₹${summary.today.totalOut}');
+    debugPrint('   - You will receive (totalIn): ₹${summary.overall.totalIn}');
+    debugPrint('   - You will give (totalOut): ₹${summary.overall.totalOut}');
   }
 
   /// Calculate dashboard statistics from transaction data

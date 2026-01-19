@@ -13,6 +13,12 @@ import '../core/utils/secure_logger.dart';
 import '../core/services/duplicate_prevention_service.dart';
 
 class AddTransactionController extends GetxController {
+  // ============================================================
+  // AMOUNT VALIDATION CONSTANTS
+  // ============================================================
+  /// Maximum digits allowed for amount (8 digits = 9,99,99,999)
+  static const int maxAmountDigits = 8;
+
   // Controllers
   final TextEditingController amountController = TextEditingController();
   final TextEditingController noteController = TextEditingController();
@@ -27,6 +33,9 @@ class AddTransactionController extends GetxController {
   final selectedImages = <XFile>[].obs;
   final isSubmitting = false.obs;
   final isEditMode = false.obs; // Track if we're in edit mode
+
+  // Amount warning spam prevention
+  DateTime? _lastAmountWarningTime;
 
   // Arguments from navigation
   int? ledgerId;
@@ -147,9 +156,26 @@ class AddTransactionController extends GetxController {
     String sanitized = text.replaceAll(RegExp(r'[^\d.]'), '');
 
     // Handle multiple decimal points - keep only the first one
-    final parts = sanitized.split('.');
+    var parts = sanitized.split('.');
     if (parts.length > 2) {
       sanitized = '${parts[0]}.${parts.sublist(1).join('')}';
+      parts = sanitized.split('.');
+    }
+
+    // ✅ LIMIT integer part to maxAmountDigits (8 digits)
+    String integerPart = parts[0];
+    if (integerPart.length > maxAmountDigits) {
+      // Show warning and truncate
+      _showAmountWarning(integerPart.length);
+      integerPart = integerPart.substring(0, maxAmountDigits);
+
+      // Rebuild sanitized with truncated integer part
+      if (parts.length == 2) {
+        sanitized = '$integerPart.${parts[1]}';
+      } else {
+        sanitized = integerPart;
+      }
+      parts = sanitized.split('.');
     }
 
     // Limit to 2 decimal places
@@ -164,6 +190,26 @@ class AddTransactionController extends GetxController {
         selection: TextSelection.collapsed(offset: sanitized.length),
       );
     }
+  }
+
+  /// Show amount limit warning (with spam prevention - once per 3 seconds)
+  void _showAmountWarning(int digitCount) {
+    final now = DateTime.now();
+
+    // Prevent spam - show only once per 3 seconds
+    if (_lastAmountWarningTime != null &&
+        now.difference(_lastAmountWarningTime!).inSeconds < 3) {
+      return;
+    }
+
+    _lastAmountWarningTime = now;
+
+    AdvancedErrorService.showError(
+      'Max $maxAmountDigits digits allowed',
+      severity: ErrorSeverity.medium,
+      category: ErrorCategory.validation,
+      customDuration: Duration(seconds: 2),
+    );
   }
 
   // Change transaction type

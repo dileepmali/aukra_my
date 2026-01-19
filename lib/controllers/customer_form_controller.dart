@@ -626,14 +626,26 @@ class CustomerFormController extends GetxController {
       debugPrint('   interestRate: $interestRate');
       debugPrint('   openingBalance: $openingBalance');
 
+      // ✅ KHATABOOK LOGIC: Apply sign based on transactionType
+      // OUT = Customer owes you (positive opening balance)
+      // IN = You owe customer (negative opening balance)
+      final signedCurrentBalance = selectedTransactionType.value == 'IN'
+          ? -openingBalance  // Negative: You owe customer
+          : openingBalance;  // Positive: Customer owes you
+
+      debugPrint('💰 Opening Balance Sign Logic:');
+      debugPrint('   Raw opening balance: ₹$openingBalance');
+      debugPrint('   Transaction type: ${selectedTransactionType.value}');
+      debugPrint('   Signed current balance: ₹$signedCurrentBalance');
+
       // Create ledger model
       final ledger = LedgerModel(
         name: nameController.text.trim(),
         creditLimit: creditLimit,
         creditDay: creditDay,
         interestType: selectedInterestType.value,
-        openingBalance: openingBalance,
-        currentBalance: openingBalance, // Initial currentBalance same as openingBalance
+        openingBalance: openingBalance, // Store absolute value
+        currentBalance: signedCurrentBalance, // ✅ FIXED: Store signed value based on transactionType
         transactionType: selectedTransactionType.value,
         interestRate: interestRate,
         mobileNumber: phone,

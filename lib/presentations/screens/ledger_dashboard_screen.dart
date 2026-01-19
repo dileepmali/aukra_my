@@ -59,9 +59,9 @@ class LedgerDashboardScreen extends StatelessWidget {
         ),
       ),
       body: Obx(() {
-        // Update statement controller with transactions reactively
-        if (controller.transactions.value != null) {
-          statementController.setTransactions(controller.transactions.value!.data);
+        // Set ledgerId for statement controller to fetch grouped transactions from API
+        if (controller.ledgerDetail.value?.id != null) {
+          statementController.setLedgerId(controller.ledgerDetail.value!.id!);
         }
 
         if (controller.isLoading.value && controller.dashboardData.value == null) {
@@ -118,10 +118,10 @@ class LedgerDashboardScreen extends StatelessWidget {
 
                 SizedBox(height: responsive.hp(2)),
 
-                // Recent Transactions Section
-                _buildRecentTransactionsSection(context, controller, isDark, responsive),
+                // Recent Transactions Section - Commented out
+                // _buildRecentTransactionsSection(context, controller, isDark, responsive),
 
-                SizedBox(height: responsive.hp(2)),
+                // SizedBox(height: responsive.hp(2)),
 
                 // Account Statement Header
                 Stack(
@@ -489,31 +489,9 @@ class LedgerDashboardScreen extends StatelessWidget {
 
   /// Monthly IN/OUT Row Widget
   Widget _buildMonthlyInOutRow(BuildContext context, LedgerDashboardController controller, bool isDark, AdvancedResponsiveHelper responsive) {
-    // Calculate current month's IN and OUT
-    final now = DateTime.now();
-    final currentMonth = DateTime(now.year, now.month);
-    final nextMonth = DateTime(now.year, now.month + 1);
-
-    double monthlyIn = 0;
-    double monthlyOut = 0;
-
-    if (controller.transactions.value != null) {
-      for (var transaction in controller.transactions.value!.data) {
-        if (transaction.isDelete) continue;
-
-        final transactionDate = DateTime.parse(transaction.transactionDate);
-
-        // Check if transaction is in current month
-        if (transactionDate.isAfter(currentMonth.subtract(Duration(days: 1))) &&
-            transactionDate.isBefore(nextMonth)) {
-          if (transaction.transactionType == 'IN') {
-            monthlyIn += transaction.amount;
-          } else {
-            monthlyOut += transaction.amount;
-          }
-        }
-      }
-    }
+    // Use monthly dashboard data from API
+    final monthlyIn = controller.monthlyDashboard.value?.totalIn ?? 0;
+    final monthlyOut = controller.monthlyDashboard.value?.totalOut ?? 0;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: responsive.wp(3)),

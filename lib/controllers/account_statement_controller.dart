@@ -1,62 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../models/transaction_list_model.dart';
-
-/// Grouped daily transaction data
-class DailyTransactionGroup {
-  final String date; // Date string (dd/MM/yyyy)
-  final double totalIn; // Sum of all IN transactions
-  final double totalOut; // Sum of all OUT transactions
-  final double finalBalance; // Final balance at end of day
-
-  DailyTransactionGroup({
-    required this.date,
-    required this.totalIn,
-    required this.totalOut,
-    required this.finalBalance,
-  });
-}
+import '../core/api/ledger_transaction_api.dart';
+import '../models/grouped_transaction_model.dart';
 
 /// Controller for Account Statement Logic
+/// Now uses API to fetch grouped transactions instead of local processing
 class AccountStatementController extends GetxController {
+  // API instance
+  final LedgerTransactionApi _api = LedgerTransactionApi();
+
+  // Ledger ID (set from parent)
+  int? _ledgerId;
+
   // Selected month (observable)
   final selectedMonth = Rx<DateTime>(DateTime(DateTime.now().year, DateTime.now().month, 1));
 
-  // All transactions list (passed from parent)
-  final allTransactions = <TransactionItemModel>[].obs;
+  // Grouped transactions from API
+  final groupedTransactions = Rx<GroupedTransactionModel?>(null);
 
-  // Grouped daily transactions for selected month
-  final groupedDailyTransactions = <DailyTransactionGroup>[].obs;
+  // Loading state
+  final isLoading = false.obs;
+
+  // Error message
+  final errorMessage = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Listen to selectedMonth changes and update filtered list
-    ever(selectedMonth, (_) => _filterTransactions());
+    // Listen to selectedMonth changes and fetch data
+    ever(selectedMonth, (_) => _fetchGroupedTransactions());
   }
 
-  /// Set all transactions from parent
-  void setTransactions(List<TransactionItemModel> transactions) {
-    debugPrint('🔄 Setting ${transactions.length} transactions to AccountStatementController');
-
-    // Debug: Print ALL transaction details
-    debugPrint('   📋 All Transactions Details:');
-    for (var i = 0; i < transactions.length; i++) {
-      final t = transactions[i];
-      debugPrint('      ${i + 1}. Date: ${formatDate(t.transactionDate)} | Type: ${t.transactionType} | Amount: ₹${t.amount} | Deleted: ${t.isDelete}');
+  /// Set ledger ID and fetch initial data
+  /// Only fetches if ledgerId is different from current
+  void setLedgerId(int ledgerId) {
+    if (_ledgerId == ledgerId) {
+      return; // Already set, no need to fetch again
     }
-
-    // Debug: Print unique dates in transactions
-    final uniqueDates = transactions
-        .map((t) => formatDate(t.transactionDate))
-        .toSet()
-        .toList()
-      ..sort();
-    debugPrint('   Unique dates in all transactions: $uniqueDates');
-
-    allTransactions.value = transactions;
-    _filterTransactions();
+    debugPrint('📊 AccountStatementController: Setting ledgerId: $ledgerId');
+    _ledgerId = ledgerId;
+    _fetchGroupedTransactions();
   }
 
   /// Go to previous month
@@ -91,109 +75,57 @@ class AccountStatementController extends GetxController {
     return '${firstDay.day} ${DateFormat('MMM yyyy').format(firstDay)} - ${lastDay.day} ${DateFormat('MMM yyyy').format(lastDay)}';
   }
 
-  /// Filter transactions by selected month and group by date
-  void _filterTransactions() {
-    final firstDay = selectedMonth.value;
-    final lastDay = DateTime(
-      selectedMonth.value.year,
-      selectedMonth.value.month + 1,
-      0,
-      23,
-      59,
-      59,
-    );
-
-    debugPrint('📊 Filtering transactions for month: ${getMonthRangeText()}');
-    debugPrint('   Total transactions in allTransactions: ${allTransactions.length}');
-
-    // Filter by month and exclude deleted
-    final filtered = allTransactions.where((transaction) {
-      if (transaction.isDelete) return false;
-
-      try {
-        final transactionDate = DateTime.parse(transaction.transactionDate);
-        final isInRange = transactionDate.isAfter(firstDay.subtract(Duration(seconds: 1))) &&
-                         transactionDate.isBefore(lastDay.add(Duration(seconds: 1)));
-        return isInRange;
-      } catch (e) {
-        debugPrint('❌ Error parsing date: ${transaction.transactionDate}');
-        return false;
-      }
-    }).toList();
-
-    debugPrint('   Filtered transactions (in selected month): ${filtered.length}');
-
-    // Sort by date (oldest first)
-    filtered.sort((a, b) {
-      try {
-        return DateTime.parse(a.transactionDate)
-            .compareTo(DateTime.parse(b.transactionDate));
-      } catch (e) {
-        return 0;
-      }
-    });
-
-    // Group transactions by date
-    final Map<String, List<TransactionItemModel>> groupedByDate = {};
-
-    for (var transaction in filtered) {
-      final dateKey = formatDate(transaction.transactionDate);
-      if (!groupedByDate.containsKey(dateKey)) {
-        groupedByDate[dateKey] = [];
-      }
-      groupedByDate[dateKey]!.add(transaction);
+  /// Fetch grouped transactions from API
+  Future<void> _fetchGroupedTransactions() async {
+    if (_ledgerId == null) {
+      debugPrint('⚠️ AccountStatementController: ledgerId not set');
+      return;
     }
 
-    // Create daily transaction groups
-    final dailyGroups = <DailyTransactionGroup>[];
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
 
-    groupedByDate.forEach((date, transactions) {
-      double totalIn = 0.0;
-      double totalOut = 0.0;
-      double finalBalance = 0.0;
+      // Calculate date range for selected month
+      final firstDay = selectedMonth.value;
+      final lastDay = DateTime(
+        selectedMonth.value.year,
+        selectedMonth.value.month + 1,
+        0,
+      );
 
-      // Sort transactions within the day by time to get the correct final balance
-      final sortedTransactions = transactions.toList();
-      sortedTransactions.sort((a, b) {
-        try {
-          return DateTime.parse(a.transactionDate)
-              .compareTo(DateTime.parse(b.transactionDate));
-        } catch (e) {
-          return 0;
-        }
-      });
+      // Format dates as YYYY-MM-DD
+      final startDate = DateFormat('yyyy-MM-dd').format(firstDay);
+      final endDate = DateFormat('yyyy-MM-dd').format(lastDay);
 
-      for (var transaction in sortedTransactions) {
-        if (transaction.transactionType == 'IN') {
-          totalIn += transaction.amount;
-        } else if (transaction.transactionType == 'OUT') {
-          totalOut += transaction.amount;
-        }
-        // Update balance with each transaction (last one will be the final balance)
-        finalBalance = transaction.lastBalance;
-      }
+      debugPrint('📊 Fetching grouped transactions for ledger: $_ledgerId');
+      debugPrint('   Date range: $startDate to $endDate');
 
-      debugPrint('📅 Date: $date | IN: ₹$totalIn | OUT: ₹$totalOut | Balance: ₹$finalBalance');
+      final response = await _api.getGroupedTransactionsByDate(
+        ledgerId: _ledgerId!,
+        startDate: startDate,
+        endDate: endDate,
+      );
 
-      dailyGroups.add(DailyTransactionGroup(
-        date: date,
-        totalIn: totalIn,
-        totalOut: totalOut,
-        finalBalance: finalBalance,
-      ));
-    });
+      groupedTransactions.value = response;
+      debugPrint('✅ Fetched ${response.data.length} grouped transactions');
 
-    groupedDailyTransactions.value = dailyGroups;
-    debugPrint('   Grouped into ${dailyGroups.length} daily entries');
+    } catch (e) {
+      debugPrint('❌ Error fetching grouped transactions: $e');
+      errorMessage.value = e.toString();
+      groupedTransactions.value = null;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  /// Format date for display (dd/MM/yyyy)
-  String formatDate(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('dd/MM/yyyy').format(date);
-    } catch (e) {
-      return dateString.substring(0, 10);
-    }
+  /// Refresh data
+  Future<void> refresh() async {
+    await _fetchGroupedTransactions();
+  }
+
+  /// Get daily grouped transactions list (for widget compatibility)
+  List<DailyGroupedTransaction> get groupedDailyTransactions {
+    return groupedTransactions.value?.data ?? [];
   }
 }

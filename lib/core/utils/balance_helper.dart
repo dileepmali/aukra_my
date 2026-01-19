@@ -4,84 +4,113 @@ import '../../app/themes/app_colors_light.dart';
 
 /// Centralized helper class for balance positive/negative logic
 ///
-/// Usage:
-/// - `BalanceHelper.isPositive(transactionType: 'IN')` → true
-/// - `BalanceHelper.isPositive(balanceType: 'OUT')` → false
-/// - `BalanceHelper.getBalanceColor(transactionType: 'IN')` → Green
-/// - `BalanceHelper.getBalanceColor(balanceType: 'OUT')` → Red
+/// ════════════════════════════════════════════════════════════
+/// 📘 CORRECT FORMULA
+/// ════════════════════════════════════════════════════════════
 ///
-/// Rules:
-/// - "IN" = Positive (Green) - Customer owes you / Receivable
-/// - "OUT" = Negative (Red) - You owe customer / Payable
+/// Formula: Closing Balance = Opening + IN - OUT
+///
+/// - IN = Money received (adds to balance)
+/// - OUT = Money/goods given (subtracts from balance)
+///
+/// Balance Color Rules:
+/// ┌─────────────────┬──────────────────────────────┬─────────┐
+/// │ Balance         │ Meaning                      │ Color   │
+/// ├─────────────────┼──────────────────────────────┼─────────┤
+/// │ Positive (> 0)  │ Customer owes YOU            │ 🔴 RED  │
+/// │                 │ (You will RECEIVE)           │         │
+/// ├─────────────────┼──────────────────────────────┼─────────┤
+/// │ Negative (< 0)  │ YOU owe customer             │ ✅ GREEN│
+/// │                 │ (You will GIVE)              │         │
+/// ├─────────────────┼──────────────────────────────┼─────────┤
+/// │ Zero (= 0)      │ No balance                   │ Neutral │
+/// └─────────────────┴──────────────────────────────┴─────────┘
+///
+/// Simple Rule:
+/// 🔹 IN बढ़े = Positive = RED (तुम्हें लेना बाकी)
+/// 🔹 OUT बढ़े = Negative = GREEN (तुम पर देना बाकी)
+///
+/// ════════════════════════════════════════════════════════════
 class BalanceHelper {
 
   // 🧪 DEBUG MODE - Set to true to see balance logs in console
   static bool debugMode = false;
 
-  /// Check if balance is positive
+  /// Check if balance should show GREEN color
   ///
-  /// ✅ PRIORITY: currentBalance (sign) > balanceType > transactionType
+  /// ✅ KHATABOOK LOGIC:
+  /// - Negative balance (< 0) = GREEN (You owe customer - You will GIVE)
+  /// - Positive balance (> 0) = RED (Customer owes you - You will RECEIVE)
   ///
-  /// If currentBalance is provided, uses balance SIGN:
-  /// - Positive balance (>= 0) = GREEN (customer owes you - Receivable)
-  /// - Negative balance (< 0) = RED (you owe customer - Payable)
-  ///
-  /// If only transactionType/balanceType provided (API's type is inverted, avoid using):
-  /// - "IN" = positive, "OUT" = negative
+  /// Note: "isPositive" now means "should show GREEN" for Khatabook logic
   static bool isPositive({
     String? transactionType,
     String? balanceType,
-    double? currentBalance, // ✅ NEW: Use balance sign (recommended)
-    String? itemName, // Optional: for debug logging
+    double? currentBalance,
+    String? itemName,
   }) {
     bool result;
 
-    // ✅ PRIORITY 1: Use balance SIGN if currentBalance is provided
+    // ✅ PRIORITY 1: Use balance SIGN if currentBalance is provided (KHATABOOK LOGIC)
     if (currentBalance != null) {
-      result = currentBalance >= 0;
+      // KHATABOOK: Negative balance = GREEN (you owe customer)
+      //            Positive balance = RED (customer owes you)
+      result = currentBalance < 0;
 
       // 🧪 DEBUG LOG
       if (debugMode) {
-        debugPrint('🧪 BalanceHelper.isPositive()');
+        debugPrint('🧪 BalanceHelper.isPositive() [KHATABOOK LOGIC]');
         debugPrint('   Item: ${itemName ?? "N/A"}');
         debugPrint('   Balance: ₹$currentBalance');
-        debugPrint('   Result: ${result ? "POSITIVE ✅ (GREEN)" : "NEGATIVE ❌ (RED)"}');
+        debugPrint('   Result: ${result ? "GREEN ✅ (You will GIVE)" : "RED 🔴 (You will RECEIVE)"}');
       }
       return result;
     }
 
-    // PRIORITY 2: Use balanceType or transactionType (fallback - API type may be inverted)
+    // PRIORITY 2: Use transactionType for transaction items (not balance)
+    // For individual transactions: IN = GREEN (received), OUT = RED (given)
     final type = balanceType ?? transactionType ?? 'OUT';
     result = type == 'IN';
 
     // 🧪 DEBUG LOG
     if (debugMode) {
-      debugPrint('🧪 BalanceHelper.isPositive()');
+      debugPrint('🧪 BalanceHelper.isPositive() [Transaction Type]');
       debugPrint('   Item: ${itemName ?? "N/A"}');
-      debugPrint('   Type: $type (⚠️ API type - may be inverted)');
-      debugPrint('   Result: ${result ? "POSITIVE ✅ (GREEN)" : "NEGATIVE ❌ (RED)"}');
+      debugPrint('   Type: $type');
+      debugPrint('   Result: ${result ? "GREEN ✅ (IN)" : "RED 🔴 (OUT)"}');
     }
 
     return result;
   }
 
-  /// Get balance color based on type
+  /// Get balance color based on balance value (KHATABOOK LOGIC)
   ///
-  /// "IN" = Green (primeryamount)
-  /// "OUT" = Red (red500)
+  /// - Negative balance = GREEN (You owe customer)
+  /// - Positive balance = RED (Customer owes you)
+  static Color getBalanceColorFromValue(double balance, {bool isDark = true}) {
+    // KHATABOOK: Negative = GREEN, Positive = RED
+    if (balance < 0) {
+      return AppColors.successPrimary; // GREEN - You will give
+    } else if (balance > 0) {
+      return AppColors.red500; // RED - You will receive
+    }
+    return isDark ? AppColors.white : AppColorsLight.textPrimary; // Neutral
+  }
+
+  /// Get balance color based on type (for transactions, not closing balance)
+  ///
+  /// "IN" = Green (received money)
+  /// "OUT" = Red (gave money/goods)
   static Color getBalanceColor({
     String? transactionType,
     String? balanceType,
     bool isDark = true,
   }) {
-    final positive = isPositive(
-      transactionType: transactionType,
-      balanceType: balanceType,
-    );
+    final type = balanceType ?? transactionType ?? 'OUT';
 
-    return positive
-        ? AppColors.primeryamount  // Green
-        : AppColors.red500;        // Red
+    return type == 'IN'
+        ? AppColors.successPrimary  // Green for IN
+        : AppColors.red500;         // Red for OUT
   }
 
   /// Get balance color for light theme
@@ -89,34 +118,39 @@ class BalanceHelper {
     String? transactionType,
     String? balanceType,
   }) {
-    final positive = isPositive(
-      transactionType: transactionType,
-      balanceType: balanceType,
-    );
+    final type = balanceType ?? transactionType ?? 'OUT';
 
-    return positive
+    return type == 'IN'
         ? AppColorsLight.success  // Green for light theme
         : AppColorsLight.error;   // Red for light theme
   }
 
-  /// Get balance text label
+  /// Get balance text label based on balance value (KHATABOOK LOGIC)
   ///
-  /// "IN" = "Receivable" / "You will receive"
-  /// "OUT" = "Payable" / "You will pay"
+  /// - Positive balance = "You will receive" (Customer owes you)
+  /// - Negative balance = "You will give" (You owe customer)
+  static String getBalanceLabelFromValue(double balance, {bool shortLabel = false}) {
+    if (balance > 0) {
+      return shortLabel ? 'Receivable' : 'You will receive';
+    } else if (balance < 0) {
+      return shortLabel ? 'Payable' : 'You will give';
+    }
+    return shortLabel ? 'Settled' : 'No balance';
+  }
+
+  /// Get balance text label based on type
   static String getBalanceLabel({
     String? transactionType,
     String? balanceType,
     bool shortLabel = false,
   }) {
-    final positive = isPositive(
-      transactionType: transactionType,
-      balanceType: balanceType,
-    );
+    final type = balanceType ?? transactionType ?? 'OUT';
+    final isIn = type == 'IN';
 
     if (shortLabel) {
-      return positive ? 'Receivable' : 'Payable';
+      return isIn ? 'Received' : 'Given';
     }
-    return positive ? 'You will receive' : 'You will pay';
+    return isIn ? 'Money received' : 'Money/Goods given';
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -128,11 +162,15 @@ class BalanceHelper {
     debugMode = true;
     debugPrint('');
     debugPrint('🧪 ══════════════════════════════════════════');
-    debugPrint('🧪 BALANCE DEBUG MODE: ON');
+    debugPrint('🧪 BALANCE DEBUG MODE: ON (KHATABOOK LOGIC)');
     debugPrint('🧪 ──────────────────────────────────────────');
-    debugPrint('🧪 Rules:');
-    debugPrint('🧪   IN  → POSITIVE ✅ (GREEN)');
-    debugPrint('🧪   OUT → NEGATIVE ❌ (RED)');
+    debugPrint('🧪 Balance Color Rules:');
+    debugPrint('🧪   Positive (> 0) → RED 🔴 (You will RECEIVE)');
+    debugPrint('🧪   Negative (< 0) → GREEN ✅ (You will GIVE)');
+    debugPrint('🧪 ──────────────────────────────────────────');
+    debugPrint('🧪 Transaction Type Rules:');
+    debugPrint('🧪   IN  → GREEN ✅ (Received)');
+    debugPrint('🧪   OUT → RED 🔴 (Given)');
     debugPrint('🧪 ══════════════════════════════════════════');
     debugPrint('');
   }
@@ -158,20 +196,21 @@ class BalanceHelper {
   static void printRules() {
     debugPrint('');
     debugPrint('🧪 ══════════════════════════════════════════');
-    debugPrint('🧪 BALANCE LOGIC RULES');
+    debugPrint('🧪 KHATABOOK BALANCE LOGIC RULES');
     debugPrint('🧪 ══════════════════════════════════════════');
     debugPrint('🧪');
-    debugPrint('🧪 transactionType / balanceType:');
-    debugPrint('🧪 ┌─────────┬───────────┬─────────┐');
-    debugPrint('🧪 │  Type   │  Result   │  Color  │');
-    debugPrint('🧪 ├─────────┼───────────┼─────────┤');
-    debugPrint('🧪 │   IN    │ POSITIVE  │  GREEN  │');
-    debugPrint('🧪 │   OUT   │ NEGATIVE  │   RED   │');
-    debugPrint('🧪 └─────────┴───────────┴─────────┘');
+    debugPrint('🧪 Closing Balance Color:');
+    debugPrint('🧪 ┌─────────────────┬───────────────────┬─────────┐');
+    debugPrint('🧪 │ Balance         │ Meaning           │ Color   │');
+    debugPrint('🧪 ├─────────────────┼───────────────────┼─────────┤');
+    debugPrint('🧪 │ Positive (> 0)  │ Customer owes you │ RED 🔴  │');
+    debugPrint('🧪 │ Negative (< 0)  │ You owe customer  │ GREEN ✅│');
+    debugPrint('🧪 └─────────────────┴───────────────────┴─────────┘');
     debugPrint('🧪');
-    debugPrint('🧪 Meaning:');
-    debugPrint('🧪   IN  = Customer owes you (Receivable)');
-    debugPrint('🧪   OUT = You owe customer (Payable)');
+    debugPrint('🧪 Formula: Closing = Opening + IN - OUT');
+    debugPrint('🧪 Simple Rule:');
+    debugPrint('🧪   IN बढ़े = Positive = RED (तुम्हें लेना बाकी)');
+    debugPrint('🧪   OUT बढ़े = Negative = GREEN (तुम पर देना बाकी)');
     debugPrint('🧪 ══════════════════════════════════════════');
     debugPrint('');
   }

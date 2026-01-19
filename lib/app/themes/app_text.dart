@@ -320,6 +320,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -337,6 +338,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -360,6 +362,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -377,6 +380,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -448,6 +452,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -465,6 +470,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -533,6 +539,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -551,6 +558,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     final baseStyle = AppFonts.searchbar1(color: color, fontWeight: fontWeight);
     final finalStyle = baseStyle.copyWith(
@@ -670,6 +678,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -688,6 +697,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     final baseStyle = AppFonts.headlineLarge1(color: color, fontWeight: fontWeight);
     final finalStyle = baseStyle.copyWith(
@@ -758,6 +768,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -775,6 +786,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -798,6 +810,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -815,6 +828,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -843,6 +857,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 3,
@@ -860,6 +875,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -883,6 +899,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 3,
@@ -900,6 +917,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -924,6 +942,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 3,
@@ -941,6 +960,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -965,6 +985,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 3,
@@ -982,6 +1003,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1010,6 +1032,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1027,6 +1050,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1051,6 +1075,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1068,6 +1093,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1092,6 +1118,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1109,6 +1136,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1133,6 +1161,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -1150,6 +1179,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1174,6 +1204,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1191,6 +1222,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1219,6 +1251,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1237,6 +1270,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1261,6 +1295,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1279,6 +1314,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1303,6 +1339,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1320,6 +1357,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1344,6 +1382,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1361,6 +1400,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1384,6 +1424,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1401,6 +1442,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1425,6 +1467,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1442,6 +1485,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1466,6 +1510,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 1,
@@ -1483,6 +1528,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1507,6 +1553,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 5,
@@ -1525,6 +1572,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1553,6 +1601,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -1570,6 +1619,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,
@@ -1594,6 +1644,7 @@ class AppText {
     bool useIndianFormat = true,
     int decimalPlaces = 0,
     bool showDecimals = false,
+    bool useCompactCrore = true,
     Color? color,
     FontWeight? fontWeight,
     int maxLines = 2,
@@ -1611,6 +1662,7 @@ class AppText {
       useIndianFormat: useIndianFormat,
       decimalPlaces: decimalPlaces,
       showDecimals: showDecimals,
+      useCompactCrore: useCompactCrore,
     );
     return AutoSizeText(
       displayText,

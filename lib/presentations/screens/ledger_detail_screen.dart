@@ -130,10 +130,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                 ),
                               ),
                               child: Center(
-                                child: AppText.displaySmall(
+                                child: AppText.searchbar1(
                                   getInitials(name),
                                   color: AppColors.white,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -151,7 +151,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                     color: isDark
                                         ? AppColors.white
                                         : AppColorsLight.textPrimary,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                     maxLines: 1,
                                     minFontSize: 12,
                                   ),
@@ -341,7 +341,10 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         final detail = controller.ledgerDetail.value;
         if (detail == null) return SizedBox.shrink();
 
-        final balance = detail.currentBalance;
+        // ✅ KHATABOOK LOGIC: Use calculated closing balance (applies transactionType sign)
+        // Instead of API's currentBalance which doesn't apply the sign
+        final balance = controller.getCalculatedClosingBalance();
+        debugPrint('🎯 Closing Balance Card - API: ${detail.currentBalance}, Calculated: $balance');
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -363,19 +366,15 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                         padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
                         child: Builder(
                           builder: (context) {
-                            // ✅ FIX: Use currentBalance SIGN for positive/negative
-                            final isPositive = BalanceHelper.isPositive(
-                              currentBalance: balance,
-                              itemName: 'LedgerDetail: Closing Balance Icon',
-                            );
+                            // ✅ KHATABOOK LOGIC: Use balance value for color
+                            // Positive = RED (Customer owes you - You will RECEIVE)
+                            // Negative = GREEN (You owe customer - You will GIVE)
                             return SvgPicture.asset(
                               AppIcons.vectoeIc3,
                               width: responsive.iconSizeSmall + 5,
                               height: responsive.iconSizeSmall + 5,
                               colorFilter: ColorFilter.mode(
-                                isPositive
-                                    ? AppColors.primeryamount  // Green for positive
-                                    : AppColors.red500,         // Red for negative
+                                BalanceHelper.getBalanceColorFromValue(balance),
                                 BlendMode.srcIn,
                               ),
                             );
@@ -386,17 +385,12 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       Flexible(
                         child: Builder(
                           builder: (context) {
-                            // ✅ FIX: Use currentBalance SIGN for positive/negative
-                            final isPositive = BalanceHelper.isPositive(
-                              currentBalance: balance,
-                              itemName: 'LedgerDetail: Closing Balance Amount',
-                            );
+                            // ✅ KHATABOOK LOGIC: Use balance value for color
+                            // Positive = RED (Customer owes you - You will RECEIVE)
+                            // Negative = GREEN (You owe customer - You will GIVE)
                             return AppText.displayMedium1(
                               '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
-                              // Green for positive (IN), Red for negative (OUT)
-                              color: isPositive
-                                  ? AppColors.primeryamount  // Green for positive
-                                  : AppColors.red500,         // Red for negative
+                              color: BalanceHelper.getBalanceColorFromValue(balance),
                               fontWeight: FontWeight.w700,
                             );
                           },
@@ -502,7 +496,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
             return ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(
-                bottom: responsive.hp(10),
+                bottom: responsive.hp(18),  // Increased padding for floating button visibility
               ),
               itemCount: allTransactions.length,
               itemBuilder: (context, index) {
@@ -555,13 +549,13 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     // This is correct because it matches closing balance
     final runningBalance = transaction.currentBalance;
 
-    // ✅ Use balance SIGN for color (not API's balanceType which is inverted)
-    // Positive balance = Green (customer owes you - Receivable)
-    // Negative balance = Red (you owe customer - Payable)
-    final isBalancePositive = runningBalance >= 0;
+    // ✅ KHATABOOK LOGIC for balance color:
+    // Positive balance (> 0) = RED (Customer owes you - You will RECEIVE)
+    // Negative balance (< 0) = GREEN (You owe customer - You will GIVE)
+    final isBalancePositive = runningBalance > 0;  // For +/- sign display
 
-    // 🧪 DEBUG: Show running balance info
-    debugPrint('   💰 Subtitle Balance - ID: ${transaction.id}, Balance: ₹$runningBalance, Color: ${isBalancePositive ? "GREEN" : "RED"}');
+    // 🧪 DEBUG: Show running balance info (Khatabook logic)
+    debugPrint('   💰 Subtitle Balance - ID: ${transaction.id}, Balance: ₹$runningBalance, Color: ${runningBalance > 0 ? "RED (Receivable)" : runningBalance < 0 ? "GREEN (Payable)" : "Neutral"}');
 
     return ListItemWidget(
       title: noteTitle,
