@@ -280,8 +280,8 @@ class LedgerDashboardScreen extends StatelessWidget {
                                 AppColors.containerDark,
                               ]
                               : [
-                             AppColors.containerDark,
-                            AppColors.containerDark,
+                             AppColorsLight.white,
+                             AppColorsLight.white,
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -290,7 +290,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                       child: Center(
                         child: AppText.displaySmall(
                           _getInitials(controller.partyName ?? 'Party'),
-                          color: AppColors.white,
+                          color: isDark ? AppColors.white : AppColorsLight.black,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -857,7 +857,7 @@ class LedgerDashboardScreen extends StatelessWidget {
       centerSubText: 'Credit Used',
       centerText: '${usagePercentage.toStringAsFixed(0)}%',
       usedColor: AppColors.primeryamount, // Orange/Yellow for used credit
-      remainingColor: AppColors.containerDark, // Green for remaining credit
+      remainingColor: isDark ? AppColors.containerDark : AppColorsLight.gradientColor2, // Green for remaining credit
       chartSize: 92,
       centerSpaceRadius: 38,
       usedRadius: 11,

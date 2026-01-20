@@ -133,7 +133,7 @@ class ListItemWidget extends StatelessWidget {
                       child: Center(
                         child: AppText.headlineMedium(
                           avatarText ?? title[0].toUpperCase(),
-                          color: avatarTextColor ?? AppColors.white,
+                          color: avatarTextColor ?? (isDark ? AppColors.white : AppColorsLight.black),
                           maxLines: 1,
                           minFontSize: 14,
                           letterSpacing: 0.4,

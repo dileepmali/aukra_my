@@ -30,10 +30,10 @@ class AccountStatementWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final responsive = AdvancedResponsiveHelper(context);
     final controller = Get.find<AccountStatementController>();
-    final borderColor = AppColors.black;
-    final borderColor1 = AppColors.containerDark;
-    final bgColor = AppColors.containerLight;
-    final bgColor1 = AppColors.containerDark;
+    final borderColor = isDark ? AppColors.black : AppColorsLight.border;
+    final borderColor1 = isDark ? AppColors.containerDark : AppColorsLight.container;
+    final bgColor = isDark ? AppColors.containerLight : AppColorsLight.background;
+    final bgColor1 = isDark ? AppColors.containerDark : AppColorsLight.container;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
@@ -50,9 +50,13 @@ class AccountStatementWidget extends StatelessWidget {
                   heightPercent: 7,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        AppColors.containerDark,
+                      colors: isDark ? [
+                        AppColors.containerLight,
                         AppColors.containerLight
+                      ]:
+                      [
+                        AppColorsLight.white,
+                        AppColorsLight.white,
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -61,7 +65,10 @@ class AccountStatementWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(Icons.arrow_back, color: AppColors.white),
+                  child: Icon(
+                      Icons.arrow_back,
+                    color: isDark ? AppColors.white : AppColorsLight.black,
+                  ),
                 ),
               ),
               // Next Month Button
@@ -76,9 +83,13 @@ class AccountStatementWidget extends StatelessWidget {
                   heightPercent: 6.6,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
+                      colors: isDark ? [
                         AppColors.containerLight,
                         AppColors.containerLight
+                      ]:
+                      [
+                        AppColorsLight.white,
+                        AppColorsLight.white,
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -88,7 +99,7 @@ class AccountStatementWidget extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Obx(() => AppText.headlineLarge1(
                     controller.getMonthRangeText(),
-                    color: AppColors.white,
+                    color: isDark ? AppColors.white : AppColorsLight.black,
                     fontWeight: FontWeight.w600,
                   )),
                 ),
@@ -102,9 +113,13 @@ class AccountStatementWidget extends StatelessWidget {
                   heightPercent: 7,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        AppColors.containerDark,
+                      colors: isDark ? [
+                        AppColors.containerLight,
                         AppColors.containerLight
+                      ]:
+                      [
+                        AppColorsLight.white,
+                        AppColorsLight.white,
                       ],
                       begin: Alignment.topRight,
                       end: Alignment.bottomLeft,
@@ -113,7 +128,10 @@ class AccountStatementWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(Icons.arrow_forward, color: AppColors.white),
+                  child: Icon(
+                      Icons.arrow_forward,
+                    color: isDark ? AppColors.white : AppColorsLight.black,
+                  ),
                 ),
               ),
 
@@ -140,10 +158,13 @@ class AccountStatementWidget extends StatelessWidget {
                       AppIcons.calendarIc,
                       width: responsive.iconSizeMedium - 5,
                       height: responsive.iconSizeMedium - 5,
-                      color: AppColors.white,
+                      color: isDark ? AppColors.white : AppColorsLight.black,
                     ),
                     SizedBox(width: responsive.wp(1)),
-                    AppText.headlineLarge1("DATE", color: AppColors.white),
+                    AppText.headlineLarge1(
+                        "DATE",
+                      color: isDark ? AppColors.white : AppColorsLight.black,
+                    ),
                   ],
                 ),
               ),
@@ -164,10 +185,12 @@ class AccountStatementWidget extends StatelessWidget {
                       AppIcons.arrowInIc,
                       width: responsive.iconSizeMedium - 5,
                       height: responsive.iconSizeMedium - 5,
-                      color: AppColors.white,
+                      color: isDark ? AppColors.white : AppColorsLight.black,
                     ),
                     SizedBox(width: responsive.wp(1)),
-                    AppText.headlineLarge1("IN", color: AppColors.white),
+                    AppText.headlineLarge1("IN",
+                      color: isDark ? AppColors.white : AppColorsLight.black,
+                    ),
                   ],
                 ),
               ),
@@ -188,10 +211,13 @@ class AccountStatementWidget extends StatelessWidget {
                       AppIcons.arrowOutIc,
                       width: responsive.iconSizeMedium - 5,
                       height: responsive.iconSizeMedium - 5,
-                      color: AppColors.white,
+                      color: isDark ? AppColors.white : AppColorsLight.black,
                     ),
                     SizedBox(width: responsive.wp(1)),
-                    AppText.headlineLarge1("OUT", color: AppColors.white),
+                    AppText.headlineLarge1(
+                        "OUT",
+                      color: isDark ? AppColors.white : AppColorsLight.black,
+                    ),
                   ],
                 ),
               ),
@@ -212,10 +238,12 @@ class AccountStatementWidget extends StatelessWidget {
                       AppIcons.arrowInIc,
                       width: responsive.iconSizeMedium - 5,
                       height: responsive.iconSizeMedium - 5,
-                      color: AppColors.white,
+                      color: isDark ? AppColors.white : AppColorsLight.black,
                     ),
                     SizedBox(width: responsive.wp(1)),
-                    AppText.headlineLarge1("BAL.", color: AppColors.white),
+                    AppText.headlineLarge1("BAL.",
+                      color: isDark ? AppColors.white : AppColorsLight.black,
+                    ),
                   ],
                 ),
               ),
@@ -287,12 +315,16 @@ class AccountStatementWidget extends StatelessWidget {
                 // Alternating gradients
                 final gradient = isOddRow
                     ? LinearGradient(
-                        colors: [AppColors.containerDark, AppColors.containerDark],
+                        colors: isDark
+                            ? [AppColors.containerDark, AppColors.containerDark]
+                            : [AppColorsLight.white, AppColorsLight.white],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
                     : LinearGradient(
-                        colors: [AppColors.containerLight, AppColors.containerLight],
+                        colors: isDark
+                            ? [AppColors.containerLight, AppColors.containerLight]
+                            : [AppColorsLight.background, AppColorsLight.background],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       );
@@ -312,7 +344,9 @@ class AccountStatementWidget extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Text(
                         dailyGroup.formattedDate,
-                        style: TextStyle(color: AppColors.white, fontSize: responsive.fontSize(12)),
+                        style: TextStyle(
+                            color: isDark ? AppColors.white : AppColorsLight.black,
+                            fontSize: responsive.fontSize(12)),
                       ),
                     ),
                     // IN Cell (Total IN for the day) - GREEN color

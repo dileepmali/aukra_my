@@ -19,6 +19,7 @@ import '../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../widgets/list_item_widget.dart';
 import '../routes/app_routes.dart';
 import '../widgets/bottom_sheets/transaction_detail_bottom_sheet.dart';
+import '../widgets/bottom_sheets/action_bottom_sheet.dart';
 
 class LedgerDetailScreen extends GetView<LedgerDetailController> {
   const LedgerDetailScreen({Key? key}) : super(key: key);
@@ -29,6 +30,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor:
           isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       appBar: PreferredSize(
@@ -212,14 +214,33 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                       isDark,
                     ),
                     SizedBox(width: responsive.wp(2)),
-                    _buildIconButton(
-                      context,
-                      AppIcons.callIc,
-                      () {
+                    GestureDetector(
+                      onTap: () {
                         debugPrint('More options tapped');
+                        final partyName = controller.ledgerDetail.value?.partyName;
+                        ActionBottomSheet.show(
+                          context: context,
+                          partyName: partyName,
+                          onReminder: () {
+                            debugPrint('Reminder tapped');
+                          },
+                          onCall: () {
+                            debugPrint('Call tapped');
+                          },
+                          onWhatsappReminder: () {
+                            debugPrint('Whatsapp reminder tapped');
+                          },
+                          onDeactivateConfirmed: (pin) {
+                            debugPrint('Deactivate confirmed with PIN: $pin');
+                            // TODO: Call API to deactivate ledger with PIN
+                          },
+                        );
                       },
-                      responsive,
-                      isDark,
+                      child: Icon(
+                        Icons.more_vert,
+                        color: isDark ? AppColors.white : AppColorsLight.iconPrimary,
+                        size: responsive.iconSizeLarge,
+                      ),
                     ),
                   ],
                 ),

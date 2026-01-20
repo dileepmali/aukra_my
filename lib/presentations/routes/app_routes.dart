@@ -36,4 +36,5 @@ class AppRoutes {
   static const String customerStatement = '/customer-statement';
   static const String myPlan = '/my-plan'; // 📋 NEW: My Plan screen
   static const String payment = '/payment'; // 💳 NEW: Payment screen
+  static const String deactivatedAccounts = '/deactivated-accounts'; // 📦 NEW: Deactivated accounts screen
 }

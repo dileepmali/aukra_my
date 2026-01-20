@@ -293,6 +293,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                         title: customer.name,
                         subtitle: customer.phone.isNotEmpty ? customer.phone : 'No phone',
                         showAvatar: true,
+                        avatarBackgroundGradient: null,
                         avatarText: customer.initials.isNotEmpty
                             ? customer.initials
                             : (customer.name.isNotEmpty

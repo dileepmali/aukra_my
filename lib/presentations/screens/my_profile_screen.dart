@@ -30,6 +30,7 @@ import 'policy_terms_screen.dart';
 import 'about_us_screen.dart';
 import 'security_settings_screen.dart';
 import 'my_plan_screen.dart';
+import 'deactivated_accounts_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -312,10 +313,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 radius: responsive.wp(8),
                 backgroundColor: isDark
                 ? AppColors.containerDark
-                    : AppColorsLight.splaceSecondary1,
+                    : AppColorsLight.scaffoldBackground,
                 child: AppText.searchbar2(
                   userInitials,
-                  color: AppColors.white,
+                  color: isDark ? AppColors.white : AppColorsLight.black,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -456,6 +457,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'hasRecoveryData': backupPhone != null && backupPhone.isNotEmpty,
       },
       {
+        'icon': AppIcons.boxIc,
+        'title': 'Deactivated account',
+        'subtitle': 'View & restore deactivated accounts',
+        'onTap': () {
+          debugPrint('📦 Navigating to deactivated accounts screen...');
+          Get.to(() => const DeactivatedAccountsScreen());
+        },
+        'hasDeactivatedAccounts': false, // TODO: Replace with actual check for deactivated accounts
+      },
+      {
         'icon': AppIcons.messageIc,
         'title': 'Help center',
         'subtitle': 'Need help or want to read docs?',
@@ -496,6 +507,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         children: List.generate(profileOptions.length, (index) {
           final option = profileOptions[index];
           final hasRecoveryData = option['hasRecoveryData'] as bool? ?? false;
+          final hasDeactivatedAccounts = option['hasDeactivatedAccounts'] as bool? ?? false;
+          final hasSpecialIcon = hasRecoveryData || hasDeactivatedAccounts;
 
           return Column(
             children: [
@@ -504,14 +517,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 title: option['title'] as String,
                 subtitle: option['subtitle'] as String,
                 leadingIcon: option['icon'] as String,
-                // Use customTrailing for Recovery mobile when data exists
-                trailingIcon: hasRecoveryData ? null : AppIcons.arrowRightIc,
-                customTrailing: hasRecoveryData
+                // Use customTrailing when special icon needs to be shown
+                trailingIcon: hasSpecialIcon ? null : AppIcons.arrowRightIc,
+                customTrailing: hasSpecialIcon
                     ? Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           SvgPicture.asset(
-                            AppIcons.recoveryIc,
+                            hasRecoveryData ? AppIcons.recoveryIc : AppIcons.reminderIc,
                             width: responsive.iconSizeMedium,
                             height: responsive.iconSizeMedium,
                             color: isDark ? AppColors.white : AppColorsLight.iconPrimary,
@@ -554,14 +567,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         ]
             :
         [
-          AppColors.containerLight,
-          AppColors.containerDark,
+          AppColorsLight.gradientColor1,
+          AppColorsLight.gradientColor2,
         ],
 
-        textColor: AppColors.white,
+        textColor: isDark ? AppColors.white : AppColorsLight.black,
         fontSize: responsive.fontSize(20),
         fontWeight: FontWeight.w600,
-        borderColor: isDark ? AppColors.driver : AppColors.border1,
+        borderColor: isDark ? AppColors.driver : AppColorsLight.shadowMedium,
         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         onPressed: () {
           debugPrint('🚪 Logout button pressed - showing custom logout dialog');

@@ -340,8 +340,8 @@ class _PinVerificationDialogContentState
                 ),
               ],
 
-              // ✅ Warning Container (Show in OTP step, hide in PIN step)
-              if (_isOtpStep && widget.warningText != null) ...[
+              // ✅ Warning Container (Show when showWarning is true)
+              if (widget.showWarning && widget.warningText != null) ...[
                 SizedBox(height: responsive.hp(2)),
                 Container(
                   padding: EdgeInsets.symmetric(
@@ -364,7 +364,7 @@ class _PinVerificationDialogContentState
                     color: AppColors.white,
                     fontWeight: FontWeight.w500,
                     textAlign: TextAlign.start,
-                    maxLines: 4,
+                    maxLines: 10,
                   ),
                 ),
               ],

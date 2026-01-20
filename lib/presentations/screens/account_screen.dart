@@ -300,7 +300,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 onTap: onViewAll,
                 child: AppText.headlineLarge(
                   'View all',
-                  color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                  color: isDark ? AppColors.white : AppColorsLight.black,
                   fontWeight: FontWeight.w500,
                 ),
               ),

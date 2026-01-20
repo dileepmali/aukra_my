@@ -279,7 +279,7 @@ class CustomerStatementScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [AppColors.containerDark, AppColors.containerDark]
-                        : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                        : [AppColorsLight.white, AppColorsLight.white],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
@@ -334,6 +334,8 @@ class CustomerStatementScreen extends StatelessWidget {
                             AppIcons.vectoeIc3,
                             width: responsive.iconSizeSmall,
                             height: responsive.iconSizeSmall,
+                            color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+
                           ),
                         ),
                         SizedBox(width: responsive.wp(0.8)),
@@ -357,7 +359,7 @@ class CustomerStatementScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [AppColors.containerDark, AppColors.containerDark]
-                        : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                        : [AppColorsLight.white, AppColorsLight.white],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
@@ -412,6 +414,8 @@ class CustomerStatementScreen extends StatelessWidget {
                             AppIcons.vectoeIc3,
                             width: responsive.iconSizeSmall,
                             height: responsive.iconSizeSmall,
+                            color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+
                           ),
                         ),
                         SizedBox(width: responsive.wp(0.9)),
@@ -488,6 +492,8 @@ class CustomerStatementScreen extends StatelessWidget {
         isPositive ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
         width: responsive.iconSizeMedium,
         height: responsive.iconSizeMedium,
+        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+
       ),
       showBorder: true,
       onTap: () {
@@ -531,7 +537,7 @@ class CustomerStatementScreen extends StatelessWidget {
           ]
               :
           [
-            AppColorsLight.gradientColor1, AppColorsLight.gradientColor2
+            AppColors.splaceSecondary1, AppColors.splaceSecondary2
           ],
           cornerRadius: responsive.borderRadiusSmall,
           padding: EdgeInsets.symmetric(

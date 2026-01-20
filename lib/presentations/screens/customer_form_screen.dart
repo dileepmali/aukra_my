@@ -134,7 +134,8 @@ class CustomerFormScreen extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: isDark
                   ? [AppColors.overlay, AppColors.overlay]
-                  : [AppColorsLight.scaffoldBackground, AppColorsLight.container],
+                  : [
+                    AppColorsLight.scaffoldBackground, AppColorsLight.scaffoldBackground],
             ),
           ),
           child: Column(
@@ -431,16 +432,20 @@ class CustomerFormScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: isDark
               ? LinearGradient(
-            colors: [AppColors.containerLight, AppColors.containerDark],
-            begin: Alignment.topRight,
-            end: Alignment.bottomCenter,
+                  colors: [AppColors.containerLight, AppColors.containerDark],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomCenter,
                 )
-              : AppColorsLight.brandGradient,
+              : LinearGradient(
+                  colors: [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomCenter,
+                ),
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         ),
         child: AppText.headlineLarge1(
           label,
-          color: Colors.white,
+          color: isDark ? Colors.white : AppColorsLight.textPrimary,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),
       ),
@@ -466,17 +471,21 @@ class CustomerFormScreen extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           gradient: isDark
-              ? LinearGradient(
-                  colors: [AppColors.containerLight, AppColors.containerDark],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomCenter,
-                )
-              : AppColorsLight.brandGradient,
+        ? LinearGradient(
+        colors: [AppColors.containerLight, AppColors.containerDark],
+          begin: Alignment.topRight,
+          end: Alignment.bottomCenter,
+        )
+            : LinearGradient(
+        colors: [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+        begin: Alignment.topRight,
+        end: Alignment.bottomCenter,
+      ),
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         ),
         child: AppText.headlineLarge1(
           label,
-          color: Colors.white,
+          color: isDark ? Colors.white : AppColorsLight.black,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         ),
       ),

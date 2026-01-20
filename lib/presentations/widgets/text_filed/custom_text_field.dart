@@ -202,7 +202,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         width: responsive.wp(16),
         height: responsive.hp(6.6),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
+          color: isDark ? AppColors.overlay : AppColorsLight.white,
           border: Border(
             right: BorderSide(
               color: _isFocused ? defaultFocusedBorderColor : defaultBorderColor,
