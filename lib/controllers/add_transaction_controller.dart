@@ -456,6 +456,7 @@ class AddTransactionController extends GetxController {
       debugPrint('   - Date: $transactionDate');
 
       // Call Update API
+      // NOTE: transactionType cannot be changed - backend limitation
       final response = await _transactionApi.updateTransaction(
         transactionId: transactionId!,
         transactionAmount: transactionAmount,

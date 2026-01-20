@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../models/qr_code_model.dart';
+import '../../models/qr_code_model.dart';
 
 /// QR Code API Service
 /// Handles all API calls related to QR code generation

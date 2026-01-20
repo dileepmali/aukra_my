@@ -16,8 +16,9 @@ import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
-import '../../core/services/back_button_service.dart';
 import '../../core/services/error_service.dart';
+import '../../core/untils/binding/verify_binding.dart';
+import '../auth/otp_verify_screen.dart';
 import '../../core/untils/error_types.dart';
 import '../../core/untils/phone_number_formatter.dart';
 import '../../models/merchant_model.dart';
@@ -73,30 +74,10 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
 
     // Owner phone field will be empty - user will enter manually
     // Registered Mobile Number field auto-fills from controller.registeredPhone
-
-    // Register back button interceptor
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        BackButtonService.pushScreen('ShopDetailScreen');
-        BackButtonService.registerWithCleanup(
-          screenName: 'ShopDetailScreen',
-          onBackPressed: () {
-            // ✅ FIX: Navigate to verify number screen instead of Get.back()
-            // Because shop detail screen is opened with Get.offAllNamed() (no back stack)
-            debugPrint('🔙 Back button pressed on Shop Detail Screen');
-            debugPrint('   → Navigating to Number Verify Screen');
-            Get.offAllNamed('/number-verify');
-            return ;
-          },
-          interceptorName: 'shop_detail_interceptor',
-        );
-      }
-    });
   }
 
   @override
   void dispose() {
-    BackButtonService.remove(interceptorName: 'shop_detail_interceptor');
     nameController.dispose();
     shopNameController.dispose();
     locationController.dispose();
@@ -115,9 +96,30 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
     final responsive = AdvancedResponsiveHelper(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return KeyboardVisibilityBuilder(
-      builder: (context, isKeyboardVisible) {
-        return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        debugPrint('');
+        debugPrint('╔══════════════════════════════════════════════════════════╗');
+        debugPrint('║  🔙 BACK NAVIGATION TRIGGERED                            ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  📍 FROM: ShopDetailScreen                               ║');
+        debugPrint('║  📍 TO:   OtpVerifyScreen                                ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        final phoneNumber = controller.registeredPhone.value;
+        debugPrint('║  📱 Phone: $phoneNumber');
+        debugPrint('║  ⏰ Time: ${DateTime.now()}');
+        debugPrint('╚══════════════════════════════════════════════════════════╝');
+        debugPrint('');
+        Get.off(
+          () => OtpVerifyScreen(phoneNumber: phoneNumber),
+          binding: VerifyBinding(),
+        );
+      },
+      child: KeyboardVisibilityBuilder(
+        builder: (context, isKeyboardVisible) {
+          return Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
           body: SafeArea(
@@ -249,8 +251,9 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
               ],
             ),
           ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -353,7 +356,7 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
       key: ownerPhoneFieldKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText.searchbar2(
+        AppText.headlineLarge1(
           AppStrings.getLocalizedString(context, (localizations) => localizations.ownerMasterMobileNumber),
           color: isDark ? Colors.grey[400] : AppColorsLight.textSecondary,
           maxLines: 1,
@@ -423,8 +426,8 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
                     textAlign: TextAlign.center,
                     gradientColors: [
                       // Always use normal gradient colors (same for both enabled/disabled)
-                      isDark ? AppColors.containerLight : AppColorsLight.textSecondary,
-                      isDark ? AppColors.containerDark : AppColorsLight.textSecondary,
+                      isDark ? AppColors.containerLight : AppColorsLight.gradientColor1,
+                      isDark ? AppColors.containerDark : AppColorsLight.gradientColor2,
                     ],
                     enableSweepGradient: false,
                     borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
@@ -447,7 +450,7 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
                               // Text color: White when enabled, Grey when disabled
                               color: isDifferent
                                   ? Colors.white
-                                  : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                                  : (isDark ? Colors.grey[600] : Colors.black),
                               maxLines: 1,
                               minFontSize: 11,
                               textAlign: TextAlign.center,
@@ -643,7 +646,7 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
             : Center(
                 child: AppText.button(
                   AppStrings.getLocalizedString(context, (localizations) => localizations.confirmFinish),
-                  color: Colors.black,
+                  color: Colors.white,
                   maxLines: 1,
                   minFontSize: 12,
                   textAlign: TextAlign.center,

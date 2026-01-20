@@ -228,6 +228,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                         cancelText: DateFormat('d MMM yyyy').format(controller.selectedDate.value),
                         confirmText: 'Add photos',
                         onCancel: () => _selectDate(context),
+
                         onConfirm: () {
                           ImagePickerBottomSheet.show(
                             context: context,
@@ -241,6 +242,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                         buttonHeight: responsive.hp(6),
                         buttonSpacing: responsive.wp(3),
                         confirmTextColor: isDark ? AppColors.white : AppColors.black,
+
                         cancelIcon: SvgPicture.asset(
                           AppIcons.calendarIc,
                           width: responsive.iconSizeMedium,
@@ -264,7 +266,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                             : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
                         confirmGradientColors: isDark
                             ? [AppColors.containerDark, AppColors.containerLight]
-                            : [AppColorsLight.splaceSecondary1, AppColorsLight.splaceSecondary2],
+                            : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
                         enableSweepGradient: true,
                       ),
                     )),
@@ -343,7 +345,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                                   height: responsive.hp(6.5),
                                   gradientColors: isDark
                                       ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
-                                      : [AppColorsLight.splaceSecondary1, AppColorsLight.splaceSecondary2],
+                                      : [AppColors.splaceSecondary1, AppColors.splaceSecondary2],
                                   textColor: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
                                   borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                                   fontSize: responsive.fontSize(18),
@@ -360,7 +362,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                             height: responsive.hp(6.5),
                             gradientColors: isDark
                                 ? [AppColors.splaceSecondary1, AppColors.splaceSecondary2]
-                                : [AppColorsLight.splaceSecondary1, AppColorsLight.splaceSecondary2],
+                                : [AppColors.splaceSecondary1, AppColors.splaceSecondary2],
                             textColor: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
                             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                             fontSize: responsive.fontSize(18),
@@ -388,7 +390,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
           width: responsive.iconSizeExtraLarge,
         ),
         SizedBox(height: responsive.hp(2)),
-        AppText.headlineLarge1(
+        AppText.headlineLarge(
           'All transaction between you and customers are\nsafely private & secure.',
           color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
           textAlign: TextAlign.start,
@@ -438,11 +440,19 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                       AppIcons.arrowInIc,
                       width: responsive.iconSizeMedium,
                       height: responsive.iconSizeMedium,
+                      colorFilter: controller.selectedType.value == 'IN'
+                          ? null
+                          : ColorFilter.mode(
+                              isDark ? AppColors.white : AppColorsLight.black,
+                              BlendMode.srcIn,
+                            ),
                     ),
                     SizedBox(width: responsive.wp(2)),
                     AppText.searchbar(
                       'In',
-                      color: controller.selectedType.value == 'IN' ? AppColors.white : Colors.white,
+                      color: controller.selectedType.value == 'IN'
+                          ? AppColors.white
+                          : (isDark ? AppColors.white : AppColorsLight.black),
                       fontWeight: FontWeight.w600,
                     ),
                   ],
@@ -474,11 +484,19 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                       AppIcons.arrowOutIc,
                       width: responsive.iconSizeMedium,
                       height: responsive.iconSizeMedium,
+                      colorFilter: controller.selectedType.value == 'OUT'
+                          ? null
+                          : ColorFilter.mode(
+                              isDark ? AppColors.black : AppColorsLight.black,
+                              BlendMode.srcIn,
+                            ),
                     ),
                     SizedBox(width: responsive.wp(2)),
                     AppText.searchbar(
                       'Out',
-                      color: controller.selectedType.value == 'OUT' ? AppColors.white : Colors.white,
+                      color: controller.selectedType.value == 'OUT'
+                          ? AppColors.white
+                          : (isDark ? AppColors.white : AppColorsLight.black),
                       fontWeight: FontWeight.w600,
                     ),
                   ],
@@ -523,10 +541,10 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             ),
           ),
           child: Center(
-            child: AppText.displayLarge(
+            child: AppText.displayMedium2(
               getInitials(name),
               color: AppColors.white,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -535,7 +553,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
         AppText.displaySmall(
           name,
           color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
         ),
         SizedBox(height: responsive.hp(0.2)),
         // Location (if available)

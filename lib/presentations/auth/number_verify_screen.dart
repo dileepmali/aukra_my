@@ -6,6 +6,7 @@ import '../../app/themes/app_text.dart';
 import '../../buttons/app_button.dart';
 import '../../controllers/image_carousel_controller.dart';
 import '../../core/api/global_api_function.dart';
+import '../../core/api/auth_storage.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
 import '../../core/responsive_layout/padding_navigation.dart';
@@ -19,10 +20,11 @@ import 'package:get/get.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import '../../../core/responsive_layout/device_category.dart';
-import '../../../core/services/back_button_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../app/localizations/l10n/app_strings.dart';
+import '../../core/untils/binding/localization.dart';
 import '../widgets/custom_border_widget.dart';
+import '../language/select_language_screen.dart';
 import 'otp_verify_screen.dart';
 
 class NumberVerifyScreen extends StatefulWidget {
@@ -48,31 +50,13 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
     super.initState();
     carouselController = Get.put(ImageCarouselController(), tag: 'number_carousel');
     apiFetcher = ApiFetcher();
-    
-    // Initialize AppBarController to prevent "not found" error
 
-    // Register back button handler to navigate to SelectLanguageScreen
-    // Use post-frame callback to ensure proper registration after widget initialization
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Set this screen as the active screen in navigation stack
-      BackButtonService.pushScreen('NumberVerifyScreen');
-
-      BackButtonService.registerWithCleanup(
-        screenName: 'NumberVerifyScreen',
-        onBackPressed: BackButtonService.handleNumberVerifyBack,
-        interceptorName: 'number_verify_interceptor',
-        priority: 1,
-      );
-      print('🔙 NumberVerifyScreen: Back button handler registered and set as active screen');
-    });
+    debugPrint('✅ NUMBER VERIFY SCREEN - InitState completed');
   }
 
   @override
   void dispose() {
     debugPrint('🗑️ NUMBER VERIFY SCREEN - Disposing');
-
-    // Remove back button handler
-    BackButtonService.remove(interceptorName: 'number_verify_interceptor');
 
     // Properly dispose carousel controller to prevent ticker errors
     if (carouselController != null) {
@@ -144,9 +128,34 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
     final responsive = AdvancedResponsiveHelper(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return KeyboardVisibilityBuilder(
-      builder: (context, isKeyboardVisible) {
-        return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        debugPrint('');
+        debugPrint('╔══════════════════════════════════════════════════════════╗');
+        debugPrint('║  🔙 BACK NAVIGATION TRIGGERED                            ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  📍 FROM: NumberVerifyScreen                             ║');
+        debugPrint('║  📍 TO:   SelectLanguageScreen                           ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  🔑 Clearing auth token for fresh login flow             ║');
+        debugPrint('║  ⏰ Time: ${DateTime.now()}');
+        debugPrint('╚══════════════════════════════════════════════════════════╝');
+        debugPrint('');
+
+        // ✅ Clear token so user must go through full auth flow again
+        await AuthStorage.clearToken();
+        debugPrint('✅ Token cleared - User will go through full auth flow');
+
+        Get.off(
+          () => const SelectLanguageScreen(),
+          binding: LocalizationBinding(),
+        );
+      },
+      child: KeyboardVisibilityBuilder(
+        builder: (context, isKeyboardVisible) {
+          return Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
           body: SafeArea(
@@ -470,9 +479,10 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
             ],
           ),
         ),
+            );
+          },
+        ),
       );
-    },
-        );
   }
 
   Widget _buildTopContainer(AdvancedResponsiveHelper responsive, bool isKeyboardVisible) {

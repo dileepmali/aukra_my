@@ -143,4 +143,28 @@ class TransactionItemModel {
     }
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
+
+  /// Create a copy with updated balance values
+  /// Used for frontend balance recalculation when backend doesn't update
+  TransactionItemModel copyWith({
+    double? lastBalance,
+    double? currentBalance,
+  }) {
+    return TransactionItemModel(
+      id: id,
+      amount: amount,
+      lastBalance: lastBalance ?? this.lastBalance,
+      currentBalance: currentBalance ?? this.currentBalance,
+      description: description,
+      isDelete: isDelete,
+      transactionDate: transactionDate,
+      updatedAt: updatedAt,
+      transactionType: transactionType,
+      ledgerId: ledgerId,
+      partyName: partyName,
+      partyType: partyType,
+      balanceType: balanceType,
+      uploadedKeys: uploadedKeys,
+    );
+  }
 }

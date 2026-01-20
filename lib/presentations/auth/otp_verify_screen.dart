@@ -22,9 +22,10 @@ import '../../core/responsive_layout/padding_navigation.dart';
 import '../../core/untils/error_types.dart';
 
 import '../../../core/api/auth_storage.dart';
-import '../../../core/services/back_button_service.dart';
+import '../../core/untils/binding/number_binding.dart';
 import '../widgets/custom_border_widget.dart';
 import '../routes/app_routes.dart';
+import 'number_verify_screen.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
   final String? phoneNumber;
@@ -159,38 +160,12 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
     // Initialize carousel
     carouselController = Get.put(ImageCarouselController(), tag: 'otp_carousel');
 
-    // 🔙 Register back button interceptor for OtpVerifyScreen after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        // First remove any potential conflicting interceptors
-        debugPrint('🔧 OTP VERIFY SCREEN - Removing potential conflicting interceptors');
-        BackButtonService.remove(interceptorName: 'number_verify_interceptor');
-        BackButtonService.remove(interceptorName: 'select_language_interceptor');
-        
-        // Register OTP screen interceptor
-        debugPrint('📝 OTP VERIFY SCREEN - Registering back button interceptor');
-        BackButtonService.registerWithCleanup(
-          screenName: 'OtpVerifyScreen',
-          onBackPressed: BackButtonService.handleOtpVerifyBack,
-          interceptorName: 'otp_verify_interceptor',
-        );
-      }
-    });
-
     debugPrint('✅ OTP VERIFY SCREEN - InitState completed successfully');
   }
 
   @override
   void dispose() {
-    debugPrint('🗑️ OTP VERIFY SCREEN - Disposing and cleaning up interceptors');
-
-    // 🔙 Remove back button interceptor with additional safety
-    try {
-      BackButtonService.remove(interceptorName: 'otp_verify_interceptor');
-      debugPrint('✅ OTP VERIFY SCREEN - Successfully removed back button interceptor');
-    } catch (e) {
-      debugPrint('⚠️ OTP VERIFY SCREEN - Error removing interceptor: $e');
-    }
+    debugPrint('🗑️ OTP VERIFY SCREEN - Disposing');
 
     // 🔥 Cancel auto-submit timer
     _autoSubmitTimer?.cancel();
@@ -208,9 +183,28 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
     final responsive = AdvancedResponsiveHelper(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return KeyboardVisibilityBuilder(
-        builder: (context, isKeyboardVisible) {
-          return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        debugPrint('');
+        debugPrint('╔══════════════════════════════════════════════════════════╗');
+        debugPrint('║  🔙 BACK NAVIGATION TRIGGERED                            ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  📍 FROM: OtpVerifyScreen                                ║');
+        debugPrint('║  📍 TO:   NumberVerifyScreen                             ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  ⏰ Time: ${DateTime.now()}');
+        debugPrint('╚══════════════════════════════════════════════════════════╝');
+        debugPrint('');
+        Get.off(
+          () => const NumberVerifyScreen(),
+          binding: NumberBinding(),
+        );
+      },
+      child: KeyboardVisibilityBuilder(
+          builder: (context, isKeyboardVisible) {
+            return Scaffold(
             resizeToAvoidBottomInset: true,
             backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
             body: SafeArea(
@@ -265,8 +259,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
               ],
             ),
           ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

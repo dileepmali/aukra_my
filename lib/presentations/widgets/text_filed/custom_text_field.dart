@@ -161,7 +161,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
     // Responsive sizes
     final defaultBorderRadius = widget.borderRadius ?? responsive.borderRadiusSmall;
-    final defaultBorderWidth = widget.borderWidth ?? 1.5;
+    final defaultBorderWidth = widget.borderWidth ?? 1.0;
     final defaultContentPadding = widget.contentPadding ?? EdgeInsets.symmetric(
       horizontal: responsive.wp(4),
       vertical: responsive.hp(2),
@@ -269,7 +269,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         cursorColor: isDark ? AppColors.white : AppColorsLight.black,
         decoration: InputDecoration(
           filled: true,
-          fillColor: isDark ? AppColors.black : AppColorsLight.scaffoldBackground,
+          fillColor: isDark ? AppColors.black : AppColorsLight.white,
           hintText: widget.hintText,
           labelText: widget.labelText,
           hintStyle: widget.hintStyle ?? TextStyle(

@@ -86,6 +86,7 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
     // 🔧 FIX: Reload language from storage to ensure fresh state after logout
     // This ensures the UI reflects the actual stored language (default 'en' after logout)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       await _localizationController.loadSavedLanguage();
       debugPrint('🌐 Language reloaded from storage: ${_localizationController.currentLanguageCode}');
     });
@@ -239,11 +240,14 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
     final responsive = AdvancedResponsiveHelper(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Initialize AppStrings for localization
-    AppStrings.init(context);
-
+    // ✅ FIX: Moved AppStrings.init to post-frame callback to avoid setState during build
     // Reset selection state whenever screen is built (including when navigating back)
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      // Initialize AppStrings for localization (safe to call after build)
+      AppStrings.init(context);
+
       final controller = _safeSearchController;
       if (controller != null && controller.isSelecting.value) {
         controller.isSelecting.value = false;
@@ -255,13 +259,22 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
       onPopInvoked: (didPop) async {
         if (didPop) return;
 
-        debugPrint('🔙 SelectLanguageScreen back button pressed - showing exit dialog');
+        debugPrint('');
+        debugPrint('╔══════════════════════════════════════════════════════════╗');
+        debugPrint('║  🔙 BACK NAVIGATION TRIGGERED                            ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  📍 FROM: SelectLanguageScreen                           ║');
+        debugPrint('║  📍 TO:   EXIT APP (Dialog)                              ║');
+        debugPrint('╠══════════════════════════════════════════════════════════╣');
+        debugPrint('║  ⏰ Time: ${DateTime.now()}');
+        debugPrint('╚══════════════════════════════════════════════════════════╝');
+        debugPrint('');
+
         // Show exit confirmation dialog
         final shouldExit = await Get.dialog<bool>(
           const ExitConfirmationDialog(),
           barrierDismissible: false,
-            barrierColor: AppColors.transparent.withValues(alpha: 0.7)
-
+          barrierColor: AppColors.transparent.withValues(alpha: 0.7),
         );
 
         if (shouldExit == true) {

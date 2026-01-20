@@ -122,8 +122,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                           AppColors.splaceSecondary2,
                                         ]
                                       : [
-                                          AppColorsLight.gradientColor1,
-                                          AppColorsLight.gradientColor2,
+                                    AppColors.splaceSecondary1,
+                                    AppColors.splaceSecondary2,
                                         ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -329,8 +329,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
               )
             : LinearGradient(
                 colors: [
-                  AppColorsLight.gradientColor1,
-                  AppColorsLight.gradientColor2
+                  AppColorsLight.white,
+                  AppColorsLight.white,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -341,9 +341,11 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         final detail = controller.ledgerDetail.value;
         if (detail == null) return SizedBox.shrink();
 
-        // Use API's currentBalance directly (server-calculated)
-        final balance = detail.currentBalance;
-        debugPrint('🎯 Closing Balance Card - API currentBalance: $balance');
+        // ✅ FIX: Use recalculated closing balance instead of API value
+        // Backend doesn't recalculate balances after edit, so we use frontend-calculated value
+        final balance = controller.recalculatedClosingBalance.value;
+        final apiBalance = detail.currentBalance;
+        debugPrint('🎯 Closing Balance Card - Recalculated: $balance (API was: $apiBalance)');
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -355,7 +357,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                 children: [
                   AppText.headlineLarge(
                     'Closing Balance',
-                    color: AppColors.white.withOpacity(0.8),
+                    color: isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.black,
                     fontWeight: FontWeight.w400,
                   ),
                   SizedBox(height: responsive.hp(1)),
@@ -559,20 +561,20 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     return ListItemWidget(
       title: noteTitle,
       subtitle: formattedDate,
-      subtitleColor: AppColors.textDisabled,
+      subtitleColor: isDark ? AppColors.textDisabled : AppColorsLight.black,
       titlePrefixIcon: SvgPicture.asset(
         isPositive ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
         width: responsive.iconSizeMedium,
         height: responsive.iconSizeMedium,
         colorFilter: ColorFilter.mode(
-          AppColors.white,
+          isDark ? AppColors.white : AppColorsLight.black,
           BlendMode.srcIn,
         ),
       ),
       subtitleSuffix: AppText.headlineMedium(
         // ✅ Add +/- sign based on balance: Positive = +, Negative = -
         'Bal. ₹ ${NumberFormat('#,##,##0.00',).format(runningBalance.abs())}',
-        color: AppColors.textDisabled,       // 🔴 Red for negative (देना है)
+        color: isDark ? AppColors.textDisabled : AppColorsLight.black,       // 🔴 Red for negative (देना है)
         fontWeight: FontWeight.w500,
       ),
       subtitleFontWeight: FontWeight.w500,
@@ -656,16 +658,14 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
 
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.containerDark,
-            AppColors.containerDark
-          ],
+          colors: isDark
+              ? [AppColors.containerDark, AppColors.containerDark]
+              : [AppColorsLight.white, AppColorsLight.gradientColor2],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        border: Border.all(color: isDark ? AppColors.driver : AppColorsLight.black),
+        border: Border.all(color: isDark ? AppColors.driver : AppColors.driver),
         borderRadius: BorderRadius.circular(responsive.borderRadiusExtraLarge2),
-
       ),
       child: Row(
         children: [

@@ -90,7 +90,7 @@ class BottomActionBar extends StatelessWidget {
                           AppColorsLight.gradientColor1,
                           AppColorsLight.gradientColor2,
                         ],
-                  textColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                  textColor: isDark ? AppColors.white : AppColorsLight.black,
                   fontSize: responsive.fontSize(18),
                   maxLines: 2, // ✅ Allow text to wrap to 2 lines for long text
                   leadingWidget: SvgPicture.asset(
@@ -106,15 +106,15 @@ class BottomActionBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                   text: secondaryButtonText,
                   onPressed: onSecondaryPressed,
-                  borderColor: isDark ? AppColors.driver : AppColorsLight.splaceSecondary1,
-                  gradientColors: secondaryButtonGradientColors ?? (isDark
+                  borderColor: isDark ? AppColors.driver : AppColors.driver,
+                    gradientColors: secondaryButtonGradientColors ?? (isDark
                       ? [
                           AppColors.splaceSecondary1,
                           AppColors.splaceSecondary2,
                         ]
                       : [
-                          AppColorsLight.splaceSecondary1,
-                          AppColorsLight.splaceSecondary2,
+                    AppColors.splaceSecondary1,
+                    AppColors.splaceSecondary2,
                         ]),
                   enableSweepGradient: true,
                   textColor: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
@@ -127,7 +127,7 @@ class BottomActionBar extends StatelessWidget {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              color: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
+                              color: isDark ? AppColors.white : AppColorsLight.white,
                               strokeWidth: 2.0,
                             ),
                           ),
@@ -168,7 +168,7 @@ class BottomActionBar extends StatelessWidget {
                         AppColorsLight.background,
                         AppColorsLight.card,
                       ],
-                textColor: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                textColor: isDark ? AppColors.white : AppColorsLight.black,
                 fontSize: responsive.fontSize(14),
                 maxLines: 2, // ✅ Allow text to wrap to 2 lines for long text
               ),
@@ -180,16 +180,11 @@ class BottomActionBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                 text: secondaryButtonText,
                 onPressed: onSecondaryPressed,
-                gradientColors: secondaryButtonGradientColors ?? (isDark
-                    ? [
-                        AppColors.splaceSecondary1,
-                        AppColors.splaceSecondary2,
-                      ]
-                    : [
-                        AppColorsLight.splaceSecondary1,
-                        AppColorsLight.splaceSecondary2,
-                      ]),
-                textColor: isDark ? AppColors.buttonTextColor : AppColorsLight.black,
+                gradientColors: secondaryButtonGradientColors ?? [
+                  AppColors.splaceSecondary1,
+                  AppColors.splaceSecondary2,
+                ],
+                textColor: AppColors.buttonTextColor,
                 fontSize: responsive.fontSize(14),
                 maxLines: 2, // ✅ Allow text to wrap to 2 lines for long text
                 // ✅ NEW: Show loading indicator inside button

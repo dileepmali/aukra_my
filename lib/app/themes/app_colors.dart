@@ -4,6 +4,7 @@ class AppColors {
   // 🌈 Brand Colors
 
 
+  static const Color overlay = Color(0xFF171515); // 50% Black
   static const Color splaceSecondary2 = Color(0xFF22d3ee);
   static const Color splaceSecondary1 = Color(0xFF1d4ed8);
   static const Color freeCardWhite1 = Color(0xFFbdbdbd);
@@ -23,6 +24,9 @@ class AppColors {
   static const Color splashBlurShape3 = Color(0xFF1A78D0); // Blur shape color 3 for splash
   static const Color splashBlurShape4 = Color(0xFF1A80D4); // Blur shape color 4 for splash
   static const Color splashBlurShape5 = Color(0xFF1A8CD9); // Blur shape color 5 for splash
+  static const Color black = Color(0xFF000000); // 50% Black
+  static const Color black1 = Color(0xFF151414); // 50% Black
+
 
 
   static const Color containerColor = Color(0x0FFFFFFF);
@@ -82,8 +86,6 @@ class AppColors {
   static const Color dialogBariary = Color(0xFF302525); // black40
 
   // 🌫️ Overlay
-  static const Color overlay = Color(0xFF171515); // 50% Black
-  static const Color black = Color(0xFF000000); // 50% Black
 
   // ⛔ Alert/Dialog
   static const Color dialogBackground = Color(0xFFFFFFFF);

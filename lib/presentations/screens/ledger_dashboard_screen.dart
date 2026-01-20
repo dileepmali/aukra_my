@@ -179,7 +179,7 @@ class LedgerDashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(responsive.wp(4)),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.overlay : AppColors.white,
+        color: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,8 +274,13 @@ class LedgerDashboardScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [
-                            AppColors.containerDark,
+                          colors: isDark
+                              ? [
+                                AppColors.containerDark,
+                                AppColors.containerDark,
+                              ]
+                              : [
+                             AppColors.containerDark,
                             AppColors.containerDark,
                           ],
                           begin: Alignment.topCenter,
@@ -455,9 +460,9 @@ class LedgerDashboardScreen extends StatelessWidget {
                   )
                 : LinearGradient(
                     colors: [
-                      AppColorsLight.gradientColor1,
-                      AppColorsLight.gradientColor1,
-                      AppColorsLight.gradientColor2,
+                      AppColorsLight.white,
+                      AppColorsLight.white,
+                      AppColorsLight.white,
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -472,7 +477,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                 padding: EdgeInsets.only(left: responsive.wp(5), bottom: responsive.hp(1)),
                 child: AppText.headlineMedium(
                   '$currentMonthName Statement',
-                  color: AppColors.white,
+                  color: isDark?AppColors.white : AppColorsLight.black,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 1.0,
                 ),
@@ -507,7 +512,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                   width: responsive.iconSizeLarge,
                   height: responsive.iconSizeLarge,
                   colorFilter: ColorFilter.mode(
-                    AppColors.white,
+                    isDark?AppColors.white : AppColorsLight.black,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -518,7 +523,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                     amount: monthlyOut,
                     prefix: '₹ ',
                     minFontSize: 10,
-                    color: AppColors.white,
+                    color: isDark?AppColors.white : AppColorsLight.black,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -535,7 +540,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                   width: responsive.iconSizeLarge,
                   height: responsive.iconSizeLarge,
                   colorFilter: ColorFilter.mode(
-                    AppColors.white,
+                     isDark?AppColors.white : AppColorsLight.black,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -546,7 +551,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                     amount: monthlyIn,
                     prefix: '₹ ',
                     minFontSize: 10,
-                    color: AppColors.white,
+                    color: isDark?AppColors.white : AppColorsLight.black,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -669,8 +674,8 @@ class LedgerDashboardScreen extends StatelessWidget {
               )
             : LinearGradient(
                 colors: [
-                  AppColorsLight.gradientColor1,
-                  AppColorsLight.gradientColor2,
+                  AppColorsLight.white,
+                  AppColorsLight.white,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -686,7 +691,7 @@ class LedgerDashboardScreen extends StatelessWidget {
               Flexible(
                 child: AppText.headlineMedium(
                   title,
-                  color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                  color: isDark ? AppColors.white : AppColorsLight.black,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -941,9 +946,9 @@ class LedgerDashboardScreen extends StatelessWidget {
               )
             : LinearGradient(
                 colors: [
-                  AppColorsLight.gradientColor1,
-                  AppColorsLight.gradientColor1,
-                  AppColorsLight.gradientColor2,
+                  AppColorsLight.white,
+                  AppColorsLight.white,
+                  AppColorsLight.white,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -969,7 +974,7 @@ class LedgerDashboardScreen extends StatelessWidget {
             child: AutoSizeText(
               '$label : $value',
               style: TextStyle(
-                color: AppColors.white,
+                color: isDark ? AppColors.white : AppColorsLight.black,
                 fontWeight: FontWeight.w400,
                 fontSize: 14,
               ),

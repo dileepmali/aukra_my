@@ -188,7 +188,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                     horizontal: responsive.wp(2)
                 ),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.black : AppColorsLight.scaffoldBackground,
+                  color: isDark ? AppColors.black : AppColorsLight.gradientColor2,
                   borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                 ),
                 child: Container(
@@ -196,19 +196,14 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: displayIsPositive
-                          ? isDark
                           ? [
-                        AppColors.splaceSecondary1,
-                        AppColors.splaceSecondary2,
-                      ]
+                              AppColors.splaceSecondary1,
+                              AppColors.splaceSecondary2,
+                            ]
                           : [
-                        AppColorsLight.gradientColor2,
-                        AppColorsLight.gradientColor2,
-                      ]
-                          : [
-                        AppColors.red800,
-                        AppColors.red500,
-                      ],
+                              AppColors.red800,
+                              AppColors.red500,
+                            ],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                     ),
@@ -222,7 +217,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                         height: responsive.iconSizeMedium,
                         colorFilter: ColorFilter.mode(
                           displayIsPositive
-                              ? (isDark ? AppColors.white : AppColorsLight.splaceSecondary1)
+                              ? (isDark ? AppColors.white : AppColorsLight.white)
                               : AppColors.white,
                           BlendMode.srcIn,
                         ),
@@ -231,7 +226,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                       AppText.searchbar1(
                         displayIsPositive ? 'In transaction entry' : 'Out transaction entry',
                         color: displayIsPositive
-                            ? (isDark ? AppColors.white : AppColorsLight.splaceSecondary1)
+                            ? (isDark ? AppColors.white : AppColorsLight.white)
                             : AppColors.textDisabled,
                         fontWeight: FontWeight.w600,
                       ),
@@ -261,8 +256,8 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                                         AppColors.splaceSecondary2,
                                       ]
                                     : [
-                                        AppColorsLight.gradientColor1,
-                                        AppColorsLight.gradientColor2,
+                                  AppColors.splaceSecondary1,
+                                  AppColors.splaceSecondary2,
                                       ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -359,7 +354,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? AppColors.black.withOpacity(0.5)
-                                    : AppColorsLight.containerLight.withOpacity(0.5),
+                                    : AppColorsLight.gradientColor2,
                                 borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                               ),
                               child: AppText.searchbar1(
@@ -400,8 +395,8 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                           AppColors.red500,
                         ]
                       : [
-                          AppColorsLight.gradientColor1,
-                          AppColorsLight.gradientColor2,
+                    AppColors.red800,
+                    AppColors.red500,
                         ],
                   buttonSpacing: responsive.spacing(16),
                   containerPadding: EdgeInsets.symmetric(

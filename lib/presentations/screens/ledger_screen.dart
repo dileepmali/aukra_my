@@ -239,7 +239,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
     return Stack(
       children: [
         Container(
-        color: isDark ? AppColors.black : AppColorsLight.background,
+        color: isDark ? AppColors.black : AppColorsLight.white,
         padding: EdgeInsets.symmetric(
           horizontal: responsive.wp(2),
           vertical: responsive.hp(1.5),
@@ -261,13 +261,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                   padding: EdgeInsets.symmetric(vertical: responsive.hp(1.4)),
                   decoration: BoxDecoration(
                     gradient: isSelected
-                        ? (isDark
-                            ? LinearGradient(
-                                colors: [AppColors.containerDark, AppColors.containerLight],
-                                begin: Alignment.topRight,
-                                end: Alignment.bottomLeft,
-                              )
-                            : AppColorsLight.brandGradient)
+                        ? LinearGradient(
+                            colors: isDark
+                                ? [AppColors.containerDark, AppColors.containerLight]
+                                : [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                            begin: Alignment.topRight,
+                            end: Alignment.bottomLeft,
+                          )
                         : null,
                     color: !isSelected
                         ? (isDark ? AppColors.transparent : AppColorsLight.transparent)
@@ -278,7 +278,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     child: AppText.headlineLarge(
                       tabs[index],
                         color: isSelected
-                            ? AppColors.white
+                            ? (isDark ? AppColors.white : AppColorsLight.black)
                             : (isDark ? AppColors.textSecondary : AppColorsLight.textSecondary),
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       maxLines: 1,
@@ -404,17 +404,11 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       avatarText: customer.name.isNotEmpty
                           ? customer.name.substring(0, customer.name.length >= 2 ? 2 : 1).toUpperCase()
                           : 'C',
-                      avatarBackgroundGradient: isDark
-                          ? LinearGradient(
-                              colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : LinearGradient(
-                              colors: [AppColorsLight.splaceSecondary1, AppColorsLight.gradientColor2],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                      avatarBackgroundGradient: LinearGradient(
+                        colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       avatarTextColor: AppColors.white,
                       onTap: () async {
                         debugPrint('Customer tapped: ${customer.name}');
@@ -518,14 +512,8 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       avatarText: supplier.name.isNotEmpty
                           ? supplier.name.substring(0, supplier.name.length >= 2 ? 2 : 1).toUpperCase()
                           : 'S',
-                      avatarBackgroundGradient: isDark
-                          ? LinearGradient(
+                      avatarBackgroundGradient: LinearGradient(
                         colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                          : LinearGradient(
-                        colors: [AppColorsLight.splaceSecondary1, AppColorsLight.gradientColor2],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -633,14 +621,8 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       avatarText: employer.name.isNotEmpty
                           ? employer.name.substring(0, employer.name.length >= 2 ? 2 : 1).toUpperCase()
                           : 'E',
-                      avatarBackgroundGradient: isDark
-                          ? LinearGradient(
+                      avatarBackgroundGradient: LinearGradient(
                         colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                          : LinearGradient(
-                        colors: [AppColorsLight.splaceSecondary1, AppColorsLight.gradientColor2],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),

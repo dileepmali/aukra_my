@@ -241,11 +241,9 @@ class ListItemWidget extends StatelessWidget {
                               Expanded(
                                 child: AppText.headlineMedium(
                                   subtitle!,
-                                  color: subtitleColor ?? (isPositiveAmount == true
+                                  color: subtitleColor ?? (isDark
                                       ? AppColors.textDisabled
-                                      : isPositiveAmount == false
-                                      ? AppColors.textDisabled
-                                      : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary)),
+                                      : AppColorsLight.black),
                                   maxLines: 2,
                                   minFontSize: 12,
                                 ),

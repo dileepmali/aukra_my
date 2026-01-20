@@ -256,6 +256,9 @@ class LedgerTransactionApi {
   ///
   /// Endpoint: PUT api/ledgerTransaction/{transactionId}
   ///
+  /// NOTE: Backend does NOT allow changing transactionType during update.
+  /// To change IN/OUT, user must delete and recreate the transaction.
+  ///
   /// Request body:
   /// {
   ///   "transactionAmount": 600,

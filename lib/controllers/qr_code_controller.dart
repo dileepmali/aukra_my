@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '../data/models/qr_code_model.dart';
-import '../data/services/qr_code_service.dart';
+import '../models/qr_code_model.dart';
+import '../core/services/qr_code_service.dart';
 
 /// QR Code Controller
 /// Manages state for QR code generation and payment

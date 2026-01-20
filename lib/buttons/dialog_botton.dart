@@ -175,7 +175,7 @@ class DialogButtonRow extends StatelessWidget {
         AppColors.splaceSecondary2,
       ],
       enableSweepGradient: enableSweepGradient,
-      borderColor: confirmBorderColor ?? (isDark ? AppColors.driver : AppColorsLight.splaceSecondary1),
+      borderColor: cancelBorderColor ?? (isDark ? AppColors.driver : AppColorsLight.shadowLight),
       textColor: confirmTextColor ?? defaultTextColor,
       borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
       padding: EdgeInsets.symmetric(vertical: responsive.hp(1.5)),

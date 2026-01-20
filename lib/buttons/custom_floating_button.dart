@@ -92,51 +92,48 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
 
     return RepaintBoundary(
       // ✅ FIX: RepaintBoundary prevents unnecessary repaints during navigation
-      child: BorderColor(
-        isSelected: true,
-        child: Container(
-          width: responsive.wp(35),
-          height: buttonSize,
-          decoration: BoxDecoration(
+      child: Container(
+        width: responsive.wp(35),
+        height: buttonSize,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+          gradient: LinearGradient(
+              colors: [
+                AppColors.splaceSecondary1,
+                AppColors.splaceSecondary2,
+              ],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          )
+        ),
+        child: Material(
+          // ✅ FIX: Use Material widget for better rendering
+          color: Colors.transparent,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-            gradient: LinearGradient(
-                colors: [
-                  AppColors.splaceSecondary1,
-                  AppColors.splaceSecondary2,
-                ],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-            )
           ),
-          child: Material(
-            // ✅ FIX: Use Material widget for better rendering
-            color: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-            ),
-            child: InkWell(
-              // ✅ FIX: InkWell for instant touch feedback
-              borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-              onTap: _handleTap,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    widget.icon,
-                    size: iconSize,
-                    color: AppColors.white,
-                  ),
-                  SizedBox(width: responsive.spacing(4)),
-                  AppText.headlineLarge(
-                    _getButtonText(),
-                    color:  AppColors.white,
-                    maxLines: 1,
-                    minFontSize: 10,
-                    fontWeight: FontWeight.w600,
+          child: InkWell(
+            // ✅ FIX: InkWell for instant touch feedback
+            borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+            onTap: _handleTap,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.icon,
+                  size: iconSize,
+                  color: AppColors.white,
+                ),
+                SizedBox(width: responsive.spacing(4)),
+                AppText.headlineLarge(
+                  _getButtonText(),
+                  color:  AppColors.white,
+                  maxLines: 1,
+                  minFontSize: 10,
+                  fontWeight: FontWeight.w600,
 
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
