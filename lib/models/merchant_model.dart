@@ -14,6 +14,8 @@ class MerchantModel {
   final String? category; // Business category
   final String? businessType; // Type of business
   final String? manager; // Assigned manager
+  final bool? isActive; // Active status (for activate/deactivate)
+  final String? securityKey; // Security PIN for verification
 
   MerchantModel({
     required this.merchantName,
@@ -31,6 +33,8 @@ class MerchantModel {
     this.category,
     this.businessType,
     this.manager,
+    this.isActive,
+    this.securityKey,
   });
 
   // Convert model to JSON for API request (POST - Create merchant)
@@ -124,6 +128,16 @@ class MerchantModel {
       data['manager'] = manager;
     }
 
+    // ✅ isActive - for activate/deactivate merchant
+    if (isActive != null) {
+      data['isActive'] = isActive;
+    }
+
+    // ✅ securityKey - PIN for verification
+    if (securityKey != null && securityKey!.isNotEmpty) {
+      data['securityKey'] = securityKey;
+    }
+
     return data;
   }
 
@@ -147,6 +161,8 @@ class MerchantModel {
       category: json['category'],
       businessType: json['businessType'],
       manager: json['manager'],
+      isActive: json['isActive'],
+      securityKey: json['securityKey'],
     );
   }
 
@@ -167,6 +183,8 @@ class MerchantModel {
     String? category,
     String? businessType,
     String? manager,
+    bool? isActive,
+    String? securityKey,
   }) {
     return MerchantModel(
       merchantName: merchantName ?? this.merchantName,
@@ -184,6 +202,8 @@ class MerchantModel {
       category: category ?? this.category,
       businessType: businessType ?? this.businessType,
       manager: manager ?? this.manager,
+      isActive: isActive ?? this.isActive,
+      securityKey: securityKey ?? this.securityKey,
     );
   }
 

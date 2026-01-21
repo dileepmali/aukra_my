@@ -250,7 +250,7 @@ class CustomerFormScreen extends StatelessWidget {
                       focusNode: controller.creditDaysFocusNode,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
-                      onSubmitted: (_) => controller.openingBalanceFocusNode.requestFocus(),
+                      onSubmitted: (_) => controller.creditLimitFocusNode.requestFocus(),
                     ),
                     SizedBox(height: responsive.hp(1)),
 
@@ -269,18 +269,18 @@ class CustomerFormScreen extends StatelessWidget {
                     )),
                     SizedBox(height: responsive.hp(2)),
 
-                    // Opening Balance Field
-                    _buildLabel(context, 'Opening balance', responsive, isDark),
-                    SizedBox(height: responsive.hp(0.8)),
-                    CustomTextField(
-                      controller: controller.openingBalanceController,
-                      focusNode: controller.openingBalanceFocusNode,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      prefixBoxText: '₹',
-                      textInputAction: TextInputAction.next,
-                      onSubmitted: (_) => controller.creditLimitFocusNode.requestFocus(),
-                    ),
-                    SizedBox(height: responsive.hp(2)),
+                    // TODO: Opening Balance Field - Disabled for now
+                    // _buildLabel(context, 'Opening balance', responsive, isDark),
+                    // SizedBox(height: responsive.hp(0.8)),
+                    // CustomTextField(
+                    //   controller: controller.openingBalanceController,
+                    //   focusNode: controller.openingBalanceFocusNode,
+                    //   keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    //   prefixBoxText: '₹',
+                    //   textInputAction: TextInputAction.next,
+                    //   onSubmitted: (_) => controller.creditLimitFocusNode.requestFocus(),
+                    // ),
+                    // SizedBox(height: responsive.hp(2)),
 
                     // Credit Limit Field
                     _buildLabel(context, 'Credit limit', responsive, isDark),

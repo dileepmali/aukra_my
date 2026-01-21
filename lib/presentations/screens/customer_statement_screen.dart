@@ -257,11 +257,9 @@ class CustomerStatementScreen extends StatelessWidget {
     String? baseIconOut,
     String? topRightIconOut,
   ) {
-    // Use Dashboard API data for yesterday IN/OUT
-    // TODO: Update controller to use yesterdayIn/yesterdayOut when API provides this data
-    // Currently showing 0 as API doesn't provide yesterday data yet
-    final yesterdayIn = 0.0;  // Replace with controller.yesterdayIn when API is ready
-    final yesterdayOut = 0.0;  // Replace with controller.yesterdayOut when API is ready
+    // Use Dashboard API data for today IN/OUT
+    final todayIn = controller.todayIn;
+    final todayOut = controller.todayOut;
 
     return  Stack(
       children:[
@@ -320,7 +318,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     AppText.headlineMedium(
-                      'Total amount in yesterday',
+                      'Total amount in today',
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
@@ -340,7 +338,7 @@ class CustomerStatementScreen extends StatelessWidget {
                         ),
                         SizedBox(width: responsive.wp(0.8)),
                         AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(yesterdayIn.toString()),
+                          Formatters.formatAmountWithCommas(todayIn.toString()),
                           color: AppColors.primeryamount,
                           fontWeight: FontWeight.w600,
                         ),
@@ -400,7 +398,7 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     AppText.headlineMedium(
-                      'Total amount out yesterday',
+                      'Total amount out today',
                       color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
@@ -420,7 +418,7 @@ class CustomerStatementScreen extends StatelessWidget {
                         ),
                         SizedBox(width: responsive.wp(0.9)),
                         AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(yesterdayOut.toString()),
+                          Formatters.formatAmountWithCommas(todayOut.toString()),
                           color: AppColors.red500,
                           fontWeight: FontWeight.w600,
                         ),

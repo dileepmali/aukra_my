@@ -362,11 +362,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         final detail = controller.ledgerDetail.value;
         if (detail == null) return SizedBox.shrink();
 
-        // ✅ FIX: Use recalculated closing balance instead of API value
-        // Backend doesn't recalculate balances after edit, so we use frontend-calculated value
-        final balance = controller.recalculatedClosingBalance.value;
-        final apiBalance = detail.currentBalance;
-        debugPrint('🎯 Closing Balance Card - Recalculated: $balance (API was: $apiBalance)');
+        // Use backend's current balance directly
+        final balance = detail.currentBalance;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -423,31 +420,31 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                 ],
               ),
             ),
-            // Stack with 3 SVG icons
+            // Stack with 3 SVG icons - changes based on balance type
             SizedBox(
               width: responsive.iconSizeExtraLarge * 1.5,
               height: responsive.iconSizeExtraLarge * 1.5,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Base SVG icon - original colors
+                  // Base SVG icon - changes based on balance
                   SvgPicture.asset(
-                    AppIcons.vectoeIc1,
+                    balance < 0 ? AppIcons.vectoeIc1 : AppIcons.vectoeIc4,
                     width: responsive.iconSizeExtraLarge,
                     height: responsive.iconSizeExtraLarge,
                   ),
-                  // Third stacked icon - CENTER of vectoeIc1 - original colors
+                  // Center stacked icon - changes based on balance
                   SvgPicture.asset(
-                    AppIcons.vectoeIc3,
+                    balance < 0 ? AppIcons.vectoeIc3 : AppIcons.vectoeIc3,
                     width: responsive.iconSizeSmall + 5,
                     height: responsive.iconSizeSmall + 5,
                   ),
-                  // Second stacked icon - top right - original colors
+                  // Top right stacked icon - changes based on balance
                   Positioned(
                     top: 5,
                     right: 5,
                     child: SvgPicture.asset(
-                      AppIcons.vectoeIc2,
+                      balance < 0 ? AppIcons.vectoeIc2 : AppIcons.vectoeIc5,
                       width: responsive.iconSizeMedium,
                       height: responsive.iconSizeMedium,
                     ),

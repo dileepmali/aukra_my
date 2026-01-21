@@ -256,44 +256,31 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   }
 
   /// Disable PIN Flow:
-  /// 1. Enter current PIN (for verification)
-  /// 2. Send OTP to mobile
-  /// 3. Enter OTP
-  /// 4. Call API to disable PIN
+  /// 1. Send OTP to mobile (no PIN verification needed)
+  /// 2. Enter OTP
+  /// 3. Call API to disable PIN
   Future<void> _disablePinFlow(String? maskedPhone, String? formattedPhone) async {
     debugPrint('🔓 Starting DISABLE PIN flow...');
 
-    // Step 1: Show PIN entry dialog to verify current PIN
-    final pinResult = await PinVerificationDialog.show(
-      context: context,
-      title: 'Enter Current PIN',
-      subtitle: 'Enter your 4-digit PIN to disable security',
-      maskedPhoneNumber: maskedPhone,
-      requireOtp: false,
-      confirmButtonText: 'Send OTP',
-    );
-
-    if (pinResult == null || pinResult['pin'] == null) {
-      debugPrint('❌ PIN entry cancelled');
-      return;
-    }
-
-    final currentPin = pinResult['pin'] as String;
-    debugPrint('✅ Current PIN entered: ****');
-
-    // Step 2: Send OTP to mobile
+    // Step 1: Send OTP to mobile directly (no PIN verification needed)
+    debugPrint('📡 Step 1: Sending OTP to mobile...');
     final otpSent = await _privacyController.sendOtp();
     if (!otpSent) {
       debugPrint('❌ Failed to send OTP');
       return;
     }
 
-    // Step 3: Show OTP entry dialog
+    debugPrint('✅ OTP sent successfully');
+
+    if (!mounted) return;
+
+    // Step 2: Show OTP entry dialog
+    debugPrint('📍 Step 2: Showing OTP dialog...');
     final otp = await NewNumberOtpDialog.show(
       context: context,
       newPhoneNumber: formattedPhone ?? 'your phone',
-      title: 'Confirm Disable PIN',
-      subtitle: 'Enter OTP sent to\n${formattedPhone ?? "your phone"}',
+      title: 'Enter OTP',
+      subtitle: 'Enter OTP received on your mobile number\n${formattedPhone ?? "your phone"}',
       confirmButtonText: 'Disable PIN',
     );
 
@@ -304,9 +291,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
     debugPrint('✅ OTP entered: ****');
 
-    // Step 4: Call API to disable PIN (with current PIN for verification)
+    // Step 3: Call API to disable PIN
     final success = await _privacyController.disablePinWithKey(
-      securityKey: currentPin,
+      securityKey: '', // No PIN needed for disable
       otp: otp,
     );
 

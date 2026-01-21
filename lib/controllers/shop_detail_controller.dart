@@ -999,6 +999,85 @@ class ShopDetailController extends GetxController {
     }
   }
 
+  /// Update merchant status (activate/deactivate)
+  /// PUT /api/merchant/{merchantId}
+  ///
+  /// [merchantId] - The merchant ID to update
+  /// [isActive] - true to activate, false to deactivate
+  /// [securityKey] - The security PIN for verification
+  ///
+  /// Returns true if successful, false otherwise
+  Future<bool> updateMerchantStatus({
+    required int merchantId,
+    required bool isActive,
+    required String securityKey,
+  }) async {
+    try {
+      final action = isActive ? 'activate' : 'deactivate';
+      debugPrint('');
+      debugPrint('🔄 ========== ${action.toUpperCase()} MERCHANT ==========');
+      debugPrint('   Merchant ID: $merchantId');
+      debugPrint('   isActive: $isActive');
+      debugPrint('   securityKey: ****');
+
+      isLoading.value = true;
+
+      // Prepare payload with isActive and securityKey
+      final payload = {
+        'isActive': isActive,
+        'securityKey': securityKey,
+      };
+
+      debugPrint('📤 Request body: $payload');
+
+      // Call existing PUT /api/merchant/{merchantId} endpoint
+      await _apiFetcher.request(
+        url: 'api/merchant/$merchantId',
+        method: 'PUT',
+        body: payload,
+        requireAuth: true,
+      );
+
+      debugPrint('📥 API Response: ${_apiFetcher.data}');
+      debugPrint('❌ API Error: ${_apiFetcher.errorMessage}');
+
+      if (_apiFetcher.errorMessage == null && _apiFetcher.data != null) {
+        debugPrint('✅ Merchant ${action}d successfully');
+
+        // Show success message
+        AdvancedErrorService.showSuccess(
+          isActive
+              ? 'Business activated successfully'
+              : 'Business deactivated successfully',
+          type: SuccessType.snackbar,
+        );
+
+        // Notify other screens to refresh
+        _notifyMerchantDataUpdated();
+
+        debugPrint('==============================================');
+        debugPrint('');
+        return true;
+      } else {
+        debugPrint('❌ Failed to $action merchant: ${_apiFetcher.errorMessage}');
+        AdvancedErrorService.showError(
+          _apiFetcher.errorMessage ?? 'Failed to $action business. Please try again.',
+          category: ErrorCategory.network,
+        );
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Error in updateMerchantStatus: $e');
+      AdvancedErrorService.showError(
+        'An error occurred. Please try again.',
+        category: ErrorCategory.network,
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   /// ✅ NEW: Update user profile name (username) via PUT /api/user/profile
   /// This ensures the name entered in shop_detail_screen shows in my_profile_screen
   Future<void> _updateUserProfileName(String name) async {

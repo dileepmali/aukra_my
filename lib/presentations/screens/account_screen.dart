@@ -222,12 +222,27 @@ class _AccountScreenState extends State<AccountScreen> {
                   fontWeight: FontWeight.w500,
                 ),
                 Flexible(
-                  child: AppText.searchbar2(
-                    '₹${Formatters.formatAmountWithCommas(_accountController.totalNetBalance.abs().toString())}',
-                    color: isPositive
-                        ? AppColors.primeryamount
-                        : AppColors.red500,
-                    fontWeight: FontWeight.w600,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      AppText.headlineLarge1(
+                        '₹',
+                        color: isPositive
+                            ? AppColors.primeryamount
+                            : AppColors.red500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      SizedBox(width: responsive.wp(1)),
+                      AppText.searchbar2(
+                        Formatters.formatAmountWithCommas(_accountController.totalNetBalance.abs().toString()),
+                        color: isPositive
+                            ? AppColors.primeryamount
+                            : AppColors.red500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -337,12 +352,27 @@ class _AccountScreenState extends State<AccountScreen> {
                 ],
               ),
               Flexible(
-                child: AppText.searchbar1(
-                  '₹${Formatters.formatAmountWithCommas(balance.abs().toString())}',
-                  color: isPositive
-                      ? AppColors.primeryamount
-                      : AppColors.red500,
-                  fontWeight: FontWeight.w600,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    AppText.headlineLarge1(
+                      '₹',
+                      color: isPositive
+                          ? AppColors.primeryamount
+                          : AppColors.red500,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    SizedBox(width: responsive.wp(1)),
+                    AppText.searchbar1(
+                      Formatters.formatAmountWithCommas(balance.abs().toString()),
+                      color: isPositive
+                          ? AppColors.primeryamount
+                          : AppColors.red500,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
                 ),
               ),
             ],

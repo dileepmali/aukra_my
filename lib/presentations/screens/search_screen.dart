@@ -35,6 +35,12 @@ class _SearchScreenState extends State<SearchScreen> {
   // Key to rebuild recent searches widget when updated
   int _recentSearchesKey = 0;
 
+  // Track last valid search query for saving when user starts new search
+  String _lastValidQuery = '';
+
+  // Track last saved query to prevent duplicates
+  String _lastSavedQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -67,12 +73,62 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _handleSearchChanged(String query) {
-    _controller.performSearch(query);
+    final trimmedQuery = query.trim();
 
-    // Save search to recent searches when query has content
-    if (query.trim().isNotEmpty && query.trim().length >= 2) {
-      RecentSearchesService.saveSearch(query.trim());
+    // If user cleared field or starting new search (0-1 chars) and we have previous valid query
+    // Save the previous query
+    if (trimmedQuery.length <= 1 && _lastValidQuery.isNotEmpty) {
+      _saveSearch(_lastValidQuery);
+      _lastValidQuery = '';
     }
+
+    // Update last valid query if current query is valid (2+ chars)
+    if (trimmedQuery.length >= 2) {
+      _lastValidQuery = trimmedQuery;
+    }
+
+    // Perform search
+    _controller.performSearch(query);
+  }
+
+  /// Handle search submission (Enter key pressed)
+  void _handleSearchSubmitted(String query) {
+    // Save search only when user explicitly submits (Enter key)
+    if (query.trim().isNotEmpty && query.trim().length >= 2) {
+      _saveSearch(query.trim());
+      _lastValidQuery = ''; // Clear since it's saved
+      _updateRecentSearches();
+    }
+  }
+
+  /// Save search to recent searches (with duplicate prevention)
+  Future<void> _saveSearch(String query) async {
+    if (query.isEmpty || query.length < 2) return;
+    if (query == _lastSavedQuery) return; // Prevent saving same query again
+
+    _lastSavedQuery = query;
+    await RecentSearchesService.saveSearch(query);
+    debugPrint('✅ Search saved: "$query"');
+  }
+
+  /// Save current search when navigating back (if has valid search)
+  Future<void> _saveSearchOnExit() async {
+    // Save last valid query if not already saved
+    if (_lastValidQuery.isNotEmpty) {
+      await _saveSearch(_lastValidQuery);
+    }
+    // Also save current text if different
+    final currentQuery = _searchController.text.trim();
+    if (currentQuery.length >= 2) {
+      await _saveSearch(currentQuery);
+    }
+  }
+
+  /// Handle back navigation (both app back button and Android back)
+  Future<bool> _handleBackNavigation() async {
+    await _saveSearchOnExit();
+    FocusScope.of(context).unfocus();
+    return true; // Allow back navigation
   }
 
   /// Handle tap on recent search item
@@ -95,10 +151,19 @@ class _SearchScreenState extends State<SearchScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final responsive = AdvancedResponsiveHelper(context);
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
-      resizeToAvoidBottomInset: false,
-      appBar: PreferredSize(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _handleBackNavigation();
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
+        resizeToAvoidBottomInset: false,
+        appBar: PreferredSize(
         preferredSize: Size.fromHeight(responsive.hp(20)),
         child: Obx(() => CustomResponsiveAppBar(
           config: AppBarConfig(
@@ -112,6 +177,7 @@ class _SearchScreenState extends State<SearchScreen> {
             forceEnableSearch: true,
             showViewToggle: false,
             onSearchChanged: _handleSearchChanged,
+            onSearchSubmitted: () => _handleSearchSubmitted(_searchController.text),
             onFiltersApplied: (filters) => _controller.handleFiltersApplied(filters),
             // 🔥 Pass current filter values to restore previous selections
             currentSortBy: _getSortByString(_controller.sortBy.value),
@@ -127,10 +193,11 @@ class _SearchScreenState extends State<SearchScreen> {
             leadingWidget: Row(
               children: [
                 GestureDetector(
-                  onTap: () {
-                    // Unfocus keyboard before navigating back
-                    FocusScope.of(context).unfocus();
-                    Navigator.of(context).pop();
+                  onTap: () async {
+                    await _handleBackNavigation();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   child: Icon(
                     Icons.arrow_back,
@@ -197,6 +264,7 @@ class _SearchScreenState extends State<SearchScreen> {
         debugPrint('   → Showing: NO RESULTS STATE');
         return _buildNoResultsState(responsive, isDark);
       }),
+      ),
     );
   }
 
@@ -381,6 +449,10 @@ class _SearchScreenState extends State<SearchScreen> {
     debugPrint('Tapped on: ${result.name} (ID: ${result.id})');
     debugPrint('   Party Type: ${result.partyType}');
     debugPrint('   Balance: ${result.balance} ${result.balanceType}');
+
+    // Save search when user taps on a result (means search was successful)
+    _saveSearch(_searchController.text.trim());
+    _lastValidQuery = ''; // Clear since it's saved
 
     // TODO: Navigate to ledger detail screen
     // Get.to(() => LedgerDetailScreen(), arguments: {'ledgerId': result.id});

@@ -530,6 +530,72 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           await _loadMerchantData();
         }
       }
+    } else if (title == 'Deactivate business') {
+      debugPrint('🗑️ Deactivate business tapped - showing PIN dialog');
+
+      // Warning text used in both dialogs
+      const warningText = 'Once this business is deactivated, you will no longer have access to any transaction, entries, or related info. These records will also not appear in search results. To view or retrieve the data, the business must be reactivated from the Deactivated List in Settings.';
+
+      // STEP 1: Show PIN verification dialog
+      final pinResult = await PinVerificationDialog.show(
+        context: context,
+        title: 'Enter Security Pin',
+        subtitle: 'Enter your 4-digit pin to deactivate "$_businessName"',
+        requireOtp: false,
+        showWarning: true,
+        warningText: warningText,
+        confirmButtonText: 'Confirm',
+        confirmGradientColors: [AppColors.red500, AppColors.red500],
+        confirmTextColor: AppColors.white,
+      );
+
+      if (pinResult == null || pinResult['pin'] == null) {
+        debugPrint('❌ User cancelled PIN entry');
+        return;
+      }
+
+      debugPrint('✅ PIN verified for deactivation: ${pinResult['pin']}');
+
+      if (!mounted) return;
+
+      // Wait for smooth transition before showing next dialog
+      await DialogTransitionHelper.waitForDialogTransition();
+
+      // STEP 2: Show OTP verification dialog
+      debugPrint('📍 STEP 2: Showing OTP dialog for master mobile verification...');
+
+      final otp = await NewNumberOtpDialog.show(
+        context: context,
+        newPhoneNumber: _masterMobile,
+        title: 'Enter OTP',
+        subtitle: 'Enter secure OTP received on your master mobile number\n$_masterMobile',
+        confirmButtonText: 'Confirm',
+        warningText: warningText,
+        confirmGradientColors: [AppColors.red500, AppColors.red500],
+        confirmTextColor: AppColors.white,
+      );
+
+      if (otp == null) {
+        debugPrint('❌ User cancelled OTP verification');
+        return;
+      }
+
+      debugPrint('✅ OTP verified for deactivation: $otp');
+
+      // STEP 3: Call controller to deactivate business
+      debugPrint('📡 STEP 3: Calling API to deactivate business...');
+
+      final success = await _shopController.updateMerchantStatus(
+        merchantId: widget.merchantId,
+        isActive: false,
+        securityKey: pinResult['pin']!,
+      );
+
+      if (success && mounted) {
+        debugPrint('✅ Business deactivated successfully');
+        // Navigate back after deactivation
+        Navigator.of(context).pop(true); // Return true to indicate success
+      }
     } else {
       debugPrint('$title tapped (no action)');
     }
