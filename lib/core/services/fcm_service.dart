@@ -237,13 +237,17 @@ class FcmService {
         final prefController = Get.find<UserPreferenceController>();
 
         // Update notification settings (silent to avoid showing errors on background operations)
-        await prefController.setNotifications(
+        final success = await prefController.setNotifications(
           all: enabled,
           push: enabled,
           silent: true,
         );
 
-        debugPrint('✅ Notification preference updated: $enabled');
+        if (success) {
+          debugPrint('✅ Notification preference updated: $enabled');
+        } else {
+          debugPrint('⚠️ Notification preference update failed (will retry later)');
+        }
       } else {
         debugPrint('⚠️ UserPreferenceController not registered');
       }

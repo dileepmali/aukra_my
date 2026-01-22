@@ -152,6 +152,30 @@ class MerchantListModel {
 
   /// Create model from JSON response
   factory MerchantListModel.fromJson(Map<String, dynamic> json) {
+    // 📱 Debug: Log all phone-related fields from API
+    // ignore: avoid_print
+    print('📱 ========== MERCHANT JSON PHONE FIELDS ==========');
+    // ignore: avoid_print
+    print('   phone: ${json['phone']}');
+    // ignore: avoid_print
+    print('   mobileNumber: ${json['mobileNumber']}');
+    // ignore: avoid_print
+    print('   backupPhoneNumber: ${json['backupPhoneNumber']}');
+    // ignore: avoid_print
+    print('   backupMobileNumber: ${json['backupMobileNumber']}');
+    // ignore: avoid_print
+    print('   recoveryPhone: ${json['recoveryPhone']}');
+    // ignore: avoid_print
+    print('   recoveryMobileNumber: ${json['recoveryMobileNumber']}');
+    // ignore: avoid_print
+    print('   adminMobileNumber: ${json['adminMobileNumber']}');
+    // ignore: avoid_print
+    print('   secondaryPhone: ${json['secondaryPhone']}');
+    // ignore: avoid_print
+    print('   alternatePhone: ${json['alternatePhone']}');
+    // ignore: avoid_print
+    print('=================================================');
+
     // Parse address - handle both nested object and root level fields
     MerchantAddressModel? addressModel;
 

@@ -70,6 +70,7 @@ class MerchantListApi {
         debugPrint('     Phone: ${merchant.formattedPhone}');
         debugPrint('     Admin Mobile: ${merchant.adminMobileNumber}');
         debugPrint('     Mobile Number: ${merchant.mobileNumber}');
+        debugPrint('     📱 Backup/Recovery Phone: ${merchant.backupPhoneNumber}');
         debugPrint('     Address: ${merchant.formattedAddress}');
         debugPrint('     Business Type: ${merchant.businessType}');
         debugPrint('     Category: ${merchant.category}');

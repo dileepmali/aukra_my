@@ -12,6 +12,7 @@ import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
+import '../../../core/utils/formatters.dart';
 import '../../widgets/custom_app_bar/custom_app_bar.dart';
 import '../../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../widgets/list_item_widget.dart';
@@ -396,7 +397,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     );
 
                     return ListItemWidget(
-                      title: customer.name.isNotEmpty ? customer.name : 'Customer #${index + 1}',
+                      title: customer.name.isNotEmpty
+                          ? Formatters.truncateName(customer.name)
+                          : 'Customer #${index + 1}',
                       subtitle: subtitle,
                       amount: amount,
                       isPositiveAmount: isPositive,
@@ -504,7 +507,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     );
 
                     return ListItemWidget(
-                      title: supplier.name.isNotEmpty ? supplier.name : 'Supplier #${index + 1}',
+                      title: supplier.name.isNotEmpty
+                          ? Formatters.truncateName(supplier.name)
+                          : 'Supplier #${index + 1}',
                       subtitle: subtitle,
                       amount: amount,
                       isPositiveAmount: isPositive,
@@ -613,7 +618,9 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     );
 
                     return ListItemWidget(
-                      title: employer.name.isNotEmpty ? employer.name : 'Employer #${index + 1}',
+                      title: employer.name.isNotEmpty
+                          ? Formatters.truncateName(employer.name)
+                          : 'Employee #${index + 1}',
                       subtitle: subtitle,
                       amount: amount,
                       isPositiveAmount: isPositive,

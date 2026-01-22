@@ -295,4 +295,45 @@ class Formatters {
     final timeFormat = DateFormat('HH:mm');
     return '${dateFormat.format(localTime)} at ${timeFormat.format(localTime)}';
   }
+
+  // ==================== TEXT FORMATTING ====================
+
+  /// Truncates text to specified maximum length with ellipsis
+  ///
+  /// Examples:
+  /// - truncateText("Hello World", 5) → "Hello..."
+  /// - truncateText("Hi", 10) → "Hi" (no truncation needed)
+  /// - truncateText("Very Long Name Here", 10) → "Very Long..."
+  /// - truncateText("", 10) → ""
+  /// - truncateText(null, 10) → ""
+  ///
+  /// Parameters:
+  /// - [text] - The text to truncate
+  /// - [maxLength] - Maximum number of characters (default: 30)
+  /// - [ellipsis] - The ellipsis string to append (default: "...")
+  static String truncateText(String? text, {int maxLength = 30, String ellipsis = '...'}) {
+    if (text == null || text.isEmpty) {
+      return '';
+    }
+
+    // Trim whitespace first
+    final trimmedText = text.trim();
+
+    // If text is shorter than or equal to max length, return as is
+    if (trimmedText.length <= maxLength) {
+      return trimmedText;
+    }
+
+    // Truncate and add ellipsis
+    return '${trimmedText.substring(0, maxLength)}$ellipsis';
+  }
+
+  /// Truncates name/party name to 30 characters (convenience method)
+  ///
+  /// Examples:
+  /// - truncateName("Rajesh Kumar Sharma Private Limited") → "Rajesh Kumar Sharma Private Li..."
+  /// - truncateName("John Doe") → "John Doe"
+  static String truncateName(String? name) {
+    return truncateText(name, maxLength: 30);
+  }
 }

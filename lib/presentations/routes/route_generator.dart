@@ -70,7 +70,8 @@ final List<GetPage> getPages = [
     name: AppRoutes.main,
     page: () => const MainScreen(),
     binding: MainBinding(),
-    middlewares: [AuthMiddleware()],
+    // Note: AuthMiddleware removed - splash already validates token
+    // Biometric/PIN check handled by PrivacySettingController when needed
   ),
   GetPage(
     name: AppRoutes.addCustomer,

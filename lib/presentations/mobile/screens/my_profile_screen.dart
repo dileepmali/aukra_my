@@ -43,6 +43,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   String _username = '';  // User profile name from /api/user/profile
   String _businessName = '';
   String _mobileNumber = '';
+  String _recoveryMobileNumber = '';  // Recovery mobile from /api/user/profile
   int? _merchantId;
   bool _isLoading = true;
   LocalizationController? _localizationController;
@@ -98,6 +99,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         debugPrint('   userId: ${userProfile.userId}');
         debugPrint('   username: ${userProfile.username}');
         debugPrint('   mobileNumber: ${userProfile.mobileNumber}');
+        debugPrint('   recoveryMobileNumber: ${userProfile.recoveryMobileNumber}');
         debugPrint('   merchantId: ${userProfile.merchantId}');
 
         setState(() {
@@ -105,6 +107,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           if (userProfile.username != null && userProfile.username!.isNotEmpty) {
             _username = userProfile.username!;
             debugPrint('✅ Username set from API: $_username');
+          }
+
+          // ✅ Get recovery mobile number from User Profile API
+          if (userProfile.recoveryMobileNumber != null && userProfile.recoveryMobileNumber!.isNotEmpty) {
+            _recoveryMobileNumber = userProfile.recoveryMobileNumber!;
+            debugPrint('✅ Recovery mobile set from API: $_recoveryMobileNumber');
           }
           // ❌ DON'T use mobile from user profile - it might be adminMobileNumber
           // Mobile number will be set from merchant API (phone field) instead
@@ -184,6 +192,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           debugPrint('   businessType: ${currentMerchant.businessType}');
           debugPrint('   emailId: ${currentMerchant.emailId}');
           debugPrint('   adminMobileNumber: ${currentMerchant.adminMobileNumber}');
+          debugPrint('   mobileNumber: ${currentMerchant.mobileNumber}');
+          debugPrint('');
+          debugPrint('📱 ========== RECOVERY PHONE DEBUG ==========');
+          debugPrint('   backupPhoneNumber: ${currentMerchant.backupPhoneNumber}');
+          debugPrint('   backupPhoneNumber is null: ${currentMerchant.backupPhoneNumber == null}');
+          debugPrint('   backupPhoneNumber is empty: ${currentMerchant.backupPhoneNumber?.isEmpty ?? true}');
+          debugPrint('=============================================');
+          debugPrint('');
           if (currentMerchant.address != null) {
             debugPrint('   address: ${currentMerchant.address!.fullAddress}');
           }
@@ -389,8 +405,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
   Widget _buildProfileOptions(AdvancedResponsiveHelper responsive, bool isDark) {
-    // Get backup phone from API data
-    final backupPhone = _currentMerchant?.backupPhoneNumber;
+    // ✅ Use recovery mobile from User Profile API (not Merchant API's backupPhoneNumber)
+    final recoveryPhone = _recoveryMobileNumber;
 
     final profileOptions = [
       {
@@ -432,8 +448,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       {
         'icon': AppIcons.mobileIc,
         'title': 'Recovery mobile',
-        'subtitle': backupPhone != null && backupPhone.isNotEmpty
-            ? Formatters.formatPhoneWithCountryCode(backupPhone)
+        'subtitle': recoveryPhone.isNotEmpty
+            ? Formatters.formatPhoneWithCountryCode(recoveryPhone)
             : 'Not added',
         'onTap': () async {
           debugPrint('🔐 Recovery mobile tapped');
@@ -455,7 +471,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             debugPrint('✅ Recovery mobile updated successfully');
           }
         },
-        'hasRecoveryData': backupPhone != null && backupPhone.isNotEmpty,
+        'hasRecoveryData': recoveryPhone.isNotEmpty,
       },
       {
         'icon': AppIcons.boxIc,
@@ -528,7 +544,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             hasRecoveryData ? AppIcons.recoveryIc : AppIcons.reminderIc,
                             width: responsive.iconSizeMedium,
                             height: responsive.iconSizeMedium,
-                            color: isDark ? AppColors.white : AppColorsLight.iconPrimary,
                           ),
                           SizedBox(width: responsive.spacing(8)),
                           SvgPicture.asset(
