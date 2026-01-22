@@ -108,6 +108,9 @@ class BorderColor extends StatelessWidget {
   final double? rightWidth;
   final double? bottomWidth;
   final double? allSides;
+  final bool useCustomColors;
+  final List<Color>? selectedColors;
+  final List<Color>? unselectedColors;
 
   const BorderColor({
     Key? key,
@@ -119,6 +122,9 @@ class BorderColor extends StatelessWidget {
     this.rightWidth,
     this.bottomWidth,
     this.allSides,
+    this.useCustomColors = false,
+    this.selectedColors,
+    this.unselectedColors,
   }) : super(key: key);
 
   @override
@@ -132,6 +138,8 @@ class BorderColor extends StatelessWidget {
       rightWidth: rightWidth,
       bottomWidth: bottomWidth,
       allSides: allSides,
+      selectedColors: useCustomColors ? selectedColors : null,
+      unselectedColors: useCustomColors ? unselectedColors : null,
     );
   }
 }

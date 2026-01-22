@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
 import '../core/api/auth_storage.dart';
-import '../core/api/global_api_function.dart';
-import '../presentations/language/select_language_screen.dart';
+
+import '../presentations/mobile/language/select_language_screen.dart';
 import '../presentations/routes/app_routes.dart';
 
 

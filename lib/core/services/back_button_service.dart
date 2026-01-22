@@ -2,9 +2,8 @@ import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/services.dart';
-
-import '../../presentations/auth/number_verify_screen.dart';
-import '../../presentations/language/select_language_screen.dart';
+import '../../presentations/mobile/auth/number_verify_screen.dart';
+import '../../presentations/mobile/language/select_language_screen.dart';
 import '../../presentations/widgets/dialogs/exit_confirmation_dialog.dart';
 import '../untils/binding/localization.dart';
 import '../untils/binding/number_binding.dart';

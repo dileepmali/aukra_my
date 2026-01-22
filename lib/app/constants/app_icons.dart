@@ -26,6 +26,7 @@ class AppIcons {
   static const String shareIc = 'assets/icons/share.svg';
   static const String cameraIc = 'assets/icons/camera.svg';
   static const String galleryIc = 'assets/icons/gallery.svg';
+  static const String aukraIc = 'assets/icons/aukra_ic.svg';
 
   // Communication icons
   static const String callIc = 'assets/icons/Call.svg';
