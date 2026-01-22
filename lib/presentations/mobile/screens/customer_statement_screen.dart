@@ -225,12 +225,27 @@ class CustomerStatementScreen extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                     ),
                     Flexible(
-                      child: AppText.displaySmall(
-                        '₹${Formatters.formatAmountWithCommas(netBalance.abs().toString())}',
-                        color: isPositive
-                            ? AppColors.primeryamount
-                            : AppColors.red500,
-                        fontWeight: FontWeight.w600,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          AppText.searchbar1(
+                            '₹',
+                            color: isPositive
+                                ? AppColors.primeryamount
+                                : AppColors.red500,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          SizedBox(width: responsive.wp(1)),
+                          AppText.displaySmall(
+                            Formatters.formatAmountWithCommas(netBalance.abs().toString()),
+                            color: isPositive
+                                ? AppColors.primeryamount
+                                : AppColors.red500,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
                       ),
                     ),
                   ],
