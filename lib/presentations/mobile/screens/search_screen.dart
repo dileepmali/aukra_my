@@ -396,15 +396,34 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
 
-        // Results list
+        // Results list with infinite scrolling
         Expanded(
-          child: ListView.builder(
-            itemCount: _controller.searchResults.length,
-            itemBuilder: (context, index) {
-              final result = _controller.searchResults[index];
-              return _buildResultItem(responsive, isDark, result);
-            },
-          ),
+          child: Obx(() {
+            final isLoadingMore = _controller.isLoadingMore.value;
+            final results = _controller.searchResults;
+
+            return ListView.builder(
+              controller: _controller.scrollController,
+              itemCount: results.length + (isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                // Show loading indicator at the end
+                if (index == results.length) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                        strokeWidth: 2.0,
+                      ),
+                    ),
+                  );
+                }
+
+                final result = results[index];
+                return _buildResultItem(responsive, isDark, result);
+              },
+            );
+          }),
         ),
       ],
     );

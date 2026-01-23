@@ -82,18 +82,20 @@ class LedgerTransactionApi {
     }
   }
 
-  /// Get all transactions for a specific ledger
+  /// Get all transactions for a specific ledger with pagination
   ///
-  /// Endpoint: GET api/ledger/{ledgerId}/transaction
+  /// Endpoint: GET api/ledger/{ledgerId}/transaction?skip=0&limit=10
   /// Returns individual transactions for a specific ledger
   Future<TransactionListModel> getLedgerTransactions({
     required int ledgerId,
+    int skip = 0,
+    int limit = 10,
   }) async {
     try {
-      debugPrint('📥 Fetching transactions for ledger: $ledgerId');
+      debugPrint('📥 Fetching transactions for ledger: $ledgerId (skip: $skip, limit: $limit)');
 
       await _apiFetcher.request(
-        url: 'api/ledger/$ledgerId/transaction',
+        url: 'api/ledger/$ledgerId/transaction?skip=$skip&limit=$limit',
         method: 'GET',
         requireAuth: true,
       );
@@ -108,12 +110,12 @@ class LedgerTransactionApi {
         final transactionList = TransactionListModel.fromJson(
           _apiFetcher.data as Map<String, dynamic>,
         );
-        debugPrint('✅ Fetched ${transactionList.count} transactions for ledger $ledgerId');
+        debugPrint('✅ Fetched ${transactionList.data.length} transactions (total: ${transactionList.totalCount}) for ledger $ledgerId');
         return transactionList;
       }
 
       // Return empty list if no data
-      return TransactionListModel(count: 0, data: []);
+      return TransactionListModel(count: 0, totalCount: 0, data: []);
     } catch (e) {
       debugPrint('❌ Fetch Ledger Transactions API Error: $e');
       rethrow;
@@ -152,7 +154,7 @@ class LedgerTransactionApi {
       }
 
       // Return empty list if no data
-      return TransactionListModel(count: 0, data: []);
+      return TransactionListModel(count: 0, totalCount: 0, data: []);
     } catch (e) {
       debugPrint('❌ Fetch Merchant Transactions API Error: $e');
       rethrow;

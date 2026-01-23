@@ -493,6 +493,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
           color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
           backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
           child: ListView(
+            controller: controller.scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               SizedBox(height: responsive.hp(30)),
@@ -513,37 +514,50 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         onRefresh: () => controller.refreshAll(),
         color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
         backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
-        child: Builder(
-          builder: (context) {
-            // 🔥 FIX: Don't filter deleted transactions - show them with underline instead
-            final allTransactions = history.data;
+        child: Obx(() {
+          // 🔥 FIX: Don't filter deleted transactions - show them with underline instead
+          final allTransactions = history.data;
+          final isLoadingMore = controller.isLoadingMore.value;
+          final hasMoreData = controller.hasMoreData.value;
 
-            debugPrint('🎨 ========== UI RENDERING - TRANSACTION LIST ==========');
-            debugPrint('📊 Total transactions from API: ${history.data.length}');
-            debugPrint('🗑️ Deleted transactions: ${history.data.where((t) => t.isDelete).length}');
-            debugPrint('✅ All transactions to render: ${allTransactions.length}');
-            debugPrint('📋 Transaction IDs: ${allTransactions.map((t) => 'ID:${t.id}(deleted:${t.isDelete})').toList()}');
-            debugPrint('================================================');
+          debugPrint('🎨 ========== UI RENDERING - TRANSACTION LIST ==========');
+          debugPrint('📊 Total transactions loaded: ${allTransactions.length}/${controller.totalTransactionCount.value}');
+          debugPrint('🗑️ Deleted transactions: ${history.data.where((t) => t.isDelete).length}');
+          debugPrint('📄 Has more data: $hasMoreData, Loading more: $isLoadingMore');
+          debugPrint('================================================');
 
-            return ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.only(
-                bottom: responsive.hp(18),  // Increased padding for floating button visibility
-              ),
-              itemCount: allTransactions.length,
-              itemBuilder: (context, index) {
-                final transaction = allTransactions[index];
-                debugPrint('   Rendering item $index: Transaction ID ${transaction.id} (isDelete: ${transaction.isDelete})');
-                return _buildTransactionItem(
-                  transaction,
-                  controller.ledgerDetail.value?.partyName ?? '',
-                  responsive,
-                  isDark,
+          return ListView.builder(
+            controller: controller.scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(
+              bottom: responsive.hp(18),  // Increased padding for floating button visibility
+            ),
+            // Add 1 for loading indicator when loading more
+            itemCount: allTransactions.length + (isLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              // Show loading indicator at the end
+              if (index == allTransactions.length) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                      strokeWidth: 2.0,
+                    ),
+                  ),
                 );
-              },
-            );
-          },
-        ),
+              }
+
+              final transaction = allTransactions[index];
+              return _buildTransactionItem(
+                transaction,
+                controller.ledgerDetail.value?.partyName ?? '',
+                responsive,
+                isDark,
+              );
+            },
+          );
+        }),
       );
     });
   }

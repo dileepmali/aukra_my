@@ -16,6 +16,7 @@ class MerchantModel {
   final String? manager; // Assigned manager
   final bool? isActive; // Active status (for activate/deactivate)
   final String? securityKey; // Security PIN for verification
+  final String? backupPhoneNumber; // Recovery/backup phone number
 
   MerchantModel({
     required this.merchantName,
@@ -35,6 +36,7 @@ class MerchantModel {
     this.manager,
     this.isActive,
     this.securityKey,
+    this.backupPhoneNumber,
   });
 
   // Convert model to JSON for API request (POST - Create merchant)
@@ -138,6 +140,11 @@ class MerchantModel {
       data['securityKey'] = securityKey;
     }
 
+    // ✅ backupPhoneNumber - Recovery/backup phone number
+    if (backupPhoneNumber != null && backupPhoneNumber!.isNotEmpty) {
+      data['backupPhoneNumber'] = backupPhoneNumber;
+    }
+
     return data;
   }
 
@@ -163,6 +170,7 @@ class MerchantModel {
       manager: json['manager'],
       isActive: json['isActive'],
       securityKey: json['securityKey'],
+      backupPhoneNumber: json['backupPhoneNumber'],
     );
   }
 
@@ -185,6 +193,7 @@ class MerchantModel {
     String? manager,
     bool? isActive,
     String? securityKey,
+    String? backupPhoneNumber,
   }) {
     return MerchantModel(
       merchantName: merchantName ?? this.merchantName,
@@ -204,6 +213,7 @@ class MerchantModel {
       manager: manager ?? this.manager,
       isActive: isActive ?? this.isActive,
       securityKey: securityKey ?? this.securityKey,
+      backupPhoneNumber: backupPhoneNumber ?? this.backupPhoneNumber,
     );
   }
 

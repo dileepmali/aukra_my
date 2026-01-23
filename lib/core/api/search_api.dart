@@ -114,10 +114,15 @@ class SearchApi {
     }
   }
 
-  /// Fetch ledgers by specific party type
-  Future<List<LedgerModel>> getLedgersByPartyType(String partyType) async {
+  /// Fetch ledgers by specific party type with pagination
+  /// Returns a map with 'data' (list of ledgers) and 'totalCount' (total items)
+  Future<Map<String, dynamic>> getLedgersByPartyType(
+    String partyType, {
+    int skip = 0,
+    int limit = 10,
+  }) async {
     try {
-      debugPrint('🔍 Fetching $partyType ledgers...');
+      debugPrint('🔍 Fetching $partyType ledgers (skip: $skip, limit: $limit)...');
 
       final merchantId = await AuthStorage.getMerchantId();
       if (merchantId == null) {
@@ -125,7 +130,7 @@ class SearchApi {
       }
 
       await _apiFetcher.request(
-        url: 'api/ledger/$merchantId?partyType=$partyType',
+        url: 'api/ledger/$merchantId?partyType=$partyType&skip=$skip&limit=$limit',
         method: 'GET',
         requireAuth: true,
       ).timeout(
@@ -140,20 +145,27 @@ class SearchApi {
       }
 
       List<LedgerModel> ledgerList = [];
+      int totalCount = 0;
 
       if (_apiFetcher.data is Map && _apiFetcher.data['data'] is List) {
         final dataList = _apiFetcher.data['data'] as List;
         ledgerList = dataList
             .map((json) => LedgerModel.fromJson(json as Map<String, dynamic>))
             .toList();
+        // Use totalCount if available, otherwise use count
+        totalCount = _apiFetcher.data['totalCount'] ?? _apiFetcher.data['count'] ?? ledgerList.length;
       } else if (_apiFetcher.data is List) {
         ledgerList = (_apiFetcher.data as List)
             .map((json) => LedgerModel.fromJson(json as Map<String, dynamic>))
             .toList();
+        totalCount = ledgerList.length;
       }
 
-      debugPrint('✅ Fetched ${ledgerList.length} $partyType records');
-      return ledgerList;
+      debugPrint('✅ Fetched ${ledgerList.length} $partyType records (total: $totalCount)');
+      return {
+        'data': ledgerList,
+        'totalCount': totalCount,
+      };
     } catch (e) {
       debugPrint('❌ Error fetching $partyType ledgers: $e');
       rethrow;

@@ -281,7 +281,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         inactiveIcon: isDark ? AppIcons.accountDecIc : LightAppIcons.shareUnActiveIc,
       ),
       _NavItem(
-        label: 'Setting',
+        label: 'Settings',
         activeIcon: isDark ? AppIcons.profileAcIc : LightAppIcons.folderActivieIc,
         inactiveIcon: isDark ? AppIcons.profileDesIc : LightAppIcons.settingIc,
       ),

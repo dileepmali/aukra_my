@@ -112,7 +112,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           // ✅ Get recovery mobile number from User Profile API
           if (userProfile.recoveryMobileNumber != null && userProfile.recoveryMobileNumber!.isNotEmpty) {
             _recoveryMobileNumber = userProfile.recoveryMobileNumber!;
-            debugPrint('✅ Recovery mobile set from API: $_recoveryMobileNumber');
+            debugPrint('✅ Recovery mobile set from User Profile API: $_recoveryMobileNumber');
           }
           // ❌ DON'T use mobile from user profile - it might be adminMobileNumber
           // Mobile number will be set from merchant API (phone field) instead
@@ -169,6 +169,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
            // ✅ Always use phone from merchant API (this is the registered number)
           // NOT adminMobileNumber which is different
           _mobileNumber = currentMerchant.phone;
+
+          // ✅ Recovery mobile is fetched from User Profile API (recoveryMobileNumber)
+          // Merchant API's backupPhoneNumber is not being saved by backend, so we don't use it
 
           // ✅ Only set username from merchant if not already set from user profile API
           // User profile API is the primary source for username

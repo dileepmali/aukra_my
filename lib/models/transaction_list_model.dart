@@ -1,16 +1,19 @@
 /// Transaction List Response Model
 class TransactionListModel {
   final int count;
+  final int totalCount; // Total transactions available (for pagination)
   final List<TransactionItemModel> data;
 
   TransactionListModel({
     required this.count,
+    required this.totalCount,
     required this.data,
   });
 
   factory TransactionListModel.fromJson(Map<String, dynamic> json) {
     return TransactionListModel(
       count: json['count'] ?? 0,
+      totalCount: json['totalCount'] ?? json['count'] ?? 0, // Fallback to count if totalCount not present
       data: json['data'] != null
           ? (json['data'] as List)
               .map((item) => TransactionItemModel.fromJson(item))
@@ -22,6 +25,7 @@ class TransactionListModel {
   Map<String, dynamic> toJson() {
     return {
       'count': count,
+      'totalCount': totalCount,
       'data': data.map((item) => item.toJson()).toList(),
     };
   }

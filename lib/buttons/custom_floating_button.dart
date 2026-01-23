@@ -37,8 +37,8 @@ class _CustomFloatingActionButtonState extends State<CustomFloatingActionButton>
         return 'Add Customer';
       case 'suppliers':
         return 'Add Supplier';
-      case 'employers':
-        return 'Add Employer';
+      case 'employees':
+        return 'Add Employee';
       case 'businesses':
         return 'Add Business';
       default:

@@ -18,6 +18,17 @@ class SearchController extends GetxController {
   SearchConfig config = SearchConfig.customer();
 
   // ============================================================
+  // PAGINATION STATE
+  // ============================================================
+
+  final int _limit = 10;
+  final ScrollController scrollController = ScrollController();
+  var currentSkip = 0.obs;
+  var totalCount = 0.obs;
+  var hasMoreData = true.obs;
+  var isLoadingMore = false.obs;
+
+  // ============================================================
   // OBSERVABLE STATE
   // ============================================================
 
@@ -91,34 +102,129 @@ class SearchController extends GetxController {
     debugPrint('   Label: ${config.partyTypeLabel}');
     debugPrint('   Enabled Fields: ${config.enabledFields.map((f) => f.label).join(", ")}');
 
+    // Setup scroll listener for infinite scrolling
+    _setupScrollListener();
+
     // Fetch data
     fetchData();
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  /// Setup scroll listener for 80% threshold detection
+  void _setupScrollListener() {
+    scrollController.addListener(() {
+      if (scrollController.hasClients) {
+        final maxScroll = scrollController.position.maxScrollExtent;
+        final currentScroll = scrollController.position.pixels;
+        final threshold = maxScroll * 0.8;
+
+        if (currentScroll >= threshold &&
+            !isLoadingMore.value &&
+            hasMoreData.value) {
+          debugPrint('📜 Search scroll reached 80% - Loading more...');
+          loadMoreData();
+        }
+      }
+    });
   }
 
   // ============================================================
   // DATA FETCHING
   // ============================================================
 
-  /// Fetch ledger data for the configured party type
+  /// Fetch ledger data for the configured party type (first page)
   Future<void> fetchData() async {
     try {
       isInitialLoading.value = true;
       errorMessage.value = '';
 
-      debugPrint('📡 Fetching ${config.partyTypeLabel} data...');
+      // Reset pagination state
+      currentSkip.value = 0;
+      hasMoreData.value = true;
+      allLedgers.clear();
 
-      final result = await _searchApi.getLedgersByPartyType(config.partyType);
-      allLedgers.value = result;
+      debugPrint('📡 Fetching ${config.partyTypeLabel} data (skip: 0, limit: $_limit)...');
+
+      final result = await _searchApi.getLedgersByPartyType(
+        config.partyType,
+        skip: 0,
+        limit: _limit,
+      );
+
+      final ledgers = result['data'] as List<LedgerModel>;
+      totalCount.value = result['totalCount'] as int;
+
+      allLedgers.addAll(ledgers);
+      hasMoreData.value = allLedgers.length < totalCount.value;
 
       // Calculate summary
       _calculateSummary();
 
-      debugPrint('✅ Loaded ${allLedgers.length} ${config.partyTypeLabel}s');
+      debugPrint('✅ Loaded ${allLedgers.length}/${totalCount.value} ${config.partyTypeLabel}s');
+      debugPrint('📄 Has more data: ${hasMoreData.value}');
     } catch (e) {
       debugPrint('❌ Error fetching data: $e');
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
     } finally {
       isInitialLoading.value = false;
+    }
+  }
+
+  /// Load more data for infinite scrolling
+  Future<void> loadMoreData() async {
+    if (isLoadingMore.value || !hasMoreData.value) {
+      debugPrint('⏸️ Skip loading more: isLoading=${isLoadingMore.value}, hasMore=${hasMoreData.value}');
+      return;
+    }
+
+    try {
+      isLoadingMore.value = true;
+      final nextSkip = currentSkip.value + _limit;
+
+      debugPrint('🔄 Loading more ${config.partyTypeLabel}s - skip: $nextSkip');
+
+      final result = await _searchApi.getLedgersByPartyType(
+        config.partyType,
+        skip: nextSkip,
+        limit: _limit,
+      );
+
+      final ledgers = result['data'] as List<LedgerModel>;
+
+      if (ledgers.isEmpty) {
+        hasMoreData.value = false;
+        debugPrint('📭 No more data to load');
+        return;
+      }
+
+      // Update skip after successful fetch
+      currentSkip.value = nextSkip;
+
+      // Append new data
+      allLedgers.addAll(ledgers);
+      hasMoreData.value = allLedgers.length < totalCount.value;
+
+      // Recalculate summary
+      _calculateSummary();
+
+      // Re-apply search if active
+      if (searchQuery.value.isNotEmpty) {
+        performSearch(searchQuery.value);
+      } else if (hasActiveFilters.value) {
+        showAllWithFilters();
+      }
+
+      debugPrint('✅ Loaded more: ${allLedgers.length}/${totalCount.value} ${config.partyTypeLabel}s');
+      debugPrint('📄 Has more data: ${hasMoreData.value}');
+    } catch (e) {
+      debugPrint('❌ Error loading more data: $e');
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 

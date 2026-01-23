@@ -142,6 +142,39 @@ class RecoveryMobileApiService {
     }
   }
 
+  /// API 5: Update merchant's backupPhoneNumber after recovery flow completes
+  /// Endpoint: PUT /api/merchant/{merchantId}
+  Future<bool> updateMerchantBackupPhone({
+    required int merchantId,
+    required String backupPhoneNumber,
+  }) async {
+    try {
+      debugPrint('📤 Recovery API 5: Updating merchant backupPhoneNumber...');
+      debugPrint('   Merchant ID: $merchantId');
+      debugPrint('   Backup Phone: ${backupPhoneNumber.substring(0, 2)}******${backupPhoneNumber.substring(backupPhoneNumber.length - 2)}');
+
+      await _apiFetcher.request(
+        url: 'api/merchant/$merchantId',
+        method: 'PUT',
+        body: {
+          'backupPhoneNumber': backupPhoneNumber,
+        },
+        requireAuth: true,
+      );
+
+      if (_apiFetcher.errorMessage == null) {
+        debugPrint('✅ Recovery API 5: Merchant backupPhoneNumber updated successfully');
+        return true;
+      } else {
+        debugPrint('❌ Recovery API 5 Error: ${_apiFetcher.errorMessage}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Recovery API 5 Exception: $e');
+      return false;
+    }
+  }
+
   /// Get error message from API response
   String? get errorMessage => _apiFetcher.errorMessage;
 

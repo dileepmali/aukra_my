@@ -336,6 +336,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           },
           child: _ledgerController.filteredCustomers.isEmpty
               ? ListView(
+                  controller: _ledgerController.customersScrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     SizedBox(height: responsive.hp(30)),
@@ -350,80 +351,90 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     ),
                   ],
                 )
-              : ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                    left: responsive.wp(1),
-                    right: responsive.wp(1),
-                    top: responsive.hp(2),
-                    bottom: responsive.hp(30), // Add bottom padding for better scrolling
-                  ),
-                  itemCount: _ledgerController.filteredCustomers.length,
-                  itemBuilder: (context, index) {
-                    final customer = _ledgerController.filteredCustomers[index];
+              : Obx(() {
+                  final isLoadingMore = _ledgerController.customersIsLoadingMore.value;
+                  final customersList = _ledgerController.filteredCustomers;
 
-                    // Format last update date, time and address
-                    String subtitle = '';
-                    final displayDate = customer.updatedAt ?? customer.createdAt;
-                    if (displayDate != null) {
-                      // Convert UTC to local time
-                      final localTime = displayDate.toLocal();
-                      final dateFormat = DateFormat('d MMM yyyy');
-                      final timeFormat = DateFormat('HH:mm');
-                      final formattedDate = dateFormat.format(localTime);
-                      final formattedTime = timeFormat.format(localTime);
-                      subtitle = '$formattedDate, $formattedTime';
-                    } else {
-                      subtitle = 'No date available';
-                    }
+                  return ListView.builder(
+                    controller: _ledgerController.customersScrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(
+                      left: responsive.wp(1),
+                      right: responsive.wp(1),
+                      top: responsive.hp(2),
+                      bottom: responsive.hp(30),
+                    ),
+                    itemCount: customersList.length + (isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      // Show loading indicator at the end
+                      if (index == customersList.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                              strokeWidth: 2.0,
+                            ),
+                          ),
+                        );
+                      }
 
-                    // Add address if available
-                    debugPrint('📍 ${customer.name} - Address: "${customer.address}", Area: "${customer.area}"');
-                    if (customer.address.isNotEmpty) {
-                      subtitle += ' • ${customer.address}';
-                    } else if (customer.area.isNotEmpty) {
-                      subtitle += ' • ${customer.area}';
-                    }
+                      final customer = customersList[index];
 
-                    // Debug: Print balance and transaction type
-                    debugPrint('💰 ${customer.name}: CurrentBalance=${customer.currentBalance}');
+                      // Format last update date, time and address
+                      String subtitle = '';
+                      final displayDate = customer.updatedAt ?? customer.createdAt;
+                      if (displayDate != null) {
+                        final localTime = displayDate.toLocal();
+                        final dateFormat = DateFormat('d MMM yyyy');
+                        final timeFormat = DateFormat('HH:mm');
+                        final formattedDate = dateFormat.format(localTime);
+                        final formattedTime = timeFormat.format(localTime);
+                        subtitle = '$formattedDate, $formattedTime';
+                      } else {
+                        subtitle = 'No date available';
+                      }
 
-                    // Format amount - use currentBalance instead of openingBalance
-                    final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
-                    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
-                    final isPositive = BalanceHelper.isPositive(
-                      currentBalance: customer.currentBalance,
-                      itemName: 'Customer: ${customer.name}',
-                    );
+                      if (customer.address.isNotEmpty) {
+                        subtitle += ' • ${customer.address}';
+                      } else if (customer.area.isNotEmpty) {
+                        subtitle += ' • ${customer.area}';
+                      }
 
-                    return ListItemWidget(
-                      title: customer.name.isNotEmpty
-                          ? Formatters.truncateName(customer.name)
-                          : 'Customer #${index + 1}',
-                      subtitle: subtitle,
-                      amount: amount,
-                      isPositiveAmount: isPositive,
-                      showAvatar: true,
-                      avatarText: customer.name.isNotEmpty
-                          ? customer.name.substring(0, customer.name.length >= 2 ? 2 : 1).toUpperCase()
-                          : 'C',
-                      avatarBackgroundGradient: LinearGradient(
-                        colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      avatarTextColor: AppColors.white,
-                      onTap: () async {
-                        debugPrint('Customer tapped: ${customer.name}');
-                        await Get.toNamed('/ledger-detail', arguments: {
-                          'ledgerId': customer.id,
-                        });
-                        // Refresh data when returning from detail screen
-                        _ledgerController.refreshAll();
-                      },
-                    );
-                  },
-                ),
+                      final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
+                      final isPositive = BalanceHelper.isPositive(
+                        currentBalance: customer.currentBalance,
+                        itemName: 'Customer: ${customer.name}',
+                      );
+
+                      return ListItemWidget(
+                        title: customer.name.isNotEmpty
+                            ? Formatters.truncateName(customer.name)
+                            : 'Customer #${index + 1}',
+                        subtitle: subtitle,
+                        amount: amount,
+                        isPositiveAmount: isPositive,
+                        showAvatar: true,
+                        avatarText: customer.name.isNotEmpty
+                            ? customer.name.substring(0, customer.name.length >= 2 ? 2 : 1).toUpperCase()
+                            : 'C',
+                        avatarBackgroundGradient: LinearGradient(
+                          colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        avatarTextColor: AppColors.white,
+                        onTap: () async {
+                          debugPrint('Customer tapped: ${customer.name}');
+                          await Get.toNamed('/ledger-detail', arguments: {
+                            'ledgerId': customer.id,
+                          });
+                          _ledgerController.refreshAll();
+                        },
+                      );
+                    },
+                  );
+                }),
         );
       }),
     );
@@ -450,6 +461,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           },
           child: _ledgerController.filteredSuppliers.isEmpty
               ? ListView(
+                  controller: _ledgerController.suppliersScrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     SizedBox(height: responsive.hp(30)),
@@ -464,76 +476,90 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     ),
                   ],
                 )
-              : ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                    left: responsive.wp(1),
-                    right: responsive.wp(1),
-                    top: responsive.hp(2),
-                    bottom: responsive.hp(20), // Add bottom padding for better scrolling
-                  ),
-                  itemCount: _ledgerController.filteredSuppliers.length,
-                  itemBuilder: (context, index) {
-                    final supplier = _ledgerController.filteredSuppliers[index];
+              : Obx(() {
+                  final isLoadingMore = _ledgerController.suppliersIsLoadingMore.value;
+                  final suppliersList = _ledgerController.filteredSuppliers;
 
-                    // Format last update date, time and address
-                    String subtitle = '';
-                    final displayDate = supplier.updatedAt ?? supplier.createdAt;
-                    if (displayDate != null) {
-                      // Convert UTC to local time
-                      final localTime = displayDate.toLocal();
-                      final dateFormat = DateFormat('d MMM yyyy');
-                      final timeFormat = DateFormat('HH:mm');
-                      final formattedDate = dateFormat.format(localTime);
-                      final formattedTime = timeFormat.format(localTime);
-                      subtitle = '$formattedDate, $formattedTime';
-                    } else {
-                      subtitle = 'No date available';
-                    }
+                  return ListView.builder(
+                    controller: _ledgerController.suppliersScrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(
+                      left: responsive.wp(1),
+                      right: responsive.wp(1),
+                      top: responsive.hp(2),
+                      bottom: responsive.hp(20),
+                    ),
+                    itemCount: suppliersList.length + (isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      // Show loading indicator at the end
+                      if (index == suppliersList.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                              strokeWidth: 2.0,
+                            ),
+                          ),
+                        );
+                      }
 
-                    // Add address if available
-                    if (supplier.address.isNotEmpty) {
-                      subtitle += ' • ${supplier.address}';
-                    } else if (supplier.area.isNotEmpty) {
-                      subtitle += ' • ${supplier.area}';
-                    }
+                      final supplier = suppliersList[index];
 
-                    // Format amount - use currentBalance instead of openingBalance
-                    final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
-                    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
-                    final isPositive = BalanceHelper.isPositive(
-                      currentBalance: supplier.currentBalance,
-                      itemName: 'Supplier: ${supplier.name}',
-                    );
+                      // Format last update date, time and address
+                      String subtitle = '';
+                      final displayDate = supplier.updatedAt ?? supplier.createdAt;
+                      if (displayDate != null) {
+                        final localTime = displayDate.toLocal();
+                        final dateFormat = DateFormat('d MMM yyyy');
+                        final timeFormat = DateFormat('HH:mm');
+                        final formattedDate = dateFormat.format(localTime);
+                        final formattedTime = timeFormat.format(localTime);
+                        subtitle = '$formattedDate, $formattedTime';
+                      } else {
+                        subtitle = 'No date available';
+                      }
 
-                    return ListItemWidget(
-                      title: supplier.name.isNotEmpty
-                          ? Formatters.truncateName(supplier.name)
-                          : 'Supplier #${index + 1}',
-                      subtitle: subtitle,
-                      amount: amount,
-                      isPositiveAmount: isPositive,
-                      showAvatar: true,
-                      avatarText: supplier.name.isNotEmpty
-                          ? supplier.name.substring(0, supplier.name.length >= 2 ? 2 : 1).toUpperCase()
-                          : 'S',
-                      avatarBackgroundGradient: LinearGradient(
-                        colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      avatarTextColor: AppColors.white,
-                      onTap: () async {
-                        debugPrint('Supplier tapped: ${supplier.name}');
-                        await Get.toNamed('/ledger-detail', arguments: {
-                          'ledgerId': supplier.id,
-                        });
-                        // Refresh data when returning from detail screen
-                        _ledgerController.refreshAll();
-                      },
-                    );
-                  },
-                ),
+                      if (supplier.address.isNotEmpty) {
+                        subtitle += ' • ${supplier.address}';
+                      } else if (supplier.area.isNotEmpty) {
+                        subtitle += ' • ${supplier.area}';
+                      }
+
+                      final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
+                      final isPositive = BalanceHelper.isPositive(
+                        currentBalance: supplier.currentBalance,
+                        itemName: 'Supplier: ${supplier.name}',
+                      );
+
+                      return ListItemWidget(
+                        title: supplier.name.isNotEmpty
+                            ? Formatters.truncateName(supplier.name)
+                            : 'Supplier #${index + 1}',
+                        subtitle: subtitle,
+                        amount: amount,
+                        isPositiveAmount: isPositive,
+                        showAvatar: true,
+                        avatarText: supplier.name.isNotEmpty
+                            ? supplier.name.substring(0, supplier.name.length >= 2 ? 2 : 1).toUpperCase()
+                            : 'S',
+                        avatarBackgroundGradient: LinearGradient(
+                          colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        avatarTextColor: AppColors.white,
+                        onTap: () async {
+                          debugPrint('Supplier tapped: ${supplier.name}');
+                          await Get.toNamed('/ledger-detail', arguments: {
+                            'ledgerId': supplier.id,
+                          });
+                          _ledgerController.refreshAll();
+                        },
+                      );
+                    },
+                  );
+                }),
         );
       }),
     );
@@ -561,6 +587,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
           },
           child: _ledgerController.filteredEmployers.isEmpty
               ? ListView(
+                  controller: _ledgerController.employeesScrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     SizedBox(height: responsive.hp(30)),
@@ -575,76 +602,90 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     ),
                   ],
                 )
-              : ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                    left: responsive.wp(1),
-                    right: responsive.wp(1),
-                    top: responsive.hp(2),
-                    bottom: responsive.hp(30), // Add bottom padding for better scrolling
-                  ),
-                  itemCount: _ledgerController.filteredEmployers.length,
-                  itemBuilder: (context, index) {
-                    final employer = _ledgerController.filteredEmployers[index];
+              : Obx(() {
+                  final isLoadingMore = _ledgerController.employeesIsLoadingMore.value;
+                  final employersList = _ledgerController.filteredEmployers;
 
-                    // Format last update date, time and address
-                    String subtitle = '';
-                    final displayDate = employer.updatedAt ?? employer.createdAt;
-                    if (displayDate != null) {
-                      // Convert UTC to local time
-                      final localTime = displayDate.toLocal();
-                      final dateFormat = DateFormat('d MMM yyyy');
-                      final timeFormat = DateFormat('HH:mm');
-                      final formattedDate = dateFormat.format(localTime);
-                      final formattedTime = timeFormat.format(localTime);
-                      subtitle = '$formattedDate, $formattedTime';
-                    } else {
-                      subtitle = 'No date available';
-                    }
+                  return ListView.builder(
+                    controller: _ledgerController.employeesScrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(
+                      left: responsive.wp(1),
+                      right: responsive.wp(1),
+                      top: responsive.hp(2),
+                      bottom: responsive.hp(30),
+                    ),
+                    itemCount: employersList.length + (isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      // Show loading indicator at the end
+                      if (index == employersList.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                              strokeWidth: 2.0,
+                            ),
+                          ),
+                        );
+                      }
 
-                    // Add address if available
-                    if (employer.address.isNotEmpty) {
-                      subtitle += ' • ${employer.address}';
-                    } else if (employer.area.isNotEmpty) {
-                      subtitle += ' • ${employer.area}';
-                    }
+                      final employer = employersList[index];
 
-                    // Format amount - use currentBalance instead of openingBalance
-                    final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
-                    // ✅ FIX: Use currentBalance SIGN for positive/negative (centralized logic)
-                    final isPositive = BalanceHelper.isPositive(
-                      currentBalance: employer.currentBalance,
-                      itemName: 'Employee: ${employer.name}',
-                    );
+                      // Format last update date, time and address
+                      String subtitle = '';
+                      final displayDate = employer.updatedAt ?? employer.createdAt;
+                      if (displayDate != null) {
+                        final localTime = displayDate.toLocal();
+                        final dateFormat = DateFormat('d MMM yyyy');
+                        final timeFormat = DateFormat('HH:mm');
+                        final formattedDate = dateFormat.format(localTime);
+                        final formattedTime = timeFormat.format(localTime);
+                        subtitle = '$formattedDate, $formattedTime';
+                      } else {
+                        subtitle = 'No date available';
+                      }
 
-                    return ListItemWidget(
-                      title: employer.name.isNotEmpty
-                          ? Formatters.truncateName(employer.name)
-                          : 'Employee #${index + 1}',
-                      subtitle: subtitle,
-                      amount: amount,
-                      isPositiveAmount: isPositive,
-                      showAvatar: true,
-                      avatarText: employer.name.isNotEmpty
-                          ? employer.name.substring(0, employer.name.length >= 2 ? 2 : 1).toUpperCase()
-                          : 'E',
-                      avatarBackgroundGradient: LinearGradient(
-                        colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      avatarTextColor: AppColors.white,
-                      onTap: () async {
-                        debugPrint('Employer tapped: ${employer.name}');
-                        await Get.toNamed('/ledger-detail', arguments: {
-                          'ledgerId': employer.id,
-                        });
-                        // Refresh data when returning from detail screen
-                        _ledgerController.refreshAll();
-                      },
-                    );
-                  },
-                ),
+                      if (employer.address.isNotEmpty) {
+                        subtitle += ' • ${employer.address}';
+                      } else if (employer.area.isNotEmpty) {
+                        subtitle += ' • ${employer.area}';
+                      }
+
+                      final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
+                      final isPositive = BalanceHelper.isPositive(
+                        currentBalance: employer.currentBalance,
+                        itemName: 'Employee: ${employer.name}',
+                      );
+
+                      return ListItemWidget(
+                        title: employer.name.isNotEmpty
+                            ? Formatters.truncateName(employer.name)
+                            : 'Employee #${index + 1}',
+                        subtitle: subtitle,
+                        amount: amount,
+                        isPositiveAmount: isPositive,
+                        showAvatar: true,
+                        avatarText: employer.name.isNotEmpty
+                            ? employer.name.substring(0, employer.name.length >= 2 ? 2 : 1).toUpperCase()
+                            : 'E',
+                        avatarBackgroundGradient: LinearGradient(
+                          colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        avatarTextColor: AppColors.white,
+                        onTap: () async {
+                          debugPrint('Employer tapped: ${employer.name}');
+                          await Get.toNamed('/ledger-detail', arguments: {
+                            'ledgerId': employer.id,
+                          });
+                          _ledgerController.refreshAll();
+                        },
+                      );
+                    },
+                  );
+                }),
         );
       }),
     );

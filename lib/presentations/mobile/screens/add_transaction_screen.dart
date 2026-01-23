@@ -96,7 +96,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
     final responsive = AdvancedResponsiveHelper(context);
 
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Keep button at bottom when keyboard opens
+      resizeToAvoidBottomInset: true, // Resize body when keyboard opens
       backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       appBar: CustomResponsiveAppBar(
         config: AppBarConfig(
@@ -141,7 +141,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + responsive.hp(6), // Dynamic padding for keyboard + button height
+                  bottom: responsive.hp(0.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

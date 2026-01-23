@@ -18,6 +18,32 @@ class LedgerController extends GetxController {
   final ApiFetcher _apiFetcher = ApiFetcher();
 
   // ============================================================
+  // PAGINATION STATE
+  // ============================================================
+  final int _limit = 10;
+
+  // Customer pagination
+  final ScrollController customersScrollController = ScrollController();
+  var customersCurrentSkip = 0.obs;
+  var customersTotalCount = 0.obs;
+  var customersHasMoreData = true.obs;
+  var customersIsLoadingMore = false.obs;
+
+  // Supplier pagination
+  final ScrollController suppliersScrollController = ScrollController();
+  var suppliersCurrentSkip = 0.obs;
+  var suppliersTotalCount = 0.obs;
+  var suppliersHasMoreData = true.obs;
+  var suppliersIsLoadingMore = false.obs;
+
+  // Employee pagination
+  final ScrollController employeesScrollController = ScrollController();
+  var employeesCurrentSkip = 0.obs;
+  var employeesTotalCount = 0.obs;
+  var employeesHasMoreData = true.obs;
+  var employeesIsLoadingMore = false.obs;
+
+  // ============================================================
   // FILTER STATE (same as SearchController/CustomerStatementController)
   // ============================================================
 
@@ -45,8 +71,68 @@ class LedgerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _setupScrollListeners();
     fetchMerchantDetails();
     fetchAllLedgers();
+  }
+
+  @override
+  void onClose() {
+    customersScrollController.dispose();
+    suppliersScrollController.dispose();
+    employeesScrollController.dispose();
+    super.onClose();
+  }
+
+  /// Setup scroll listeners for infinite scrolling (80% threshold)
+  void _setupScrollListeners() {
+    // Customers scroll listener
+    customersScrollController.addListener(() {
+      if (customersScrollController.hasClients) {
+        final maxScroll = customersScrollController.position.maxScrollExtent;
+        final currentScroll = customersScrollController.position.pixels;
+        final threshold = maxScroll * 0.8;
+
+        if (currentScroll >= threshold &&
+            !customersIsLoadingMore.value &&
+            customersHasMoreData.value) {
+          debugPrint('📜 Customers scroll reached 80% - Loading more...');
+          loadMoreCustomers();
+        }
+      }
+    });
+
+    // Suppliers scroll listener
+    suppliersScrollController.addListener(() {
+      if (suppliersScrollController.hasClients) {
+        final maxScroll = suppliersScrollController.position.maxScrollExtent;
+        final currentScroll = suppliersScrollController.position.pixels;
+        final threshold = maxScroll * 0.8;
+
+        if (currentScroll >= threshold &&
+            !suppliersIsLoadingMore.value &&
+            suppliersHasMoreData.value) {
+          debugPrint('📜 Suppliers scroll reached 80% - Loading more...');
+          loadMoreSuppliers();
+        }
+      }
+    });
+
+    // Employees scroll listener
+    employeesScrollController.addListener(() {
+      if (employeesScrollController.hasClients) {
+        final maxScroll = employeesScrollController.position.maxScrollExtent;
+        final currentScroll = employeesScrollController.position.pixels;
+        final threshold = maxScroll * 0.8;
+
+        if (currentScroll >= threshold &&
+            !employeesIsLoadingMore.value &&
+            employeesHasMoreData.value) {
+          debugPrint('📜 Employees scroll reached 80% - Loading more...');
+          loadMoreEmployees();
+        }
+      }
+    });
   }
 
   /// Fetch merchant details - Always fetch fresh from API (same as my_profile_screen)
@@ -170,25 +256,33 @@ class LedgerController extends GetxController {
         return;
       }
 
-      // Clear existing lists to prevent duplicates
+      // Clear existing lists and reset pagination
       allLedgers.clear();
       customers.clear();
       suppliers.clear();
       employers.clear();
 
-      // Fetch sequentially with delays to avoid rate limiting (429 errors)
-      await _fetchLedgersByType(merchantId, 'CUSTOMER');
+      // Reset pagination state
+      customersCurrentSkip.value = 0;
+      customersHasMoreData.value = true;
+      suppliersCurrentSkip.value = 0;
+      suppliersHasMoreData.value = true;
+      employeesCurrentSkip.value = 0;
+      employeesHasMoreData.value = true;
+
+      // Fetch first page of each type sequentially with delays to avoid rate limiting (429 errors)
+      await _fetchLedgersByType(merchantId, 'CUSTOMER', skip: 0, limit: _limit);
       await Future.delayed(const Duration(milliseconds: 300)); // Small delay
 
-      await _fetchLedgersByType(merchantId, 'SUPPLIER');
+      await _fetchLedgersByType(merchantId, 'SUPPLIER', skip: 0, limit: _limit);
       await Future.delayed(const Duration(milliseconds: 300)); // Small delay
 
-      await _fetchLedgersByType(merchantId, 'EMPLOYEE');
+      await _fetchLedgersByType(merchantId, 'EMPLOYEE', skip: 0, limit: _limit);
 
       debugPrint('📊 Total ledgers: ${allLedgers.length}');
-      debugPrint('👥 Customers: ${customers.length}');
-      debugPrint('🏭 Suppliers: ${suppliers.length}');
-      debugPrint('👔 Employers: ${employers.length}');
+      debugPrint('👥 Customers: ${customers.length}/${customersTotalCount.value}');
+      debugPrint('🏭 Suppliers: ${suppliers.length}/${suppliersTotalCount.value}');
+      debugPrint('👔 Employers: ${employers.length}/${employeesTotalCount.value}');
     } catch (e) {
       debugPrint('❌ Error fetching ledgers: $e');
     } finally {
@@ -196,16 +290,16 @@ class LedgerController extends GetxController {
     }
   }
 
-  /// Fetch ledgers by party type
-  Future<void> _fetchLedgersByType(int merchantId, String partyType) async {
+  /// Fetch ledgers by party type with pagination
+  Future<void> _fetchLedgersByType(int merchantId, String partyType, {int skip = 0, int limit = 10}) async {
     try {
       final fetcher = ApiFetcher();
 
-      debugPrint('📡 Fetching $partyType ledgers...');
+      debugPrint('📡 Fetching $partyType ledgers (skip: $skip, limit: $limit)...');
 
-      // Call GET API with merchantId and partyType
+      // Call GET API with merchantId, partyType, and pagination
       await fetcher.request(
-        url: 'api/ledger/$merchantId?partyType=$partyType',
+        url: 'api/ledger/$merchantId?partyType=$partyType&skip=$skip&limit=$limit',
         method: 'GET',
         requireAuth: true,
       ).timeout(
@@ -223,48 +317,49 @@ class LedgerController extends GetxController {
 
       if (fetcher.data != null) {
         debugPrint('✅ $partyType fetched successfully');
-        debugPrint('📥 $partyType Response Type: ${fetcher.data.runtimeType}');
-        debugPrint('📥 $partyType Full Response: ${fetcher.data}');
-        debugPrint('═══════════════════════════════════════════════════');
 
         List<dynamic> ledgerList = [];
+        int totalCount = 0;
 
         // Parse response - handle both formats
         if (fetcher.data is Map && fetcher.data['data'] is List) {
-          // Nested format: {count: 3, data: [...]}
+          // Nested format: {count: 3, totalCount: 14, data: [...]}
           ledgerList = fetcher.data['data'] as List;
-          debugPrint('📊 Nested format - Count: ${fetcher.data['count']}, Items: ${ledgerList.length}');
-
-          // Print first item to see structure
-          if (ledgerList.isNotEmpty) {
-            debugPrint('🔍 First Item Sample: ${ledgerList[0]}');
-          }
+          // Use totalCount if available, otherwise use count
+          totalCount = fetcher.data['totalCount'] ?? fetcher.data['count'] ?? ledgerList.length;
+          debugPrint('📊 $partyType - Fetched: ${ledgerList.length}, Total: $totalCount');
         } else if (fetcher.data is List) {
           // Direct array format: [...]
           ledgerList = fetcher.data as List;
-          debugPrint('📊 Direct array format - Items: ${ledgerList.length}');
-
-          // Print first item to see structure
-          if (ledgerList.isNotEmpty) {
-            debugPrint('🔍 First Item Sample: ${ledgerList[0]}');
-          }
+          totalCount = ledgerList.length;
+          debugPrint('📊 $partyType Direct array format - Items: ${ledgerList.length}');
         } else {
           debugPrint('⚠️ Unexpected response format for $partyType');
           return;
+        }
+
+        // Update total count and hasMoreData based on party type
+        switch (partyType.toUpperCase()) {
+          case 'CUSTOMER':
+            customersTotalCount.value = totalCount;
+            customersHasMoreData.value = customers.length + ledgerList.length < totalCount;
+            break;
+          case 'SUPPLIER':
+            suppliersTotalCount.value = totalCount;
+            suppliersHasMoreData.value = suppliers.length + ledgerList.length < totalCount;
+            break;
+          case 'EMPLOYEE':
+            employeesTotalCount.value = totalCount;
+            employeesHasMoreData.value = employers.length + ledgerList.length < totalCount;
+            break;
         }
 
         // Process ledger items
         for (var ledgerJson in ledgerList) {
           if (ledgerJson is Map<String, dynamic>) {
             try {
-              // Debug: Print raw JSON to see what fields are coming
-              debugPrint('📦 Raw Ledger JSON: $ledgerJson');
-
               final ledger = LedgerModel.fromJson(ledgerJson);
               allLedgers.add(ledger);
-
-              debugPrint('✅ Parsed ledger: ${ledger.name} (${ledger.partyType})');
-              debugPrint('   📍 Address: "${ledger.address}", Area: "${ledger.area}"');
 
               // Sort by party type - Use actual ledger.partyType from API response
               switch (ledger.partyType.toUpperCase()) {
@@ -274,21 +369,111 @@ class LedgerController extends GetxController {
                 case 'SUPPLIER':
                   suppliers.add(ledger);
                   break;
-                case 'EMPLOYEE': // Changed from EMPLOYER to EMPLOYEE
+                case 'EMPLOYEE':
                   employers.add(ledger);
                   break;
               }
             } catch (e) {
               debugPrint('❌ Error parsing ledger item: $e');
-              debugPrint('❌ Failed item data: $ledgerJson');
             }
           }
         }
 
-        debugPrint('📊 $partyType parsed - Total items: ${ledgerList.length}');
+        debugPrint('📊 $partyType loaded: ${ledgerList.length} items');
       }
     } catch (e) {
       debugPrint('❌ Error fetching $partyType: $e');
+    }
+  }
+
+  // ============================================================
+  // LOAD MORE METHODS (Infinite Scrolling)
+  // ============================================================
+
+  /// Load more customers
+  Future<void> loadMoreCustomers() async {
+    if (customersIsLoadingMore.value || !customersHasMoreData.value) {
+      debugPrint('⏸️ Skip loading more customers: isLoading=${customersIsLoadingMore.value}, hasMore=${customersHasMoreData.value}');
+      return;
+    }
+
+    try {
+      customersIsLoadingMore.value = true;
+      final nextSkip = customersCurrentSkip.value + _limit;
+
+      debugPrint('🔄 Loading more customers - skip: $nextSkip');
+
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) return;
+
+      await _fetchLedgersByType(merchantId, 'CUSTOMER', skip: nextSkip, limit: _limit);
+
+      // Update skip after successful fetch
+      customersCurrentSkip.value = nextSkip;
+
+      debugPrint('✅ Customers loaded: ${customers.length}/${customersTotalCount.value}');
+    } catch (e) {
+      debugPrint('❌ Error loading more customers: $e');
+    } finally {
+      customersIsLoadingMore.value = false;
+    }
+  }
+
+  /// Load more suppliers
+  Future<void> loadMoreSuppliers() async {
+    if (suppliersIsLoadingMore.value || !suppliersHasMoreData.value) {
+      debugPrint('⏸️ Skip loading more suppliers: isLoading=${suppliersIsLoadingMore.value}, hasMore=${suppliersHasMoreData.value}');
+      return;
+    }
+
+    try {
+      suppliersIsLoadingMore.value = true;
+      final nextSkip = suppliersCurrentSkip.value + _limit;
+
+      debugPrint('🔄 Loading more suppliers - skip: $nextSkip');
+
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) return;
+
+      await _fetchLedgersByType(merchantId, 'SUPPLIER', skip: nextSkip, limit: _limit);
+
+      // Update skip after successful fetch
+      suppliersCurrentSkip.value = nextSkip;
+
+      debugPrint('✅ Suppliers loaded: ${suppliers.length}/${suppliersTotalCount.value}');
+    } catch (e) {
+      debugPrint('❌ Error loading more suppliers: $e');
+    } finally {
+      suppliersIsLoadingMore.value = false;
+    }
+  }
+
+  /// Load more employees
+  Future<void> loadMoreEmployees() async {
+    if (employeesIsLoadingMore.value || !employeesHasMoreData.value) {
+      debugPrint('⏸️ Skip loading more employees: isLoading=${employeesIsLoadingMore.value}, hasMore=${employeesHasMoreData.value}');
+      return;
+    }
+
+    try {
+      employeesIsLoadingMore.value = true;
+      final nextSkip = employeesCurrentSkip.value + _limit;
+
+      debugPrint('🔄 Loading more employees - skip: $nextSkip');
+
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) return;
+
+      await _fetchLedgersByType(merchantId, 'EMPLOYEE', skip: nextSkip, limit: _limit);
+
+      // Update skip after successful fetch
+      employeesCurrentSkip.value = nextSkip;
+
+      debugPrint('✅ Employees loaded: ${employers.length}/${employeesTotalCount.value}');
+    } catch (e) {
+      debugPrint('❌ Error loading more employees: $e');
+    } finally {
+      employeesIsLoadingMore.value = false;
     }
   }
 
