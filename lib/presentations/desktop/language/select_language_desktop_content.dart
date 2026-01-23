@@ -16,29 +16,32 @@ import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
-import '../../../core/services/localization_service.dart';
 import '../../widgets/custom_border_widget.dart';
 
 
 /// Desktop layout for Select Language Screen
 /// Centered container with language grid and continue button
-class SelectLanguageDesktopContent extends StatelessWidget {
+class SelectLanguageDesktopContent extends StatefulWidget {
   final LocalizationController localizationController;
+  final LanguageSearchController searchController;
   final VoidCallback onContinuePressed;
 
   const SelectLanguageDesktopContent({
     Key? key,
     required this.localizationController,
+    required this.searchController,
     required this.onContinuePressed,
   }) : super(key: key);
 
   @override
+  State<SelectLanguageDesktopContent> createState() => _SelectLanguageDesktopContentState();
+}
+
+class _SelectLanguageDesktopContentState extends State<SelectLanguageDesktopContent> {
+  @override
   Widget build(BuildContext context) {
     final responsive = AdvancedResponsiveHelper(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Initialize search controller
-    final searchController = Get.put(LanguageSearchController());
 
     // Initialize AppStrings for localization
     AppStrings.init(context);
@@ -79,12 +82,12 @@ class SelectLanguageDesktopContent extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: isDark
                       ? [
-                    AppColorsLight.scaffoldBackground,
-                    AppColorsLight.scaffoldBackground,
+                    AppColorsLight.white,
+                    AppColorsLight.white,
                         ]
                       : [
-                          AppColorsLight.scaffoldBackground,
-                          AppColorsLight.scaffoldBackground,
+                          AppColorsLight.white,
+                          AppColorsLight.white,
                         ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
@@ -92,7 +95,7 @@ class SelectLanguageDesktopContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
               ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo section at top
@@ -115,7 +118,7 @@ class SelectLanguageDesktopContent extends StatelessWidget {
                           // Aukra SVG Icon (replacing AnantSpace text)
                           SvgPicture.asset(
                             AppIcons.aukraIc,
-                            height: responsive.hp(4),
+                            height: responsive.hp(1.8),
                           ),
                           SizedBox(height: responsive.space2XS),
                           // Tagline: Infinity Income Advance Income
@@ -139,7 +142,7 @@ class SelectLanguageDesktopContent extends StatelessWidget {
                     context,
                     (localizations) => localizations.selectLanguage ?? 'Select Language',
                   ),
-                  style: AppFonts.headlineMedium(
+                  style: AppFonts.headlineSmall1(
                     color: isDark ? AppColors.black : AppColorsLight.black,
                     fontWeight: AppFonts.medium,
                   ),
@@ -173,10 +176,8 @@ class SelectLanguageDesktopContent extends StatelessWidget {
     AdvancedResponsiveHelper responsive,
     bool isDark,
   ) {
-    final searchController = Get.find<LanguageSearchController>();
-
     return Obx(() {
-      final languages = searchController.currentLanguages;
+      final languages = widget.searchController.currentLanguages;
 
       return ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
@@ -196,7 +197,7 @@ class SelectLanguageDesktopContent extends StatelessWidget {
 
               return _LanguageGridItem(
                 lang: lang,
-                localizationController: localizationController,
+                localizationController: widget.localizationController,
                 responsive: responsive,
                 isDark: isDark,
               );
@@ -212,10 +213,8 @@ class SelectLanguageDesktopContent extends StatelessWidget {
     AdvancedResponsiveHelper responsive,
     bool isDark,
   ) {
-    final searchController = Get.find<LanguageSearchController>();
-
     return TextField(
-      controller: searchController.searchController,
+      controller: widget.searchController.searchController,
       style: AppFonts.bodyLarge(
         color: isDark ? AppColorsLight.textPrimary : AppColorsLight.textPrimary,
         fontWeight: AppFonts.regular,
@@ -230,13 +229,13 @@ class SelectLanguageDesktopContent extends StatelessWidget {
           Icons.search,
           color: isDark ? AppColorsLight.textSecondary : AppColorsLight.textSecondary,
         ),
-        suffixIcon: Obx(() => searchController.searchQuery.value.isNotEmpty
+        suffixIcon: Obx(() => widget.searchController.searchQuery.value.isNotEmpty
             ? IconButton(
                 icon: Icon(
                   Icons.clear,
                   color: isDark ? AppColorsLight.textSecondary : AppColorsLight.textSecondary,
                 ),
-                onPressed: () => searchController.clearSearch(),
+                onPressed: () => widget.searchController.clearSearch(),
               )
             : SizedBox.shrink()),
         filled: true,
@@ -300,7 +299,7 @@ class SelectLanguageDesktopContent extends StatelessWidget {
         ),
       ],
       padding: EdgeInsets.symmetric(horizontal: responsive.wp(2)),
-      onPressed: onContinuePressed,
+      onPressed: widget.onContinuePressed,
       child: Center(
         child: Text(
           AppStrings.getLocalizedString(
@@ -308,9 +307,9 @@ class SelectLanguageDesktopContent extends StatelessWidget {
             (localizations) => localizations.continueText ?? 'Continue',
           ),
           textAlign: TextAlign.center,
-          style: AppFonts.headlineMedium(
-            color: Colors.black,
-            fontWeight: AppFonts.semiBold,
+          style: AppFonts.headlineSmall(
+            color: Colors.white,
+            fontWeight: AppFonts.regular,
           ),
         ),
       ),
@@ -412,11 +411,11 @@ class _LanguageGridItemState extends State<_LanguageGridItem> {
                             fit: BoxFit.scaleDown,
                             child: Text(
                               widget.lang['name'] ?? '',
-                              style: AppFonts.headlineSmall(
+                              style: AppFonts.bodyLarge1(
                                 color: widget.isDark
                                     ? AppColorsLight.textPrimary
                                     : AppColorsLight.textPrimary,
-                                fontWeight: AppFonts.bold,
+                                fontWeight: AppFonts.regular,
                               ),
                               textAlign: TextAlign.center,
                               maxLines: 1,

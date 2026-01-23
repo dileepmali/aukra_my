@@ -80,11 +80,14 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   @override
   void initState() {
     super.initState();
-    // Use existing controller if available, otherwise create new one
+    // Use existing controller if available, otherwise create permanent one
+    // permanent: true ensures contacts are NOT re-fetched on every navigation
     if (Get.isRegistered<ContactController>()) {
       _contactController = Get.find<ContactController>();
+      debugPrint('✅ Reusing existing ContactController - contacts already loaded');
     } else {
-      _contactController = Get.put(ContactController());
+      _contactController = Get.put(ContactController(), permanent: true);
+      debugPrint('📱 Creating new permanent ContactController');
     }
 
     // Debug: Print received partyType

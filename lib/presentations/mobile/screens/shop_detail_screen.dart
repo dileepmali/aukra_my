@@ -25,6 +25,7 @@ import '../../../models/merchant_model.dart';
 import '../../widgets/custom_border_widget.dart';
 import '../../widgets/text_filed/search_bar.dart';
 import '../../widgets/text_filed/custom_text_field.dart';
+import '../../desktop/screens/shop_detail_desktop_content.dart';
 import 'main_screen.dart';
 
 class ShopDetailScreen extends StatefulWidget {
@@ -58,6 +59,9 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
   final GlobalKey locationFieldKey = GlobalKey();
   final GlobalKey ownerPhoneFieldKey = GlobalKey();
   final GlobalKey otpFieldKey = GlobalKey();
+
+  // GlobalKey to preserve desktop content state across rebuilds
+  final GlobalKey<State<ShopDetailDesktopContent>> _desktopContentKey = GlobalKey();
 
   @override
   void initState() {
@@ -96,6 +100,9 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
     final responsive = AdvancedResponsiveHelper(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Check if desktop layout should be used
+    final isDesktop = responsive.screenWidth > 600;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -117,7 +124,38 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
           binding: VerifyBinding(),
         );
       },
-      child: KeyboardVisibilityBuilder(
+      child: isDesktop
+          ? Scaffold(
+              resizeToAvoidBottomInset: true,
+              backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
+              body: ShopDetailDesktopContent(
+                key: _desktopContentKey,
+                controller: controller,
+                nameController: nameController,
+                shopNameController: shopNameController,
+                locationController: locationController,
+                ownerPhoneController: ownerPhoneController,
+                otpController: otpController,
+                nameFocusNode: nameFocusNode,
+                shopNameFocusNode: shopNameFocusNode,
+                locationFocusNode: locationFocusNode,
+                ownerPhoneFocusNode: ownerPhoneFocusNode,
+                otpFocusNode: otpFocusNode,
+                onSendOtp: _handleSendOtp,
+                onSubmit: _handleSubmit,
+                onBack: () {
+                  final phoneNumber = controller.registeredPhone.value;
+                  Get.off(
+                    () => OtpVerifyScreen(phoneNumber: phoneNumber),
+                    binding: VerifyBinding(),
+                  );
+                },
+                onOwnerPhoneChanged: (value) {
+                  setState(() {});
+                },
+              ),
+            )
+          : KeyboardVisibilityBuilder(
         builder: (context, isKeyboardVisible) {
           return Scaffold(
           resizeToAvoidBottomInset: true,

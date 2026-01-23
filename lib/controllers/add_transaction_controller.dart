@@ -56,6 +56,16 @@ class AddTransactionController extends GetxController {
     _setupListeners();
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    // ✅ Auto-focus amount field when screen opens (after widget is rendered)
+    // Small delay ensures keyboard opens smoothly after screen transition
+    Future.delayed(const Duration(milliseconds: 300), () {
+      amountFocusNode.requestFocus();
+    });
+  }
+
   void _initializeData() {
     // Get arguments passed from previous screen
     final args = Get.arguments as Map<String, dynamic>?;

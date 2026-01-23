@@ -13,6 +13,7 @@ import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
 import '../../../core/services/error_service.dart';
 import '../../../core/untils/error_types.dart';
+import '../../../core/utils/balance_helper.dart';
 import '../../widgets/custom_app_bar/custom_app_bar.dart';
 import '../../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../widgets/custom_single_border_color.dart';
@@ -140,7 +141,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + responsive.hp(10), // Dynamic padding for keyboard + button height
+                  bottom: MediaQuery.of(context).viewInsets.bottom + responsive.hp(6), // Dynamic padding for keyboard + button height
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -211,13 +212,8 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
 
                     SizedBox(height: responsive.hp(3)),
 
-                    // Add Note - With auto-scroll wrapper
-                    _NoteInputWrapper(
-                      controller: controller,
-                      responsive: responsive,
-                      isDark: isDark,
-                      buildNoteInput: _buildNoteInput,
-                    ),
+                    // Add Note - Uses CustomTextField with built-in auto-scroll
+                    _buildNoteInput(responsive, isDark),
 
                     SizedBox(height: responsive.hp(1)),
 
@@ -558,16 +554,22 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
         SizedBox(height: responsive.hp(0.2)),
         // Location (if available)
         if (location != null && location.isNotEmpty) ...[
-          AppText.headlineLarge1(
+          AppText.searchbar(
             location,
             color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
           ),
           SizedBox(height: responsive.hp(0.2)),
         ],
-        // Closing Balance
-        AppText.headlineLarge1(
+        // Closing Balance with Khatabook color logic
+        // Positive (> 0) = RED (Customer owes you)
+        // Negative (< 0) = GREEN (You owe customer)
+        // Zero = Neutral
+        AppText.searchbar(
           formattedBalance,
-          color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+          color: closingBalance.abs() < 0.01
+              ? (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary)
+              : BalanceHelper.getBalanceColorFromValue(closingBalance),
+          fontWeight: FontWeight.w500,
         ),
       ],
       ),
@@ -655,6 +657,10 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
         borderRadius: responsive.borderRadiusSmall,
         enableSuggestions: false,
         autocorrect: false,
+        // ✅ Auto-scroll settings - moderate scroll position
+        autoScrollOnFocus: true,
+        scrollAlignment: 0.35,
+        scrollDelayMs: 400,
       ),
     );
   }
@@ -783,14 +789,15 @@ class _AmountInputWrapperState extends State<_AmountInputWrapper> {
 
   void _onFocusChange() {
     if (widget.controller.amountFocusNode.hasFocus) {
-      // ✅ Scroll amount field to top when keyboard opens
-      Future.delayed(const Duration(milliseconds: 400), () {
+      // ✅ Scroll amount field up when keyboard opens
+      // Delay to wait for keyboard to fully open before calculating scroll
+      Future.delayed(const Duration(milliseconds: 500), () {
         if (_amountFieldKey.currentContext != null && mounted) {
           Scrollable.ensureVisible(
             _amountFieldKey.currentContext!,
-            duration: const Duration(milliseconds: 400),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            alignment: 0.0, // Position at exact top (maximum visibility)
+            alignment: 0.0, // Position very close to top - scrolls up more
             alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
           );
         }
@@ -807,63 +814,3 @@ class _AmountInputWrapperState extends State<_AmountInputWrapper> {
   }
 }
 
-// ✅ Wrapper widget for note field auto-scroll functionality
-class _NoteInputWrapper extends StatefulWidget {
-  final AddTransactionController controller;
-  final AdvancedResponsiveHelper responsive;
-  final bool isDark;
-  final Widget Function(AdvancedResponsiveHelper, bool) buildNoteInput;
-
-  const _NoteInputWrapper({
-    required this.controller,
-    required this.responsive,
-    required this.isDark,
-    required this.buildNoteInput,
-  });
-
-  @override
-  State<_NoteInputWrapper> createState() => _NoteInputWrapperState();
-}
-
-class _NoteInputWrapperState extends State<_NoteInputWrapper> {
-  final GlobalKey _noteFieldKey = GlobalKey();
-
-  @override
-  void initState() {
-    super.initState();
-    // ✅ Add listener to detect when note field gets focus
-    widget.controller.noteFocusNode.addListener(_onFocusChange);
-  }
-
-  @override
-  void dispose() {
-    // ✅ Remove listener to prevent memory leaks
-    widget.controller.noteFocusNode.removeListener(_onFocusChange);
-    super.dispose();
-  }
-
-  void _onFocusChange() {
-    if (widget.controller.noteFocusNode.hasFocus) {
-      // ✅ Scroll note field to top when it gets focus (after clicking "Next" button)
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (_noteFieldKey.currentContext != null && mounted) {
-          Scrollable.ensureVisible(
-            _noteFieldKey.currentContext!,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-            alignment: 0.0, // Position at exact top (maximum visibility)
-            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-          );
-        }
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: _noteFieldKey,
-      child: widget.buildNoteInput(widget.responsive, widget.isDark),
-    );
-  }
-}

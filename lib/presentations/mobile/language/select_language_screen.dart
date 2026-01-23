@@ -32,6 +32,7 @@ import '../../widgets/custom_border_widget.dart';
 import '../../widgets/custom_single_border_color.dart';
 import '../../widgets/dialogs/exit_confirmation_dialog.dart';
 import '../auth/number_verify_screen.dart';
+import '../screens/shop_detail_screen.dart';
 import '../../desktop/language/select_language_desktop_content.dart';
 
 
@@ -125,7 +126,14 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
     try {
       final isTokenValid = await AuthStorage.isTokenValid();
       if (isTokenValid ?? false) {
-        Get.offAllNamed(AppRoutes.main as String);
+        // Check if shop details are complete before going to MainScreen
+        final hasShopDetails = await AuthStorage.hasShopDetails();
+        if (hasShopDetails) {
+          Get.offAllNamed(AppRoutes.main as String);
+        } else {
+          // Navigate to ShopDetailScreen to complete merchant setup
+          Get.off(() => const ShopDetailScreen());
+        }
       } else {
         Get.to(
               () => NumberVerifyScreen(),
@@ -305,6 +313,7 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> with Widget
               backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
               body: SelectLanguageDesktopContent(
                 localizationController: _localizationController,
+                searchController: _searchController,
                 onContinuePressed: () => _handleContinuePressed(context),
               ),
             );

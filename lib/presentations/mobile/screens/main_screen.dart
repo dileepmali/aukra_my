@@ -22,6 +22,7 @@ import '../../widgets/dialogs/exit_confirmation_dialog.dart';
 import '../../../buttons/custom_floating_button.dart';
 import '../../routes/app_routes.dart';
 import '../../../controllers/ledger_controller.dart';
+import '../../../controllers/account_controller.dart';
 import 'ledger_screen.dart';
 import 'account_screen.dart';
 import 'my_profile_screen.dart';
@@ -116,6 +117,17 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Auto-refresh Account dashboard when Account tab is selected
+    if (index == 1) {
+      try {
+        final accountController = Get.find<AccountController>();
+        accountController.refreshDashboard();
+        debugPrint('🔄 Account tab selected - refreshing dashboard...');
+      } catch (e) {
+        debugPrint('⚠️ Could not refresh account dashboard: $e');
+      }
+    }
   }
 
   String _getScreenType() {

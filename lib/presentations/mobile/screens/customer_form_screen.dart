@@ -304,7 +304,7 @@ class CustomerFormScreen extends StatelessWidget {
                         SizedBox(width: responsive.wp(2)),
                         _buildCreditLimitChip(context, '50,000.00', 50000, controller, responsive, isDark),
                         SizedBox(width: responsive.wp(2)),
-                        _buildCreditLimitChip(context, '99,000.00', 99000, controller, responsive, isDark),
+                        _buildCreditLimitChip(context, '1,00,000.00', 100000, controller, responsive, isDark),
                       ],
                     )),
                     SizedBox(height: responsive.hp(3)),

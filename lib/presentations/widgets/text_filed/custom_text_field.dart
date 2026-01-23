@@ -62,6 +62,11 @@ class CustomTextField extends StatefulWidget {
   final String? suffixText;
   final String? prefixBoxText; // For left side box with icon/text
 
+  // ✅ Auto-scroll parameters
+  final bool autoScrollOnFocus;    // Enable auto-scroll when focused (default: false)
+  final double scrollAlignment;     // 0.0 = top, 0.5 = center, 1.0 = bottom (default: 0.3)
+  final int scrollDelayMs;          // Delay in milliseconds before scrolling (default: 400)
+
   const CustomTextField({
     Key? key,
     this.controller,
@@ -115,6 +120,10 @@ class CustomTextField extends StatefulWidget {
     this.prefixText,
     this.suffixText,
     this.prefixBoxText,
+    // Auto-scroll parameters
+    this.autoScrollOnFocus = false,
+    this.scrollAlignment = 0.3,
+    this.scrollDelayMs = 400,
   }) : super(key: key);
 
   @override
@@ -124,6 +133,7 @@ class CustomTextField extends StatefulWidget {
 class _CustomTextFieldState extends State<CustomTextField> {
   late FocusNode _internalFocusNode;
   bool _isFocused = false;
+  final GlobalKey _fieldKey = GlobalKey(); // ✅ Key for auto-scroll
 
   @override
   void initState() {
@@ -144,6 +154,26 @@ class _CustomTextFieldState extends State<CustomTextField> {
   void _onFocusChange() {
     setState(() {
       _isFocused = _internalFocusNode.hasFocus;
+    });
+
+    // ✅ Auto-scroll when focused
+    if (widget.autoScrollOnFocus && _internalFocusNode.hasFocus) {
+      _scrollToVisible();
+    }
+  }
+
+  /// ✅ Scroll this text field into view when focused
+  void _scrollToVisible() {
+    Future.delayed(Duration(milliseconds: widget.scrollDelayMs), () {
+      if (_fieldKey.currentContext != null && mounted) {
+        Scrollable.ensureVisible(
+          _fieldKey.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: widget.scrollAlignment,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+        );
+      }
     });
   }
 
@@ -224,6 +254,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     }
 
     return Container(
+      key: _fieldKey, // ✅ Key for auto-scroll functionality
       height: containerHeight,
       width: widget.width,
       decoration: BoxDecoration(

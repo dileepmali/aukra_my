@@ -26,6 +26,7 @@ import '../../../core/untils/phone_validator.dart';
 import '../../widgets/custom_border_widget.dart';
 import '../language/select_language_screen.dart';
 import 'otp_verify_screen.dart';
+import '../../desktop/auth/number_verify_desktop_content.dart';
 
 class NumberVerifyScreen extends StatefulWidget {
   const NumberVerifyScreen({super.key});
@@ -155,6 +156,48 @@ class _NumberVerifyScreenState extends State<NumberVerifyScreen> {
       },
       child: KeyboardVisibilityBuilder(
         builder: (context, isKeyboardVisible) {
+          // Check if desktop/widescreen based on screen width
+          final isDesktop = responsive.screenWidth > 600;
+
+          // Desktop layout
+          if (isDesktop) {
+            return Scaffold(
+              backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
+              body: NumberVerifyDesktopContent(
+                carouselController: carouselController,
+                phoneController: phoneNumber,
+                selectedCountryCode: selectedCountryCode,
+                phoneValidationError: phoneValidationError,
+                isLoading: isLoading,
+                onPhoneChanged: (value) {
+                  // Clear error if user is typing and hasn't reached 10 digits yet
+                  if (phoneValidationError != null && value.length < 10) {
+                    setState(() {
+                      phoneValidationError = null;
+                    });
+                  }
+                  // Validate ONLY when user completes 10 digits
+                  if (value.length == 10) {
+                    _validatePhoneNumber(value);
+                  }
+                },
+                onPhoneSubmitted: (value) async {
+                  FocusScope.of(context).unfocus();
+                  await Future.delayed(Duration(milliseconds: 300));
+                  if (!isLoading) {
+                    _handleSendOtp();
+                  }
+                },
+                onSendOtp: () async {
+                  FocusScope.of(context).unfocus();
+                  await Future.delayed(Duration(milliseconds: 300));
+                  _handleSendOtp();
+                },
+              ),
+            );
+          }
+
+          // Mobile layout
           return Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,

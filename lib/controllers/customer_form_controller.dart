@@ -356,67 +356,96 @@ class CustomerFormController extends GetxController {
       return;
     }
 
-    // 🛡️ DUPLICATE CHECK: Check if person already exists in another category
+    // 🛡️ DUPLICATE CHECK: Check if person already exists (by name OR phone)
     if (!isEditMode) {
       try {
         final ledgerController = Get.find<LedgerController>();
 
-        // 🔍 DEBUG: Log all ledgers and their names
         final nameToCheck = nameController.text.trim().toLowerCase();
+        final phoneToCheck = phone; // Already cleaned 10-digit phone
+
         debugPrint('🔍 ========== DUPLICATE CHECK START ==========');
         debugPrint('   Name to check: "$nameToCheck"');
-        debugPrint('   Total ledgers in memory: ${ledgerController.allLedgers.length}');
-        for (var l in ledgerController.allLedgers) {
-          debugPrint('   📋 ${l.name} | Type: ${l.partyType}');
-        }
+        debugPrint('   Phone to check: "$phoneToCheck"');
+        debugPrint('   Total ledgers: ${ledgerController.allLedgers.length}');
         debugPrint('🔍 ========== DUPLICATE CHECK END ==========');
 
-        // Check if name already exists in any ledger
-        final existingLedger = ledgerController.allLedgers.firstWhereOrNull(
+        // Check if name OR phone already exists in any ledger
+        final existingByName = ledgerController.allLedgers.firstWhereOrNull(
           (ledger) => ledger.name.toLowerCase() == nameToCheck,
         );
 
-        if (existingLedger != null) {
-          // Get current party type being added
-          final currentPartyType = (partyType ?? 'customer').toUpperCase();
-          final existingPartyType = existingLedger.partyType.toUpperCase();
+        final existingByPhone = ledgerController.allLedgers.firstWhereOrNull(
+          (ledger) {
+            final ledgerPhone = (ledger.mobileNumber ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+            // Handle +91 prefix
+            final cleanLedgerPhone = ledgerPhone.length == 12 && ledgerPhone.startsWith('91')
+                ? ledgerPhone.substring(2)
+                : ledgerPhone;
+            return cleanLedgerPhone == phoneToCheck;
+          },
+        );
 
-          // Convert party types to user-friendly names
+        // Check name duplicate first
+        if (existingByName != null) {
+          final existingPartyType = existingByName.partyType.toUpperCase();
           String existingTypeName;
+          String otherOptions;
+
           switch (existingPartyType) {
             case 'CUSTOMER':
               existingTypeName = 'Customer';
+              otherOptions = 'Supplier or Employee';
               break;
             case 'SUPPLIER':
               existingTypeName = 'Supplier';
+              otherOptions = 'Customer or Employee';
               break;
             case 'EMPLOYEE':
               existingTypeName = 'Employee';
+              otherOptions = 'Customer or Supplier';
               break;
             default:
               existingTypeName = existingPartyType;
+              otherOptions = 'other category';
           }
 
-          String currentTypeName;
-          switch (currentPartyType) {
+          debugPrint('⚠️ Name duplicate: ${existingByName.name} exists as $existingTypeName');
+          AdvancedErrorService.showError(
+            'Already Add $existingTypeName. Try $otherOptions',
+            severity: ErrorSeverity.medium,
+            category: ErrorCategory.validation,
+          );
+          return;
+        }
+
+        // Check phone duplicate
+        if (existingByPhone != null) {
+          final existingPartyType = existingByPhone.partyType.toUpperCase();
+          String existingTypeName;
+          String otherOptions;
+
+          switch (existingPartyType) {
             case 'CUSTOMER':
-              currentTypeName = 'Customer';
+              existingTypeName = 'Customer';
+              otherOptions = 'Supplier or Employee';
               break;
             case 'SUPPLIER':
-              currentTypeName = 'Supplier';
+              existingTypeName = 'Supplier';
+              otherOptions = 'Customer or Employee';
               break;
             case 'EMPLOYEE':
-            case 'EMPLOYER':
-              currentTypeName = 'Employee';
+              existingTypeName = 'Employee';
+              otherOptions = 'Customer or Supplier';
               break;
             default:
-              currentTypeName = currentPartyType;
+              existingTypeName = existingPartyType;
+              otherOptions = 'other category';
           }
 
-          // Show warning - person already exists
-          debugPrint('⚠️ Duplicate detected: ${existingLedger.name} already exists as $existingTypeName');
+          debugPrint('⚠️ Phone duplicate: ${existingByPhone.name} exists as $existingTypeName');
           AdvancedErrorService.showError(
-            'Already added as $existingTypeName',
+            'Number Already Add $existingTypeName. Try $otherOptions',
             severity: ErrorSeverity.medium,
             category: ErrorCategory.validation,
           );

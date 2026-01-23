@@ -37,6 +37,11 @@ class _AccountScreenState extends State<AccountScreen> {
     } catch (e) {
       _accountController = Get.put(AccountController());
     }
+
+    // Auto-refresh dashboard data when screen is opened/revisited
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _accountController.refreshDashboard();
+    });
   }
 
   @override

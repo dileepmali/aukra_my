@@ -25,6 +25,7 @@ import '../../../core/untils/error_types.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/custom_border_widget.dart';
 import 'number_verify_screen.dart';
+import '../../desktop/auth/otp_verify_desktop_content.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
   final String? phoneNumber;
@@ -203,6 +204,59 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
       },
       child: KeyboardVisibilityBuilder(
           builder: (context, isKeyboardVisible) {
+            // Check if desktop/widescreen based on screen width
+            final isDesktop = responsive.screenWidth > 600;
+
+            // Desktop layout
+            if (isDesktop) {
+              return Obx(() => Scaffold(
+                backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
+                body: OtpVerifyDesktopContent(
+                  carouselController: carouselController,
+                  pinController: _pinController,
+                  pinFocusNode: _pinFocusNode,
+                  phoneNumber: widget.phoneNumber ?? '',
+                  isLoading: controller.isLoading.value,
+                  isResendAvailable: controller.isResendAvailable.value,
+                  resendTimer: controller.resendTimer.value,
+                  onOtpChanged: (code) {
+                    debugPrint('🔄 Pinput onChanged: $code (length: ${code.length})');
+                  },
+                  onOtpCompleted: (code) {
+                    debugPrint('🚀 Pinput onCompleted: $code');
+                    controller.isClipboardOtp.value = false;
+                    for (int i = 0; i < 4; i++) {
+                      controller.otp[i] = code[i];
+                    }
+                    controller.otp.refresh();
+                    WidgetsBinding.instance.addPostFrameCallback((_) async {
+                      FocusScope.of(context).unfocus();
+                      await Future.delayed(Duration(milliseconds: 500));
+                      _handleVerifyOtp();
+                    });
+                  },
+                  onOtpSubmitted: (code) {
+                    debugPrint('✅ Pinput onSubmitted: $code');
+                    if (code.length == 4) {
+                      controller.isClipboardOtp.value = false;
+                      for (int i = 0; i < 4; i++) {
+                        controller.otp[i] = code[i];
+                      }
+                      controller.otp.refresh();
+                      WidgetsBinding.instance.addPostFrameCallback((_) async {
+                        FocusScope.of(context).unfocus();
+                        await Future.delayed(Duration(milliseconds: 300));
+                        _handleVerifyOtp();
+                      });
+                    }
+                  },
+                  onVerifyOtp: _handleVerifyOtp,
+                  onResendOtp: _handleResendOtp,
+                ),
+              ));
+            }
+
+            // Mobile layout
             return Scaffold(
             resizeToAvoidBottomInset: true,
             backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,

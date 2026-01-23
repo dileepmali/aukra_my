@@ -645,8 +645,8 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     debugPrint('📂 Ledger ID: ${transaction.ledgerId}');
     debugPrint('==========================================');
 
-    // Get location from ledger detail
-    final location = controller.ledgerDetail.value?.address ?? '';
+    // Get area from ledger detail (only show area, not full address)
+    final location = controller.ledgerDetail.value?.area ?? '';
 
     // Show transaction detail bottom sheet
     TransactionDetailBottomSheet.show(
@@ -710,7 +710,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                   arguments: {
                     'ledgerId': controller.ledgerId,
                     'customerName': detail?.partyName ?? 'Customer',
-                    'customerLocation': detail?.address ?? '',
+                    'customerLocation': detail?.area ?? '',
                     'closingBalance': detail?.currentBalance ?? 0.0,
                     'accountType': detail?.partyType ?? 'CUSTOMER',
                     'defaultTransactionType': 'IN', // Pre-select IN
@@ -771,7 +771,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                   arguments: {
                     'ledgerId': controller.ledgerId,
                     'customerName': detail?.partyName ?? 'Customer',
-                    'customerLocation': detail?.address ?? '',
+                    'customerLocation': detail?.area ?? '',
                     'closingBalance': detail?.currentBalance ?? 0.0,
                     'accountType': detail?.partyType ?? 'CUSTOMER',
                     'defaultTransactionType': 'OUT', // Pre-select OUT
