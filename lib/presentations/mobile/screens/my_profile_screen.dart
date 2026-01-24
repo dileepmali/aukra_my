@@ -8,6 +8,7 @@ import '../../../app/themes/app_colors_light.dart';
 import '../../../app/themes/app_text.dart';
 import '../../../buttons/app_button.dart';
 import '../../../core/api/auth_storage.dart';
+import '../../../core/api/ledger_detail_api.dart';
 import '../../../core/api/merchant_list_api.dart';
 import '../../../core/api/user_profile_api_service.dart';
 import '../../../core/responsive_layout/device_category.dart';
@@ -46,12 +47,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   String _recoveryMobileNumber = '';  // Recovery mobile from /api/user/profile
   int? _merchantId;
   bool _isLoading = true;
+  int _deactivatedAccountsCount = 0;  // Count of deactivated ledgers
   LocalizationController? _localizationController;
 
   // Full merchant data from API
   MerchantListModel? _currentMerchant;
   final MerchantListApi _merchantApi = MerchantListApi();
   final UserProfileApiService _userProfileApi = UserProfileApiService();
+  final LedgerDetailApi _ledgerApi = LedgerDetailApi();
 
   @override
   void initState() {
@@ -82,7 +85,27 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     await Future.wait([
       _loadUserProfile(),
       _loadMerchantData(),
+      _loadDeactivatedAccountsCount(),
     ]);
+  }
+
+  /// Load deactivated accounts count
+  Future<void> _loadDeactivatedAccountsCount() async {
+    try {
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) return;
+
+      debugPrint('📦 Fetching deactivated accounts count...');
+      final response = await _ledgerApi.getDeactivatedLedgers(merchantId: merchantId);
+
+      setState(() {
+        _deactivatedAccountsCount = response.data.length;
+      });
+
+      debugPrint('✅ Deactivated accounts count: $_deactivatedAccountsCount');
+    } catch (e) {
+      debugPrint('❌ Error fetching deactivated accounts count: $e');
+    }
   }
 
   /// Load user profile (username) from /api/user/profile
@@ -480,11 +503,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'icon': AppIcons.boxIc,
         'title': 'Deactivated account',
         'subtitle': 'View & restore deactivated accounts',
-        'onTap': () {
+        'onTap': () async {
           debugPrint('📦 Navigating to deactivated accounts screen...');
-          Get.to(() => const DeactivatedAccountsScreen());
+          await Get.to(() => const DeactivatedAccountsScreen());
+          // Refresh count when returning from deactivated accounts screen
+          _loadDeactivatedAccountsCount();
         },
-        'hasDeactivatedAccounts': false, // TODO: Replace with actual check for deactivated accounts
+        'deactivatedCount': _deactivatedAccountsCount,
       },
       {
         'icon': AppIcons.messageIc,
@@ -527,8 +552,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         children: List.generate(profileOptions.length, (index) {
           final option = profileOptions[index];
           final hasRecoveryData = option['hasRecoveryData'] as bool? ?? false;
-          final hasDeactivatedAccounts = option['hasDeactivatedAccounts'] as bool? ?? false;
-          final hasSpecialIcon = hasRecoveryData || hasDeactivatedAccounts;
+          final deactivatedCount = option['deactivatedCount'] as int? ?? 0;
+          final hasDeactivatedCount = deactivatedCount > 0;
+          final hasSpecialIcon = hasRecoveryData || hasDeactivatedCount;
 
           return Column(
             children: [
@@ -543,11 +569,28 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     ? Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SvgPicture.asset(
-                            hasRecoveryData ? AppIcons.recoveryIc : AppIcons.reminderIc,
-                            width: responsive.iconSizeMedium,
-                            height: responsive.iconSizeMedium,
-                          ),
+                          if (hasRecoveryData)
+                            SvgPicture.asset(
+                              AppIcons.recoveryIc,
+                              width: responsive.iconSizeMedium,
+                              height: responsive.iconSizeMedium,
+                            ),
+                          if (hasDeactivatedCount)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: responsive.wp(2.5),
+                                vertical: responsive.hp(0.5),
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.red500,
+                                borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                              ),
+                              child: AppText.headlineMedium(
+                                '$deactivatedCount',
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           SizedBox(width: responsive.spacing(8)),
                           SvgPicture.asset(
                             AppIcons.arrowRightIc,
@@ -558,7 +601,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ],
                       )
                     : null,
-                onTap: option['onTap'] as VoidCallback,
+                onTap: () => (option['onTap'] as Function)(),
                 showBorder: false,
               ),
               if (index < profileOptions.length - 1)

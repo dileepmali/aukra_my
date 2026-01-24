@@ -13,6 +13,8 @@ import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
+import '../../../core/services/error_service.dart';
+import '../../../core/untils/error_types.dart';
 import '../../widgets/custom_app_bar/custom_app_bar.dart';
 import '../../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../widgets/list_item_widget.dart';
@@ -230,9 +232,24 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                           onWhatsappReminder: () {
                             debugPrint('Whatsapp reminder tapped');
                           },
-                          onDeactivateConfirmed: (pin) {
-                            debugPrint('Deactivate confirmed with PIN: $pin');
-                            // TODO: Call API to deactivate ledger with PIN
+                          onDeactivateConfirmed: (pin) async {
+                            final partyName = controller.ledgerDetail.value?.partyName ?? 'Ledger';
+                            debugPrint('🔒 Deactivate confirmed with PIN: $pin');
+
+                            // Call API to deactivate ledger
+                            final success = await controller.deactivateLedger(pin);
+
+                            if (success) {
+                              // Show success message using AdvancedErrorService
+                              AdvancedErrorService.showSuccess(
+                                '$partyName is deactivated',
+                                type: SuccessType.snackbar,
+                              );
+
+                              // Go back to previous screen (ledger list)
+                              Get.back();
+                            }
+                            // Note: Error is already shown by controller, no need to show again
                           },
                         );
                       },

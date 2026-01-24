@@ -254,4 +254,54 @@ class LedgerDetailController extends GetxController {
     debugPrint('📊 Transaction count AFTER refresh: ${transactionHistory.value?.count ?? 0}');
   }
 
+  /// Deactivate ledger
+  /// Calls PATCH /api/ledger/{ledgerId}/status with isActive: false
+  Future<bool> deactivateLedger(String securityKey) async {
+    try {
+      debugPrint('🔒 Deactivating ledger: $ledgerId');
+
+      final response = await _api.updateLedgerStatus(
+        ledgerId: ledgerId,
+        isActive: false,
+        securityKey: securityKey,
+      );
+
+      debugPrint('✅ Ledger deactivated: ${response.message}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error deactivating ledger: $e');
+      AdvancedErrorService.showError(
+        'Unable to deactivate. Please try again.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.general,
+      );
+      return false;
+    }
+  }
+
+  /// Activate ledger
+  /// Calls PATCH /api/ledger/{ledgerId}/status with isActive: true
+  Future<bool> activateLedger(String securityKey) async {
+    try {
+      debugPrint('🔓 Activating ledger: $ledgerId');
+
+      final response = await _api.updateLedgerStatus(
+        ledgerId: ledgerId,
+        isActive: true,
+        securityKey: securityKey,
+      );
+
+      debugPrint('✅ Ledger activated: ${response.message}');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error activating ledger: $e');
+      AdvancedErrorService.showError(
+        'Unable to activate. Please try again.',
+        severity: ErrorSeverity.medium,
+        category: ErrorCategory.general,
+      );
+      return false;
+    }
+  }
+
 }

@@ -322,11 +322,17 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
             debugPrint('   isActive: ${merchant.isActive}');
             debugPrint('   isVerified: ${merchant.isVerified}');
 
-            Get.to(() => BusinessDetailScreen(
+            final result = await Get.to(() => BusinessDetailScreen(
               merchantId: merchant.merchantId,
               businessName: merchant.businessName,
               address: merchant.formattedAddress,
             ));
+
+            // Refresh list if business was deactivated/activated
+            if (result == true) {
+              debugPrint('🔄 Business status changed - refreshing list');
+              _controller.fetchMerchants();
+            }
           },
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
           child: Padding(

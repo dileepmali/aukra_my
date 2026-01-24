@@ -530,31 +530,43 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           await _loadMerchantData();
         }
       }
-    } else if (title == 'Deactivate business') {
-      debugPrint('🗑️ Deactivate business tapped - showing PIN dialog');
+    } else if (title == 'Deactivate business' || title == 'Activate business') {
+      final isActivating = title == 'Activate business';
+      final actionText = isActivating ? 'activate' : 'deactivate';
+      final actionTextCapitalized = isActivating ? 'Activate' : 'Deactivate';
 
-      // Warning text used in both dialogs
-      const warningText = 'Once this business is deactivated, you will no longer have access to any transaction, entries, or related info. These records will also not appear in search results. To view or retrieve the data, the business must be reactivated from the Deactivated List in Settings.';
+      debugPrint('🔄 $actionTextCapitalized business tapped - checking PIN status');
 
-      // STEP 1: Show PIN verification dialog
-      final pinResult = await PinVerificationDialog.show(
-        context: context,
+      // Warning text based on action
+      final warningText = isActivating
+          ? 'Once "$_businessName" is activated, you will regain access to all transactions, entries, and related info. These records will also appear in search results again.'
+          : 'Once this business is deactivated, you will no longer have access to any transaction, entries, or related info. These records will also not appear in search results. To view or retrieve the data, the business must be reactivated from the Deactivated List in Settings.';
+
+      // Button colors based on action
+      final buttonColors = isActivating
+          ? [AppColors.red500, AppColors.red500]
+          : [AppColors.red500, AppColors.red500];
+
+      // STEP 1: Use global PIN check - skips dialog if PIN is disabled
+      final privacyController = Get.find<PrivacySettingController>();
+      final pinResult = await privacyController.requirePinIfEnabled(
+        context,
         title: 'Enter Security Pin',
-        subtitle: 'Enter your 4-digit pin to deactivate "$_businessName"',
-        requireOtp: false,
-        showWarning: true,
-        warningText: warningText,
+        subtitle: 'Enter your 4-digit pin to $actionText "$_businessName"',
         confirmButtonText: 'Confirm',
-        confirmGradientColors: [AppColors.red500, AppColors.red500],
-        confirmTextColor: AppColors.white,
+        confirmGradientColors: buttonColors,
       );
 
-      if (pinResult == null || pinResult['pin'] == null) {
-        debugPrint('❌ User cancelled PIN entry');
+      // null means cancelled or failed
+      if (pinResult == null) {
+        debugPrint('❌ User cancelled PIN entry or validation failed');
         return;
       }
 
-      debugPrint('✅ PIN verified for deactivation: ${pinResult['pin']}');
+      // 'SKIP' means PIN is disabled, use empty string
+      // Otherwise use the validated PIN
+      final securityKey = pinResult == 'SKIP' ? '' : pinResult;
+      debugPrint('✅ PIN verified or skipped for $actionText');
 
       if (!mounted) return;
 
@@ -571,7 +583,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         subtitle: 'Enter secure OTP received on your master mobile number\n$_masterMobile',
         confirmButtonText: 'Confirm',
         warningText: warningText,
-        confirmGradientColors: [AppColors.red500, AppColors.red500],
+        confirmGradientColors: buttonColors,
         confirmTextColor: AppColors.white,
       );
 
@@ -580,20 +592,20 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         return;
       }
 
-      debugPrint('✅ OTP verified for deactivation: $otp');
+      debugPrint('✅ OTP verified for $actionText: $otp');
 
-      // STEP 3: Call controller to deactivate business
-      debugPrint('📡 STEP 3: Calling API to deactivate business...');
+      // STEP 3: Call controller to activate/deactivate business
+      debugPrint('📡 STEP 3: Calling API to $actionText business...');
 
       final success = await _shopController.updateMerchantStatus(
         merchantId: widget.merchantId,
-        isActive: false,
-        securityKey: pinResult['pin']!,
+        isActive: isActivating, // true for activate, false for deactivate
+        securityKey: securityKey,
       );
 
       if (success && mounted) {
-        debugPrint('✅ Business deactivated successfully');
-        // Navigate back after deactivation
+        debugPrint('✅ Business ${actionText}d successfully');
+        // Navigate back after status change
         Navigator.of(context).pop(true); // Return true to indicate success
       }
     } else {
@@ -695,9 +707,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         'subtitle': _manager,
       },
       {
-        'icon': AppIcons.deleteIc,
-        'title': 'Deactivate business',
-        'subtitle': 'This action leads to archive entries',
+        'icon': _isActive ? AppIcons.deleteIc : AppIcons.deleteIc,
+        'title': _isActive ? 'Deactivate business' : 'Activate business',
+        'subtitle': _isActive
+            ? 'This action leads to archive entries'
+            : 'Restore this business to active state',
       },
     ];
 

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../../../app/constants/app_icons.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_colors_light.dart';
 import '../../../app/themes/app_text.dart';
+import '../../../controllers/privacy_setting_controller.dart';
 import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
 import '../custom_single_border_color.dart';
-import '../dialogs/pin_verification_dialog.dart';
 
 class ActionBottomSheet extends StatelessWidget {
   final String? partyName;
@@ -171,22 +172,23 @@ class ActionBottomSheet extends StatelessWidget {
                                   'Deactivate',
                                   () async {
                                     Navigator.of(context).pop();
-                                    // Show PIN verification dialog
-                                    final result = await PinVerificationDialog.show(
-                                      context: context,
+                                    // Use global PIN check - skips dialog if PIN is disabled
+                                    final privacyController = Get.find<PrivacySettingController>();
+                                    final pinResult = await privacyController.requirePinIfEnabled(
+                                      context,
                                       title: 'Enter Security Pin to block',
                                       subtitle: 'Enter your 4-digit pin to deactivate "${partyName ?? "this account"}"',
-                                      requireOtp: false,
-                                      showWarning: true,
-                                      warningText: 'Once "${partyName ?? "this account"}" deactivated, you will no longer access to any transaction, entries, or related info. These records will also not appear in search results. To view or retrieve the data, the business must be reactivated from the Deactivated List in Settings.',
                                       confirmButtonText: 'Confirm',
                                       confirmGradientColors: [AppColors.red500, AppColors.red500],
-                                      confirmTextColor: AppColors.white,
                                     );
 
-                                    if (result != null && result['pin'] != null) {
-                                      onDeactivateConfirmed?.call(result['pin']!);
-                                    }
+                                    // null means cancelled or failed
+                                    if (pinResult == null) return;
+
+                                    // 'SKIP' means PIN is disabled, use empty string
+                                    // Otherwise use the validated PIN
+                                    final securityKey = pinResult == 'SKIP' ? '' : pinResult;
+                                    onDeactivateConfirmed?.call(securityKey);
                                   },
                                 ),
                               ),

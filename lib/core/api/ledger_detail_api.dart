@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/ledger_detail_model.dart';
 import '../../models/ledger_dashboard_summary_model.dart';
 import '../../models/ledger_monthly_dashboard_model.dart';
+import '../../models/deactivated_ledger_model.dart';
 import 'global_api_function.dart';
 
 class LedgerDetailApi {
@@ -163,9 +164,142 @@ class LedgerDetailApi {
     }
   }
 
+  /// Update ledger status (activate/deactivate)
+  /// PATCH /api/ledger/{ledgerId}/status
+  ///
+  /// Request body:
+  /// {
+  ///   "isActive": false,
+  ///   "securityKey": "1234"
+  /// }
+  ///
+  /// Response:
+  /// { "message": "Created successfully" }
+  Future<LedgerStatusResponse> updateLedgerStatus({
+    required int ledgerId,
+    required bool isActive,
+    required String securityKey,
+  }) async {
+    // Use separate ApiFetcher instance to avoid race condition
+    final statusApiFetcher = ApiFetcher();
+
+    try {
+      final body = {
+        "isActive": isActive,
+        "securityKey": securityKey,
+      };
+
+      debugPrint('📤 Updating ledger $ledgerId status to: ${isActive ? "ACTIVE" : "DEACTIVE"}');
+
+      await statusApiFetcher.request(
+        url: 'api/ledger/$ledgerId/status',
+        method: 'PATCH',
+        body: body,
+        requireAuth: true,
+      );
+
+      // Check for errors
+      if (statusApiFetcher.errorMessage != null) {
+        // Parse error response
+        if (statusApiFetcher.data is Map) {
+          final errorData = statusApiFetcher.data as Map<String, dynamic>;
+          if (errorData['errors'] != null) {
+            final errors = errorData['errors'] as List;
+            final errorMessages = errors.map((e) => '${e['field']}: ${e['error']}').join('\n');
+            throw Exception(errorMessages);
+          }
+          throw Exception(errorData['message'] ?? statusApiFetcher.errorMessage);
+        }
+        throw Exception(statusApiFetcher.errorMessage);
+      }
+
+      // Parse success response
+      if (statusApiFetcher.data is Map) {
+        debugPrint('✅ Ledger status updated successfully');
+        return LedgerStatusResponse.fromJson(
+          statusApiFetcher.data as Map<String, dynamic>,
+        );
+      }
+
+      return LedgerStatusResponse(message: 'Status updated successfully');
+    } catch (e) {
+      debugPrint('❌ Error updating ledger status: $e');
+      rethrow;
+    }
+  }
+
+  /// Get deactivated ledgers list
+  /// GET /api/ledger/{merchantId}?isActive=false
+  ///
+  /// Returns list of deactivated ledgers for the merchant
+  Future<DeactivatedLedgersResponse> getDeactivatedLedgers({
+    required int merchantId,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    final deactivatedApiFetcher = ApiFetcher();
+
+    try {
+      debugPrint('📋 Fetching deactivated ledgers for merchant: $merchantId');
+
+      await deactivatedApiFetcher.request(
+        url: 'api/ledger/$merchantId?isActive=false&skip=$skip&limit=$limit',
+        method: 'GET',
+        requireAuth: true,
+      );
+
+      // Check for errors
+      if (deactivatedApiFetcher.errorMessage != null) {
+        throw Exception(deactivatedApiFetcher.errorMessage);
+      }
+
+      // Parse success response
+      if (deactivatedApiFetcher.data is Map) {
+        final data = deactivatedApiFetcher.data as Map<String, dynamic>;
+        debugPrint('✅ Deactivated ledgers fetched: ${data['count'] ?? 0} items');
+        debugPrint('📦 Raw response: $data');
+
+        // Debug: Print first item to see field names
+        if (data['data'] is List && (data['data'] as List).isNotEmpty) {
+          debugPrint('📋 First item fields: ${(data['data'] as List)[0]}');
+        }
+
+        return DeactivatedLedgersResponse.fromJson(data);
+      } else if (deactivatedApiFetcher.data is List) {
+        final list = deactivatedApiFetcher.data as List;
+        debugPrint('✅ Deactivated ledgers fetched (list): ${list.length} items');
+
+        // Debug: Print first item to see field names
+        if (list.isNotEmpty) {
+          debugPrint('📋 First item fields: ${list[0]}');
+        }
+
+        return DeactivatedLedgersResponse.fromList(list);
+      }
+
+      return DeactivatedLedgersResponse(count: 0, totalCount: 0, data: []);
+    } catch (e) {
+      debugPrint('❌ Error fetching deactivated ledgers: $e');
+      rethrow;
+    }
+  }
+
   /// Get loading state
   bool get isLoading => _apiFetcher.isLoading;
 
   /// Get error message
   String? get errorMessage => _apiFetcher.errorMessage;
+}
+
+/// Response model for ledger status update
+class LedgerStatusResponse {
+  final String message;
+
+  LedgerStatusResponse({required this.message});
+
+  factory LedgerStatusResponse.fromJson(Map<String, dynamic> json) {
+    return LedgerStatusResponse(
+      message: json['message'] ?? 'Status updated successfully',
+    );
+  }
 }

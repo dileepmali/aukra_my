@@ -1000,7 +1000,7 @@ class ShopDetailController extends GetxController {
   }
 
   /// Update merchant status (activate/deactivate)
-  /// PUT /api/merchant/{merchantId}
+  /// PATCH /api/merchant/{merchantId}/status
   ///
   /// [merchantId] - The merchant ID to update
   /// [isActive] - true to activate, false to deactivate
@@ -1018,7 +1018,7 @@ class ShopDetailController extends GetxController {
       debugPrint('🔄 ========== ${action.toUpperCase()} MERCHANT ==========');
       debugPrint('   Merchant ID: $merchantId');
       debugPrint('   isActive: $isActive');
-      debugPrint('   securityKey: ****');
+      debugPrint('   securityKey: ${securityKey.isNotEmpty ? "****" : "(empty - PIN disabled)"}');
 
       isLoading.value = true;
 
@@ -1030,10 +1030,10 @@ class ShopDetailController extends GetxController {
 
       debugPrint('📤 Request body: $payload');
 
-      // Call existing PUT /api/merchant/{merchantId} endpoint
+      // Call PATCH /api/merchant/{merchantId}/status endpoint (same as ledger)
       await _apiFetcher.request(
-        url: 'api/merchant/$merchantId',
-        method: 'PUT',
+        url: 'api/merchant/$merchantId/status',
+        method: 'PATCH',
         body: payload,
         requireAuth: true,
       );
@@ -1061,8 +1061,8 @@ class ShopDetailController extends GetxController {
       } else {
         debugPrint('❌ Failed to $action merchant: ${_apiFetcher.errorMessage}');
         AdvancedErrorService.showError(
-          _apiFetcher.errorMessage ?? 'Failed to $action business. Please try again.',
-          category: ErrorCategory.network,
+          'Unable to $action business. Please try again.',
+          category: ErrorCategory.general,
         );
         return false;
       }
