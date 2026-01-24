@@ -20,6 +20,7 @@ import '../../../controllers/ledger_controller.dart';
 import '../../widgets/bottom_sheets/business_bottom_sheet.dart';
 import '../../../core/utils/balance_helper.dart';
 import '../../widgets/custom_single_border_color.dart';
+import '../../desktop/screens/ledger_desktop_content.dart';
 
 class LedgerScreen extends StatefulWidget {
   final ValueChanged<int>? onTabChanged;
@@ -117,6 +118,17 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final localizations = AppLocalizations.of(context);
 
+    // Check if desktop/widescreen based on screen width
+    final isDesktop = responsive.screenWidth > 600;
+
+    // Desktop layout
+    if (isDesktop) {
+      return LedgerDesktopContent(
+        selectedTabIndex: _selectedTabIndex,
+      );
+    }
+
+    // Mobile layout
     return Scaffold(
       backgroundColor: isDark ? AppColors.overlay : AppColorsLight.scaffoldBackground,
       appBar: PreferredSize(

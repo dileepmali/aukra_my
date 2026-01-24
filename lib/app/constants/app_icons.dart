@@ -85,4 +85,11 @@ class AppIcons {
   static const String vectoeIc3 = 'assets/icons/₹.svg';
   static const String vectoeIc4 = 'assets/icons/Vector4.svg';
   static const String vectoeIc5 = 'assets/icons/Vector5.svg';
+  static const String vectoeIc6 = 'assets/icons/Vector6.svg';
+
+  // Desktop
+  static const String whatsappLightIc = 'assets/icons/whatsapp_light_ic.svg';
+  static const String reminderLightIc = 'assets/icons/reminder_light_ic.svg';
+  static const String notificationLightIc = 'assets/icons/notification_light_ic.svg';
+  static const String callLightIc = 'assets/icons/call_light_ic.svg';
 }

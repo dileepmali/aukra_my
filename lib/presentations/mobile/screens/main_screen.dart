@@ -26,6 +26,7 @@ import '../../../controllers/account_controller.dart';
 import 'ledger_screen.dart';
 import 'account_screen.dart';
 import 'my_profile_screen.dart';
+import '../../desktop/screens/main_desktop_content.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -152,7 +153,31 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final responsive = AdvancedResponsiveHelper(context);
 
+    // Check if desktop/widescreen based on screen width
+    final isDesktop = responsive.screenWidth > 600;
+
+    // Desktop layout
+    if (isDesktop) {
+      return MainDesktopContent(
+        initialTabIndex: _ledgerTabIndex,
+        onTabChanged: (index) {
+          setState(() {
+            if (index <= 2) {
+              _selectedIndex = 0;
+              _ledgerTabIndex = index;
+            } else if (index == 3) {
+              _selectedIndex = 1; // Account
+            } else if (index == 5) {
+              _selectedIndex = 2; // Settings
+            }
+          });
+        },
+      );
+    }
+
+    // Mobile layout
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {
