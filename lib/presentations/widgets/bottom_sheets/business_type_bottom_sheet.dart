@@ -94,7 +94,7 @@ class _BusinessTypeBottomSheetState extends State<BusinessTypeBottomSheet> {
       {'label': 'Other type', 'subtitle': 'Did not fount your business type? just write down below'},
     ];
 
-    final bottomSheetHeight = responsive.hp(70) + bottomPadding;
+    final bottomSheetHeight = responsive.hp(62) + bottomPadding;
 
     return Stack(
       children: [

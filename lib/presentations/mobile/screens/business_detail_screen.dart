@@ -50,7 +50,7 @@ class BusinessDetailScreen extends StatefulWidget {
 class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   late String _businessName;
   late String _address;
-  String _masterMobile = 'Loading...';
+  String _masterMobile = '---';
   String _masterMobileRaw = '';
   String _businessType = 'Not specified';
   String _category = 'Not specified';
@@ -59,7 +59,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   String _phone = '';
   bool _isActive = true;
   bool _isVerified = false;
-  bool _isLoading = true;
 
   // Full merchant data from API
   MerchantListModel? _currentMerchant;
@@ -145,8 +144,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           _isActive = currentMerchant.isActive;
           _isVerified = currentMerchant.isVerified;
 
-          _isLoading = false;
-
           debugPrint('');
           debugPrint('✅ BUSINESS DETAIL: Data Loaded from API');
           debugPrint('   Business Name: $_businessName');
@@ -180,17 +177,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 _masterMobile = Formatters.formatMaskedPhone(masterPhone);
               }
             }
-            _isLoading = false;
           });
         }
       }
     } catch (e) {
       debugPrint('❌ Error loading merchant data: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
@@ -662,14 +653,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
           ),
         ),
       ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                strokeWidth: 1,
-              ),
-            )
-          : RefreshIndicator(
+      body: RefreshIndicator(
               color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
               backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
               onRefresh: _loadMerchantData,

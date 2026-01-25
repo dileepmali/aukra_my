@@ -64,38 +64,8 @@ class LedgerDashboardScreen extends StatelessWidget {
           statementController.setLedgerId(controller.ledgerDetail.value!.id!);
         }
 
-        if (controller.isLoading.value && controller.dashboardData.value == null) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-              strokeWidth: 1.0,
-            ),
-          );
-        }
-
-        if (controller.errorMessage.isNotEmpty && controller.dashboardData.value == null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.red500),
-                SizedBox(height: responsive.hp(2)),
-                AppText.headlineLarge1(
-                  controller.errorMessage.value,
-                  color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                ),
-                SizedBox(height: responsive.hp(2)),
-                TextButton(
-                  onPressed: controller.fetchDashboard,
-                  child: AppText.headlineLarge1(
-                    'Retry',
-                    color: AppColorsLight.splaceSecondary1,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
+        // UI always visible - no loading indicator hiding the entire screen
+        // Data updates automatically via Obx in child widgets
 
         return RefreshIndicator(
           onRefresh: controller.refreshDashboard,
@@ -108,8 +78,8 @@ class LedgerDashboardScreen extends StatelessWidget {
               children: [
                 // Basic Details Section
                 _buildBasicDetailsSection(context, controller, isDark, responsive),
-                // New Container Section
-                _buildNewContainerSection(context, controller, isDark, responsive),
+                // Monthly Statement Section - Commented out for now
+                // _buildNewContainerSection(context, controller, isDark, responsive),
 
                 SizedBox(height: responsive.hp(2)),
 
@@ -404,11 +374,11 @@ class LedgerDashboardScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: responsive.wp(2)),
-                // Civil Score Tab (Placeholder)
+                // Credit Score Tab (Placeholder)
                 Expanded(
                   child: _buildInfoTab(
                     context: context,
-                    label: 'Civil Score',
+                    label: 'Credit Score',
                     value: '---', // Placeholder - data will be passed later
                     isDark: isDark,
                     responsive: responsive,
@@ -564,9 +534,15 @@ class LedgerDashboardScreen extends StatelessWidget {
   }
 
   /// Summary Section (Today IN/OUT, Overall Given/Received)
+  /// UI always visible - shows 0.0 as default when data not loaded
   Widget _buildSummarySection(BuildContext context, LedgerDashboardController controller, bool isDark, AdvancedResponsiveHelper responsive) {
     final dashboard = controller.dashboardData.value;
-    if (dashboard == null) return const SizedBox.shrink();
+
+    // Use default values (0.0) when dashboard data is not yet loaded
+    final todayIn = dashboard?.todayIn ?? 0.0;
+    final todayOut = dashboard?.todayOut ?? 0.0;
+    final overallGiven = dashboard?.overallGiven ?? 0.0;
+    final overallReceived = dashboard?.overallReceived ?? 0.0;
 
     return Container(
     padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
@@ -587,7 +563,7 @@ class LedgerDashboardScreen extends StatelessWidget {
               child: _buildSummaryCard(
                 context: context,
                 title: 'Amount in today',
-                amount: dashboard.todayIn,
+                amount: todayIn,
                 icon: Icons.arrow_downward,
                 iconColor: AppColors.successPrimary,
                 isDark: isDark,
@@ -599,7 +575,7 @@ class LedgerDashboardScreen extends StatelessWidget {
               child: _buildSummaryCard(
                 context: context,
                 title: 'Amount out today',
-                amount: dashboard.todayOut,
+                amount: todayOut,
                 icon: Icons.arrow_upward,
                 iconColor: AppColors.red500,
                 isDark: isDark,
@@ -620,7 +596,7 @@ class LedgerDashboardScreen extends StatelessWidget {
               child: _buildSummaryCard(
                 context: context,
                 title: 'Total receive (IN)',
-                amount: dashboard.overallGiven,
+                amount: overallGiven,
                 icon: Icons.trending_up,
                 iconColor: AppColors.warning,
                 isDark: isDark,
@@ -632,7 +608,7 @@ class LedgerDashboardScreen extends StatelessWidget {
               child: _buildSummaryCard(
                 context: context,
                 title: 'Total give (OUT)',
-                amount: dashboard.overallReceived,
+                amount: overallReceived,
                 icon: Icons.trending_down,
                 iconColor: AppColors.blue,
                 isDark: isDark,

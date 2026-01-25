@@ -270,60 +270,49 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
           ]
         ),
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return Center(
-            child: CircularProgressIndicator(
-              color:
-                  isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-              strokeWidth: 1.0,
-            ),
-          );
-        }
-
-        return Column(
-          children: [
-            // Fixed Closing Balance Card - Does NOT scroll - Clickable to open Dashboard
-            Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: isDark
-                        ? LinearGradient(
-                            colors: [
-                              AppColors.black,
-                              AppColors.black
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : LinearGradient(
-                            colors: [
-                              AppColorsLight.gradientColor1,
-                              AppColorsLight.gradientColor2
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-                  ),
-                  child: _buildBalanceCard(controller, responsive, isDark),
+      // UI always visible - no loading indicator hiding the entire screen
+      body: Column(
+        children: [
+          // Fixed Closing Balance Card - Does NOT scroll - Clickable to open Dashboard
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: isDark
+                      ? LinearGradient(
+                          colors: [
+                            AppColors.black,
+                            AppColors.black
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : LinearGradient(
+                          colors: [
+                            AppColorsLight.gradientColor1,
+                            AppColorsLight.gradientColor2
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                  borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                 ),
-                Positioned.fill(
-                  child: CustomSingleBorderWidget(
-                    position: BorderPosition.bottom,
-                  ),
+                child: _buildBalanceCard(controller, responsive, isDark),
+              ),
+              Positioned.fill(
+                child: CustomSingleBorderWidget(
+                  position: BorderPosition.bottom,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
 
-            // Scrollable Transaction List - ONLY this scrolls
-            Expanded(
-              child: _buildTransactionsList(controller, responsive, isDark),
-            ),
-          ],
-        );
-      }),
+          // Scrollable Transaction List - ONLY this scrolls
+          Expanded(
+            child: _buildTransactionsList(controller, responsive, isDark),
+          ),
+        ],
+      ),
       floatingActionButton: _buildAddEntryButton(responsive, isDark),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -377,10 +366,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
       ),
       child: Obx(() {
         final detail = controller.ledgerDetail.value;
-        if (detail == null) return SizedBox.shrink();
 
-        // Use backend's current balance directly
-        final balance = detail.currentBalance;
+        // Use backend's current balance directly (default to 0 if not loaded)
+        final balance = detail?.currentBalance ?? 0.0;
 
         // ✅ FIX: Check if balance is effectively zero (handles floating point issues)
         final isZeroBalance = balance.abs() < 0.01;

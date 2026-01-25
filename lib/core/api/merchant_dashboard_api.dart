@@ -52,13 +52,13 @@ class MerchantDashboardApi {
       );
 
       debugPrint('✅ Dashboard data parsed successfully');
-      debugPrint('   - Today In: ₹${dashboardModel.todayIn}');
-      debugPrint('   - Today Out: ₹${dashboardModel.todayOut}');
+      debugPrint('   - Global Today In: ₹${dashboardModel.todayIn}');
+      debugPrint('   - Global Today Out: ₹${dashboardModel.todayOut}');
       debugPrint('   - Overall Given: ₹${dashboardModel.overallGiven}');
       debugPrint('   - Overall Received: ₹${dashboardModel.overallReceived}');
-      debugPrint('   - Customer Balance: ₹${dashboardModel.party.customer.netBalance}');
-      debugPrint('   - Supplier Balance: ₹${dashboardModel.party.supplier.netBalance}');
-      debugPrint('   - Employee Balance: ₹${dashboardModel.party.employee.netBalance}');
+      debugPrint('   - Customer: Balance ₹${dashboardModel.party.customer.netBalance}, Received ₹${dashboardModel.party.customer.overallReceived}, Given ₹${dashboardModel.party.customer.overallGiven}');
+      debugPrint('   - Supplier: Balance ₹${dashboardModel.party.supplier.netBalance}, Received ₹${dashboardModel.party.supplier.overallReceived}, Given ₹${dashboardModel.party.supplier.overallGiven}');
+      debugPrint('   - Employee: Balance ₹${dashboardModel.party.employee.netBalance}, Received ₹${dashboardModel.party.employee.overallReceived}, Given ₹${dashboardModel.party.employee.overallGiven}');
 
       return dashboardModel;
     } catch (e) {

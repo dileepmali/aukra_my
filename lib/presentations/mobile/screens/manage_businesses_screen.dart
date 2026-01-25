@@ -75,15 +75,6 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
         ),
       ),
       body: Obx(() {
-        if (_controller.isLoading.value) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-              strokeWidth: 1,
-            ),
-          );
-        }
-
         return RefreshIndicator(
           color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
           backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
@@ -100,14 +91,27 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                 child: _buildSearchBar(responsive, isDark),
               ),
 
-              // Business Lists (Scrollable)
+              // Business Lists (Scrollable) - UI always visible, data updates automatically via Obx
               _controller.filteredMerchants.isEmpty
-                  ? SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: AppText.searchbar2(
-                          'No businesses found',
-                            color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                  ? SliverPadding(
+                      padding: EdgeInsets.all(responsive.wp(4)),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText.headlineLarge(
+                              'All Businesses',
+                              color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            SizedBox(height: responsive.hp(10)),
+                            Center(
+                              child: AppText.searchbar2(
+                                'No businesses found',
+                                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )

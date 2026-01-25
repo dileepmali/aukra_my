@@ -326,10 +326,10 @@ class _ManagerBottomSheetState extends State<ManagerBottomSheet> {
             fit: BoxFit.contain,
           ),
           // Empty state title
-          AppText.displayMedium1(
+          AppText.displayMedium3(
             'No Results found ',
             color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
             textAlign: TextAlign.center,
           ),
 
@@ -382,7 +382,7 @@ class _ManagerBottomSheetState extends State<ManagerBottomSheet> {
               AppColors.containerLight,
             ],
             textColor: Colors.white,
-            fontSize: responsive.fontSize(16),
+            fontSize: responsive.fontSize(18),
             fontWeight: FontWeight.w600,
             borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
           ),

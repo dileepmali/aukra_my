@@ -83,11 +83,37 @@ class CustomerStatementController extends GetxController {
     }
   }
 
-  /// Get today's IN from Dashboard API
-  double get todayIn => dashboardData.value?.todayIn ?? 0.0;
+  /// Get total IN for current party type from Dashboard API
+  /// Uses party-specific overallReceived (money received from this party type)
+  double get todayIn {
+    if (dashboardData.value == null) return 0.0;
+    switch (partyType) {
+      case 'CUSTOMER':
+        return dashboardData.value!.party.customer.overallReceived;
+      case 'SUPPLIER':
+        return dashboardData.value!.party.supplier.overallReceived;
+      case 'EMPLOYEE':
+        return dashboardData.value!.party.employee.overallReceived;
+      default:
+        return 0.0;
+    }
+  }
 
-  /// Get today's OUT from Dashboard API
-  double get todayOut => dashboardData.value?.todayOut ?? 0.0;
+  /// Get total OUT for current party type from Dashboard API
+  /// Uses party-specific overallGiven (money given to this party type)
+  double get todayOut {
+    if (dashboardData.value == null) return 0.0;
+    switch (partyType) {
+      case 'CUSTOMER':
+        return dashboardData.value!.party.customer.overallGiven;
+      case 'SUPPLIER':
+        return dashboardData.value!.party.supplier.overallGiven;
+      case 'EMPLOYEE':
+        return dashboardData.value!.party.employee.overallGiven;
+      default:
+        return 0.0;
+    }
+  }
 
   // ============================================================
   // FILTER STATE (same as SearchController)
@@ -228,12 +254,12 @@ class CustomerStatementController extends GetxController {
       final data = await _dashboardApi.getMerchantDashboard();
       dashboardData.value = data;
 
-      debugPrint('✅ Dashboard loaded successfully');
+      debugPrint('✅ Dashboard loaded successfully for $partyType');
       debugPrint('   - Party Net Balance: ₹$partyNetBalance');
       debugPrint('   - Party Net Balance Type: $partyNetBalanceType');
       debugPrint('   - Party Total: $partyTotal');
-      debugPrint('   - Today IN: ₹$todayIn');
-      debugPrint('   - Today OUT: ₹$todayOut');
+      debugPrint('   - Party Overall Received (IN): ₹$todayIn');
+      debugPrint('   - Party Overall Given (OUT): ₹$todayOut');
     } catch (e) {
       debugPrint('❌ Error fetching dashboard: $e');
       // Don't set error message - dashboard is secondary data
