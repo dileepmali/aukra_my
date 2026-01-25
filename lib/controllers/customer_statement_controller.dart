@@ -205,9 +205,19 @@ class CustomerStatementController extends GetxController {
   /// Fetch all data (statement + dashboard)
   Future<void> fetchAllData() async {
     await Future.wait([
+      // 🧪 TEST: Comment out fetchStatement() to test UI visibility on error
       fetchStatement(),
+      // _simulateErrorForTesting(), // Simulates error state for testing
       fetchDashboard(),
     ]);
+  }
+
+  /// 🧪 TEST METHOD: Simulates an error for testing UI visibility
+  Future<void> _simulateErrorForTesting() async {
+    isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+    errorMessage.value = 'Test Error: Data fetch failed (for testing UI)';
+    isLoading.value = false;
   }
 
   /// Fetch dashboard data from GET /api/merchant/{merchantId}/dashboard

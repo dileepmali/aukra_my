@@ -71,8 +71,17 @@ class AccountController extends GetxController {
   /// Refresh dashboard data
   Future<void> refreshDashboard() async {
     await Future.wait([
+      // 🧪 TEST: Comment out fetchDashboard() to test UI visibility without data
       fetchDashboard(),
-      _ledgerController.refreshAll(),
+      // _simulateNoDataForTesting(), // Simulates no data state for testing
     ]);
+  }
+
+  /// 🧪 TEST METHOD: Simulates no data state for testing UI visibility
+  Future<void> _simulateNoDataForTesting() async {
+    isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+    // Don't set dashboardData - it will remain null, showing default values (₹0, 0 count)
+    isLoading.value = false;
   }
 }

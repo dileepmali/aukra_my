@@ -105,99 +105,144 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ),
       ),
-      body: Obx(() {
-        if (_accountController.isLoading.value) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-              strokeWidth: 1.0,
-            ),
-          );
-        }
+      body: RefreshIndicator(
+        color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+        backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+        onRefresh: () => _accountController.refreshDashboard(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(responsive.wp(0)),
+          child: Column(
+            children: [
+              // Header Card - Always visible (shows cached/default data)
+              Obx(() => _buildHeaderCardSafe(responsive, isDark)),
+              SizedBox(height: responsive.hp(2)),
 
-        if (_accountController.errorMessage.value.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppText.searchbar1(
-                  'Error loading dashboard',
-                  color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(height: responsive.hp(1)),
-                AppText.headlineLarge1(
-                  _accountController.errorMessage.value,
-                  color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                ),
-                SizedBox(height: responsive.hp(2)),
-                ElevatedButton(
-                  onPressed: () => _accountController.refreshDashboard(),
-                  child: Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-          backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
-          onRefresh: () => _accountController.refreshDashboard(),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(responsive.wp(0)),
-            child: Column(
-              children: [
-                // Header Card - Total Net Balance
-                _buildHeaderCard(responsive, isDark),
-                SizedBox(height: responsive.hp(2)),
-
-                // Customer Account Card
-                _buildAccountCard(
-                  responsive: responsive,
-                  isDark: isDark,
-                  title: 'Customer account',
-                  icon: AppIcons.customerIc,
-                  count: _accountController.totalCustomers,
-                  countLabel: 'Customers',
-                  balance: _accountController.customerNetBalance,
-                  balanceType: _accountController.customerBalanceType,
-                  onViewAll: () => _navigateToLedger(0), // Tab 0 = Customers
-                ),
-                SizedBox(height: responsive.hp(1)),
-
-                // Suppliers Account Card
-                _buildAccountCard(
-                  responsive: responsive,
-                  isDark: isDark,
-                  title: 'Suppliers account',
-                  icon: AppIcons.supplierIc,
-                  count: _accountController.totalSuppliers,
-                  countLabel: 'Suppliers',
-                  balance: _accountController.supplierNetBalance,
-                  balanceType: _accountController.supplierBalanceType,
-                  onViewAll: () => _navigateToLedger(1), // Tab 1 = Suppliers
-                ),
-                SizedBox(height: responsive.hp(1)),
-
-                // Employees Account Card
-                _buildAccountCard(
-                  responsive: responsive,
-                  isDark: isDark,
-                  title: 'Employees account',
-                  icon: AppIcons.employeeIc,
-                  count: _accountController.totalEmployees,
-                  countLabel: 'Employees',
-                  balance: _accountController.employeeNetBalance,
-                  balanceType: _accountController.employeeBalanceType,
-                  onViewAll: () => _navigateToLedger(2), // Tab 2 = Employees
-                ),
-              ],
-            ),
+              // Account Cards Section - Shows loading/error/data
+              Obx(() => _buildAccountCardsSection(responsive, isDark)),
+            ],
           ),
-        );
-      }),
+        ),
+      ),
+    );
+  }
+
+  /// Safe Header Card - Always visible (uses cached/default data)
+  Widget _buildHeaderCardSafe(AdvancedResponsiveHelper responsive, bool isDark) {
+    // Use Dashboard API data if available, otherwise show defaults
+    final netBalance = _accountController.totalNetBalance;
+    final balanceType = _accountController.totalBalanceType;
+    final isPositive = balanceType == 'IN';
+
+    final totalCustomers = _accountController.totalCustomers;
+    final totalSuppliers = _accountController.totalSuppliers;
+    final totalEmployees = _accountController.totalEmployees;
+
+    return Stack(
+      children: [
+        Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.bottom)),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(responsive.wp(4)),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.overlay : AppColorsLight.white,
+            borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppText.searchbar2(
+                    'Net balance',
+                    color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        AppText.headlineLarge1(
+                          '₹',
+                          color: isPositive
+                              ? AppColors.primeryamount
+                              : AppColors.red500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(width: responsive.wp(1)),
+                        AppText.searchbar2(
+                          Formatters.formatAmountWithCommas(netBalance.abs().toString()),
+                          color: isPositive
+                              ? AppColors.primeryamount
+                              : AppColors.red500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: responsive.hp(0.5)),
+              AppText.headlineLarge1(
+                '$totalCustomers customers, $totalSuppliers suppliers, $totalEmployees employees',
+                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                fontWeight: FontWeight.w400,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Account Cards Section - Always shows cards UI, data shows default/0 on error
+  Widget _buildAccountCardsSection(AdvancedResponsiveHelper responsive, bool isDark) {
+    return Column(
+      children: [
+        // Customer Account Card - Always visible
+        _buildAccountCard(
+          responsive: responsive,
+          isDark: isDark,
+          title: 'Customer account',
+          icon: AppIcons.customerIc,
+          count: _accountController.totalCustomers,
+          countLabel: 'Customers',
+          balance: _accountController.customerNetBalance,
+          balanceType: _accountController.customerBalanceType,
+          onViewAll: () => _navigateToLedger(0),
+        ),
+        SizedBox(height: responsive.hp(1)),
+
+        // Suppliers Account Card - Always visible
+        _buildAccountCard(
+          responsive: responsive,
+          isDark: isDark,
+          title: 'Suppliers account',
+          icon: AppIcons.supplierIc,
+          count: _accountController.totalSuppliers,
+          countLabel: 'Suppliers',
+          balance: _accountController.supplierNetBalance,
+          balanceType: _accountController.supplierBalanceType,
+          onViewAll: () => _navigateToLedger(1),
+        ),
+        SizedBox(height: responsive.hp(1)),
+
+        // Employees Account Card - Always visible
+        _buildAccountCard(
+          responsive: responsive,
+          isDark: isDark,
+          title: 'Employees account',
+          icon: AppIcons.employeeIc,
+          count: _accountController.totalEmployees,
+          countLabel: 'Employees',
+          balance: _accountController.employeeNetBalance,
+          balanceType: _accountController.employeeBalanceType,
+          onViewAll: () => _navigateToLedger(2),
+        ),
+      ],
     );
   }
 

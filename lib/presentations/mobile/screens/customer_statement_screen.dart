@@ -102,81 +102,27 @@ class CustomerStatementScreen extends StatelessWidget {
         )),
       ),
       body: SafeArea(
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                strokeWidth: 1.0,
+        child: RefreshIndicator(
+          color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+          backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+          onRefresh: () => controller.refreshStatement(),
+          child: Column(
+            children: [
+              // Header Card with Net Balance - Always visible (uses Dashboard API)
+              Obx(() => _buildHeaderCardSafe(responsive, isDark, controller)),
+
+              // Summary Section with Today IN/OUT - Always visible (uses Dashboard API)
+              Obx(() => _buildSummarySectionSafe(responsive, isDark, controller)),
+
+              SizedBox(height: responsive.hp(2)),
+
+              // Customer List Section - Shows loading/error/empty states
+              Expanded(
+                child: _buildCustomerList(responsive, isDark, controller),
               ),
-            );
-          }
-
-          if (controller.errorMessage.value.isNotEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AppText.searchbar1(
-                    'Error loading statement',
-                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  SizedBox(height: responsive.hp(1)),
-                  AppText.headlineLarge1(
-                    controller.errorMessage.value,
-                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-                  ),
-                  SizedBox(height: responsive.hp(2)),
-                  ElevatedButton(
-                    onPressed: () => controller.refreshStatement(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final statement = controller.statementData.value;
-          if (statement == null) {
-            return Center(
-              child: AppText.searchbar1(
-                'No data available',
-                color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-            backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
-            onRefresh: () => controller.refreshStatement(),
-            child: Column(
-              children: [
-                // Header Card with Net Balance
-                _buildHeaderCard(responsive, isDark, statement, controller),
-                // Summary Section with Yesterday IN/OUT
-                _buildSummarySection(
-                  responsive,
-                  isDark,
-                  statement,
-                  controller,
-                  null, // baseIconIn - can be customized
-                  null, // topRightIconIn - can be customized
-                  null, // baseIconOut - can be customized
-                  null, // topRightIconOut - can be customized
-                ),
-
-                SizedBox(height: responsive.hp(2)),
-
-                // Customer List Section
-                Expanded(
-                  child: _buildCustomerList(responsive, isDark, controller),
-                ),
-              ],
-            ),
-          );
-        }),
+            ],
+          ),
+        ),
       ),
       bottomNavigationBar: SafeArea(
         child: Obx(() {
@@ -189,6 +135,253 @@ class CustomerStatementScreen extends StatelessWidget {
     );
   }
 
+  /// Safe Header Card - Always visible, uses Dashboard API data
+  Widget _buildHeaderCardSafe(
+    AdvancedResponsiveHelper responsive,
+    bool isDark,
+    CustomerStatementController controller,
+  ) {
+    // Use Dashboard API data: partyNetBalance and partyNetBalanceType
+    final netBalance = controller.partyNetBalance;
+    final netBalanceType = controller.partyNetBalanceType;
+    final isPositive = netBalanceType == 'IN';
+
+    return Stack(
+      children: [
+        Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.bottom)),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(responsive.wp(4)),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.overlay : AppColorsLight.white,
+            borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppText.searchbar(
+                    'Net balance',
+                    color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        AppText.searchbar1(
+                          '₹',
+                          color: isPositive
+                              ? AppColors.primeryamount
+                              : AppColors.red500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        SizedBox(width: responsive.wp(1)),
+                        AppText.displaySmall(
+                          Formatters.formatAmountWithCommas(netBalance.abs().toString()),
+                          color: isPositive
+                              ? AppColors.primeryamount
+                              : AppColors.red500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              AppText.headlineLarge1(
+                '${controller.partyTotal} ${controller.customerLabel}',
+                color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                fontWeight: FontWeight.w400,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Safe Summary Section - Always visible, uses Dashboard API data
+  Widget _buildSummarySectionSafe(
+    AdvancedResponsiveHelper responsive,
+    bool isDark,
+    CustomerStatementController controller,
+  ) {
+    // Use Dashboard API data for today IN/OUT
+    final todayIn = controller.todayIn;
+    final todayOut = controller.todayOut;
+
+    return Stack(
+      children: [
+        Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.bottom)),
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: responsive.wp(1), vertical: responsive.hp(2)),
+          child: Row(
+            children: [
+              // Total IN Today
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: responsive.wp(1)),
+                  padding: EdgeInsets.symmetric(horizontal: responsive.wp(3), vertical: responsive.hp(1.5)),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [AppColors.containerDark, AppColors.containerDark]
+                          : [AppColorsLight.white, AppColorsLight.white],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: responsive.iconSizeExtraLarge,
+                        height: responsive.iconSizeExtraLarge,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              AppIcons.vectoeIc1,
+                              width: responsive.iconSizeLarge2,
+                              height: responsive.iconSizeLarge2,
+                            ),
+                            SvgPicture.asset(
+                              AppIcons.vectoeIc3,
+                              width: responsive.iconSizeSmall + 5,
+                              height: responsive.iconSizeSmall + 5,
+                            ),
+                            Positioned(
+                              top: 3,
+                              right: 2,
+                              child: SvgPicture.asset(
+                                AppIcons.vectoeIc2,
+                                width: responsive.iconSizeSmall,
+                                height: responsive.iconSizeSmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: responsive.hp(0.5)),
+                      AppText.headlineMedium(
+                        'Total amount in today',
+                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      SizedBox(height: responsive.hp(0.5)),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(top: 6.0),
+                            child: SvgPicture.asset(
+                              AppIcons.vectoeIc3,
+                              width: responsive.iconSizeSmall,
+                              height: responsive.iconSizeSmall,
+                              color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                            ),
+                          ),
+                          SizedBox(width: responsive.wp(0.8)),
+                          AppText.displaySmall(
+                            Formatters.formatAmountWithCommas(todayIn.toString()),
+                            color: AppColors.primeryamount,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Total OUT Today
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: responsive.wp(1)),
+                  padding: EdgeInsets.symmetric(horizontal: responsive.wp(3), vertical: responsive.hp(1.5)),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [AppColors.containerDark, AppColors.containerDark]
+                          : [AppColorsLight.white, AppColorsLight.white],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: responsive.iconSizeExtraLarge,
+                        height: responsive.iconSizeExtraLarge,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              AppIcons.vectoeIc4,
+                              width: responsive.iconSizeLarge2,
+                              height: responsive.iconSizeLarge2,
+                            ),
+                            SvgPicture.asset(
+                              AppIcons.vectoeIc3,
+                              width: responsive.iconSizeSmall + 5,
+                              height: responsive.iconSizeSmall + 5,
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 3,
+                              child: SvgPicture.asset(
+                                AppIcons.vectoeIc5,
+                                width: responsive.iconSizeSmall,
+                                height: responsive.iconSizeSmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: responsive.hp(0.5)),
+                      AppText.headlineMedium(
+                        'Total amount out today',
+                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      SizedBox(height: responsive.hp(0.5)),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(top: 6.0),
+                            child: SvgPicture.asset(
+                              AppIcons.vectoeIc3,
+                              width: responsive.iconSizeSmall,
+                              height: responsive.iconSizeSmall,
+                              color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                            ),
+                          ),
+                          SizedBox(width: responsive.wp(0.9)),
+                          AppText.displaySmall(
+                            Formatters.formatAmountWithCommas(todayOut.toString()),
+                            color: AppColors.red500,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildHeaderCard(
     AdvancedResponsiveHelper responsive,
@@ -450,16 +643,53 @@ class CustomerStatementScreen extends StatelessWidget {
   }
 
   /// Customer List Section with Infinite Scrolling
+  /// Shows loading/error/empty states only in this section
   Widget _buildCustomerList(
     AdvancedResponsiveHelper responsive,
     bool isDark,
     CustomerStatementController controller,
   ) {
     return Obx(() {
+      // Show loading state only in list section
+      if (controller.isLoading.value) {
+        return Center(
+          child: CircularProgressIndicator(
+            color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+            strokeWidth: 1.0,
+          ),
+        );
+      }
+
+      // Show error state only in list section
+      if (controller.errorMessage.value.isNotEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppText.searchbar1(
+                'Error loading ${controller.customerLabel}',
+                color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              SizedBox(height: responsive.hp(1)),
+              AppText.headlineLarge1(
+                controller.errorMessage.value,
+                color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
+              ),
+              SizedBox(height: responsive.hp(2)),
+              ElevatedButton(
+                onPressed: () => controller.refreshStatement(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+      }
+
       final customers = controller.filteredCustomers;
       final isLoadingMore = controller.isLoadingMore.value;
-      final hasMoreData = controller.hasMoreData.value;
 
+      // Show empty state
       if (customers.isEmpty) {
         return Center(
           child: AppText.headlineLarge1(
