@@ -343,13 +343,14 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText.searchbar2(
+                      AppText.searchbar4(
                         merchant.businessName,
                           color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                           fontWeight: FontWeight.w500,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         letterSpacing: 1.1,
+                        minFontSize: 11,
                       ),
                       SizedBox(height: responsive.hp(0.3)),
                       AppText.headlineMedium(
@@ -358,7 +359,6 @@ class _ManageBusinessesScreenState extends State<ManageBusinessesScreen> {
                             : 'No address added',
                           color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                           fontWeight: FontWeight.w400,
-
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

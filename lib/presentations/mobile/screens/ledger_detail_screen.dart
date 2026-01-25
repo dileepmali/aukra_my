@@ -637,9 +637,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
         // ✅ Add +/- sign based on balance: Positive = +, Negative = -
         'Bal. ₹ ${NumberFormat('#,##,##0.00',).format(runningBalance.abs())}',
         color: isDark ? AppColors.textDisabled : AppColorsLight.black,       // 🔴 Red for negative (देना है)
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
       ),
-      subtitleFontWeight: FontWeight.w500,
+      subtitleFontWeight: FontWeight.w400,
       amount: formattedAmount,
       isPositiveAmount: isPositive,  // IN = Blue, OUT = RED ✅
       amountDecoration: isDeleted ? TextDecoration.lineThrough : null,  // Strikethrough for deleted

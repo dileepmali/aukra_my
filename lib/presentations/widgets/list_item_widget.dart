@@ -214,7 +214,7 @@ class ListItemWidget extends StatelessWidget {
                                         : isPositiveAmount == false
                                             ? AppColors.red500
                                             : (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary),
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                     maxLines: 1,
                                     minFontSize: 10,
                                     decoration: amountDecoration,
@@ -226,7 +226,7 @@ class ListItemWidget extends StatelessWidget {
                         ],
                       ),
                       if (subtitle != null) ...[
-                        SizedBox(height: responsive.spacing(2)),
+                        SizedBox(height: responsive.spacing(3)),
                         Container(
                           padding: subtitlePadding,
                           decoration: subtitleBackgroundColor != null
@@ -242,13 +242,14 @@ class ListItemWidget extends StatelessWidget {
                                 SizedBox(width: responsive.iconSizeSmall + responsive.spacing(15)),
                               ],
                               Expanded(
-                                child: AppText.headlineMedium(
+                                child: AppText.headlineSmall(
                                   subtitle!,
                                   color: subtitleColor ?? (isDark
                                       ? AppColors.textDisabled
                                       : AppColorsLight.black),
-                                  maxLines: 2,
-                                  minFontSize: 12,
+                                  maxLines: 1,
+                                  minFontSize: 11,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
                               if (subtitleSuffix != null) ...[

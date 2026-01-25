@@ -381,7 +381,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     SizedBox(height: responsive.hp(0.2)),
                     AppText.headlineLarge1(
                       _mobileNumber.isEmpty ? 'No number' : Formatters.formatPhoneWithCountryCode(_mobileNumber),
-                      color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
+                      color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
                   ],

@@ -296,6 +296,10 @@ class RecoveryMobileController extends GetxController {
       title: 'Enter OTP',
       subtitle: 'Enter OTP received on your phone\n$maskedNumber',
       confirmButtonText: 'Verify',
+      onResendOtp: () async {
+        debugPrint('🔄 Resending OTP to current number...');
+        return await sendOtpToCurrentNumber('');
+      },
     );
 
     if (currentOtp == null) {
@@ -371,6 +375,10 @@ class RecoveryMobileController extends GetxController {
       title: 'Enter OTP',
       subtitle: 'Enter OTP received on your new recovery number\n$formattedNewMobile',
       confirmButtonText: 'Confirm',
+      onResendOtp: () async {
+        debugPrint('🔄 Resending OTP to new recovery number...');
+        return await sendOtpToNewNumber(newRecoveryMobile);
+      },
     );
 
     if (newOtp == null) {

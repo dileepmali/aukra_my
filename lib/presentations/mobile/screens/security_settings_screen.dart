@@ -233,6 +233,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
       title: 'Verify Mobile Number',
       subtitle: 'Enter OTP sent to\n${formattedPhone ?? "your phone"}',
       confirmButtonText: 'Enable PIN',
+      onResendOtp: () async {
+        debugPrint('🔄 Resending OTP for Enable PIN...');
+        return await _privacyController.sendOtp();
+      },
     );
 
     if (otp == null) {
@@ -282,6 +286,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
       title: 'Enter OTP',
       subtitle: 'Enter OTP received on your mobile number\n${formattedPhone ?? "your phone"}',
       confirmButtonText: 'Disable PIN',
+      onResendOtp: () async {
+        debugPrint('🔄 Resending OTP for Disable PIN...');
+        return await _privacyController.sendOtp();
+      },
     );
 
     if (otp == null) {
@@ -606,12 +614,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            AppText.searchbar(
+                                            AppText.searchbar1(
                                               device.deviceName ?? 'Unknown Device',
                                                 color: AppColors.white,
                                                 fontWeight: FontWeight.w500,
                                         maxLines: 1,
-                                        minFontSize: 10,
+                                        minFontSize: 9,
                                         letterSpacing: 1.0,
                                               overflow: TextOverflow.ellipsis,
                                             ),

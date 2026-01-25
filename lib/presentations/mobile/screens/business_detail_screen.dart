@@ -313,6 +313,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         subtitle: 'Enter OTP received on your current admin mobile\n$_masterMobile',
         confirmButtonText: 'Verify',
         warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
+        onResendOtp: () async {
+          debugPrint('🔄 Resending OTP to current admin mobile...');
+          return await _changeNumberController.sendOtpToCurrentNumber('');
+        },
       );
 
       if (currentOtp == null) {
@@ -391,6 +395,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         subtitle: 'Enter OTP received on your new mobile\n$formattedNewMobile',
         confirmButtonText: 'Confirm',
         warningText: 'Once you changed your master mobile you will lose the access to this business. And ownership is going to be transferred to the new number.',
+        onResendOtp: () async {
+          debugPrint('🔄 Resending OTP to new mobile...');
+          return await _changeNumberController.sendOtpToNewNumber(newMobile);
+        },
       );
 
       if (newNumberOtp == null) {
@@ -585,6 +593,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         warningText: warningText,
         confirmGradientColors: buttonColors,
         confirmTextColor: AppColors.white,
+        onResendOtp: () async {
+          debugPrint('🔄 Resending OTP for $actionText...');
+          return await privacyController.sendOtp();
+        },
       );
 
       if (otp == null) {

@@ -25,6 +25,7 @@ class NewNumberOtpDialog {
     Color? subtitleColor,
     List<Color>? confirmGradientColors,
     Color? confirmTextColor,
+    Future<bool> Function()? onResendOtp, // ✅ Callback for resending OTP
   }) async {
     return showDialog<String>(
       context: context,
@@ -39,6 +40,7 @@ class NewNumberOtpDialog {
         subtitleColor: subtitleColor,
         confirmGradientColors: confirmGradientColors,
         confirmTextColor: confirmTextColor,
+        onResendOtp: onResendOtp,
       ),
     );
   }
@@ -54,6 +56,7 @@ class _NewNumberOtpDialogContent extends StatefulWidget {
   final Color? subtitleColor;
   final List<Color>? confirmGradientColors;
   final Color? confirmTextColor;
+  final Future<bool> Function()? onResendOtp; // ✅ Callback for resending OTP
 
   const _NewNumberOtpDialogContent({
     required this.newPhoneNumber,
@@ -65,6 +68,7 @@ class _NewNumberOtpDialogContent extends StatefulWidget {
     this.subtitleColor,
     this.confirmGradientColors,
     this.confirmTextColor,
+    this.onResendOtp,
   });
 
   @override
@@ -81,6 +85,7 @@ class _NewNumberOtpDialogContentState
   // OTP timer
   int _resendTimer = 30;
   bool _canResend = false;
+  bool _isResending = false; // ✅ Loading state for resend
 
   @override
   void initState() {
@@ -121,11 +126,43 @@ class _NewNumberOtpDialogContentState
     });
   }
 
-  void _resendOtp() {
-    if (_canResend) {
+  Future<void> _resendOtp() async {
+    if (_canResend && !_isResending) {
       debugPrint('🔄 Resending OTP to new number...');
-      _startResendTimer();
-      // TODO: Call API to resend OTP
+
+      // ✅ Call API to resend OTP if callback is provided
+      if (widget.onResendOtp != null) {
+        setState(() {
+          _isResending = true;
+        });
+
+        try {
+          final success = await widget.onResendOtp!();
+          if (success) {
+            debugPrint('✅ OTP resent successfully');
+            _startResendTimer();
+          } else {
+            debugPrint('❌ Failed to resend OTP');
+            setState(() {
+              errorMessage = 'Failed to resend OTP. Please try again.';
+            });
+          }
+        } catch (e) {
+          debugPrint('❌ Error resending OTP: $e');
+          setState(() {
+            errorMessage = 'Failed to resend OTP. Please try again.';
+          });
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isResending = false;
+            });
+          }
+        }
+      } else {
+        // Fallback: Just restart timer if no callback provided
+        _startResendTimer();
+      }
     }
   }
 
@@ -277,22 +314,47 @@ class _NewNumberOtpDialogContentState
                 // Resend OTP section
                 SizedBox(height: responsive.hp(2)),
                 GestureDetector(
-                  onTap: _canResend ? _resendOtp : null,
-                  child: AppText.headlineLarge1(
-                    _canResend
-                        ? 'Resend OTP'
-                        : 'Resend OTP in $_resendTimer seconds',
-                    color: _canResend
-                        ? (isDark
-                            ? AppColors.splaceSecondary2
-                            : AppColorsLight.splaceSecondary1)
-                        : (isDark
-                            ? AppColors.textDisabled
-                            : AppColorsLight.textSecondary),
-                    fontWeight: FontWeight.w600,
-                    decoration: _canResend ? TextDecoration.underline : null,
-                    textAlign: TextAlign.start,
-                  ),
+                  onTap: (_canResend && !_isResending) ? _resendOtp : null,
+                  child: _isResending
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: responsive.iconSizeSmall,
+                              height: responsive.iconSizeSmall,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: isDark
+                                    ? AppColors.splaceSecondary2
+                                    : AppColorsLight.splaceSecondary1,
+                              ),
+                            ),
+                            SizedBox(width: responsive.wp(2)),
+                            AppText.headlineLarge1(
+                              'Sending...',
+                              color: isDark
+                                  ? AppColors.textDisabled
+                                  : AppColorsLight.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              textAlign: TextAlign.start,
+                            ),
+                          ],
+                        )
+                      : AppText.headlineLarge1(
+                          _canResend
+                              ? 'Resend OTP'
+                              : 'Resend OTP in $_resendTimer seconds',
+                          color: _canResend
+                              ? (isDark
+                                  ? AppColors.splaceSecondary2
+                                  : AppColorsLight.splaceSecondary1)
+                              : (isDark
+                                  ? AppColors.textDisabled
+                                  : AppColorsLight.textSecondary),
+                          fontWeight: FontWeight.w600,
+                          decoration: _canResend ? TextDecoration.underline : null,
+                          textAlign: TextAlign.start,
+                        ),
                 ),
 
                 // ✅ Warning Container (Only show if warningText is provided)

@@ -37,7 +37,6 @@ class ChangeNumberScreen extends StatefulWidget {
 class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
   String _currentNumber = '';
   String? _newNumber;
-  bool _isLoading = true;
   late ChangeNumberController _controller;
 
   @override
@@ -75,21 +74,23 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
       // Fallback to AuthStorage if API fails
       phone ??= await AuthStorage.getPhoneNumber();
 
-      setState(() {
-        _currentNumber = phone ?? '';
-        _isLoading = false;
-      });
-      // Set current number in controller
-      _controller.setCurrentNumber(_currentNumber);
+      if (mounted) {
+        setState(() {
+          _currentNumber = phone ?? '';
+        });
+        // Set current number in controller
+        _controller.setCurrentNumber(_currentNumber);
+      }
     } catch (e) {
       debugPrint('❌ Error loading phone number: $e');
       // Fallback to AuthStorage on error
       final phone = await AuthStorage.getPhoneNumber();
-      setState(() {
-        _currentNumber = phone ?? '';
-        _isLoading = false;
-      });
-      _controller.setCurrentNumber(_currentNumber);
+      if (mounted) {
+        setState(() {
+          _currentNumber = phone ?? '';
+        });
+        _controller.setCurrentNumber(_currentNumber);
+      }
     }
   }
 
@@ -159,6 +160,10 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
         title: 'Enter OTP',
         subtitle: 'Enter OTP sent to\n$maskedNumber',
         confirmButtonText: 'Verify',
+        onResendOtp: () async {
+          debugPrint('🔄 Resending OTP to current number...');
+          return await _controller.sendOtpToCurrentNumber('');
+        },
       );
 
       if (currentOtp == null) {
@@ -242,6 +247,10 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
       title: 'Enter secure OTP received on your new number',
       subtitle: 'Enter OTP sent to\n$maskedNewNumber',
       warningText: 'You will be signed out from current device & all other devices.',
+      onResendOtp: () async {
+        debugPrint('🔄 Resending OTP to new number...');
+        return await _controller.sendOtpToNewNumber(newNumberOnly);
+      },
     );
 
     if (newOtp == null) {
@@ -318,13 +327,7 @@ class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
           ),
         ),
       ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-              ),
-            )
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.all(responsive.wp(4)),
                 child: Column(

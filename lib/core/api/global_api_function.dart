@@ -80,20 +80,29 @@ class ApiFetcher extends ChangeNotifier {
       switch (method.toUpperCase()) {
         case "POST":
           response = await http
-              .post(Uri.parse(fullUrl),
-                  headers: requestHeaders, body: jsonEncode(body))
+              .post(
+                Uri.parse(fullUrl),
+                headers: requestHeaders,
+                body: body != null ? jsonEncode(body) : null,
+              )
               .timeout(timeout);
           break;
         case "PUT":
           response = await http
-              .put(Uri.parse(fullUrl),
-                  headers: requestHeaders, body: jsonEncode(body))
+              .put(
+                Uri.parse(fullUrl),
+                headers: requestHeaders,
+                body: body != null ? jsonEncode(body) : null,
+              )
               .timeout(timeout);
           break;
         case "PATCH":
           response = await http
-              .patch(Uri.parse(fullUrl),
-                  headers: requestHeaders, body: jsonEncode(body))
+              .patch(
+                Uri.parse(fullUrl),
+                headers: requestHeaders,
+                body: body != null ? jsonEncode(body) : null,
+              )
               .timeout(timeout);
           break;
         case "DELETE":
