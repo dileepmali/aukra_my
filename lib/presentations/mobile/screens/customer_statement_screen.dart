@@ -449,7 +449,7 @@ class CustomerStatementScreen extends StatelessWidget {
     );
   }
 
-  /// Customer List Section
+  /// Customer List Section with Infinite Scrolling
   Widget _buildCustomerList(
     AdvancedResponsiveHelper responsive,
     bool isDark,
@@ -457,6 +457,8 @@ class CustomerStatementScreen extends StatelessWidget {
   ) {
     return Obx(() {
       final customers = controller.filteredCustomers;
+      final isLoadingMore = controller.isLoadingMore.value;
+      final hasMoreData = controller.hasMoreData.value;
 
       if (customers.isEmpty) {
         return Center(
@@ -470,8 +472,24 @@ class CustomerStatementScreen extends StatelessWidget {
       }
 
       return ListView.builder(
-        itemCount: customers.length,
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: responsive.hp(10)),
+        itemCount: customers.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
+          // Show loading indicator at the end
+          if (index == customers.length) {
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                  strokeWidth: 2.0,
+                ),
+              ),
+            );
+          }
+
           final customer = customers[index];
           return _buildCustomerItem(responsive, isDark, customer, controller);
         },

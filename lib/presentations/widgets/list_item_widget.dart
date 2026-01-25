@@ -32,6 +32,7 @@ class ListItemWidget extends StatelessWidget {
   // Amount display properties
   final String? amount;
   final bool? isPositiveAmount; // true for positive (blue), false for negative (red)
+  final TextDecoration? amountDecoration; // For strikethrough on deleted entries
 
   // Optional text styling properties
   final double? titleFontSize;
@@ -71,6 +72,7 @@ class ListItemWidget extends StatelessWidget {
     this.avatarTextColor,
     this.amount,
     this.isPositiveAmount,
+    this.amountDecoration,
     this.titleFontSize,
     this.titleLetterSpacing,
     this.subtitleFontSize,
@@ -167,7 +169,7 @@ class ListItemWidget extends StatelessWidget {
                           ],
                           Expanded(
                             child: AppText.searchbar4(
-                              title,
+                              title.length > 24 ? '${title.substring(0, 24)}...' : title,
                               color: titleColor ?? (isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.textPrimary),
                               fontWeight: titleFontWeight ?? FontWeight.w500,
                               letterSpacing: titleLetterSpacing ?? 1.2,
@@ -178,7 +180,7 @@ class ListItemWidget extends StatelessWidget {
                           ),
                           // Amount on the right side of title with custom symbol and number styling
                           if (amount != null) ...[
-                            SizedBox(width: responsive.spacing(8)),
+                            SizedBox(width: responsive.wp(2)),
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -215,6 +217,7 @@ class ListItemWidget extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     maxLines: 1,
                                     minFontSize: 10,
+                                    decoration: amountDecoration,
                                   ),
                                 ),
                               ],

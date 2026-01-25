@@ -6,11 +6,11 @@ class AppFonts {
   // 🔤 FONT FAMILY DEFINITIONS
   // ============================================================================
 
-  /// Primary font family (Tahoma - main app font)
-  static const String primary = 'Tahoma';
+  /// Primary font family (Google Sans - main app font)
+  static const String primary = 'GoogleSans';
 
-  /// Secondary font family (BricolageGrotesque - fallback)
-  static const String secondary = 'BricolageGrotesque';
+  /// Secondary font family (Tahoma - fallback)
+  static const String secondary = 'Tahoma';
 
   /// Accent font family (Future font - to be added)
   static const String accent = 'Poppins'; // Fallback to system font

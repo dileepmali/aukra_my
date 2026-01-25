@@ -164,7 +164,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                   // Mobile Number + Area (Subtitle)
                                   AppText.bodyLarge(
                                     [
-                                      if (mobile.isNotEmpty) mobile,
+                                      if (mobile.isNotEmpty) Formatters.formatPhoneWithCountryCode(mobile),
                                       if (area.isNotEmpty) area,
                                     ].join(' • '),
                                     color: isDark
@@ -642,6 +642,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
       subtitleFontWeight: FontWeight.w500,
       amount: formattedAmount,
       isPositiveAmount: isPositive,  // IN = Blue, OUT = RED ✅
+      amountDecoration: isDeleted ? TextDecoration.lineThrough : null,  // Strikethrough for deleted
       showBorder: true,
       // 🔥 FIX: Underline ONLY for deleted transactions
       titleDecoration: isDeleted ? TextDecoration.lineThrough : null,

@@ -540,7 +540,8 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
             child: AppText.displayMedium2(
               getInitials(name),
               color: AppColors.white,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
+              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -550,6 +551,8 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
           name,
           color: isDark ? AppColors.white : AppColorsLight.textPrimary,
           fontWeight: FontWeight.w500,
+          textAlign: TextAlign.center,
+          maxLines: 2,
         ),
         SizedBox(height: responsive.hp(0.2)),
         // Location (if available)

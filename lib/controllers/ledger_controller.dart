@@ -611,33 +611,40 @@ class LedgerController extends GetxController {
   }
 
   /// Apply transaction filter (IN/OUT based on currentBalance sign)
-  /// ✅ FIX: Use currentBalance SIGN (not transactionType which is opening balance type)
-  /// This matches BalanceHelper.isPositive() logic used in ledger_screen.dart
+  ///
+  /// ✅ KHATABOOK COLOR LOGIC:
+  /// - GREEN items = Negative balance = You owe customer = "IN" (paise aaye, balance kam hua)
+  /// - RED items = Positive balance = Customer owes you = "OUT" (maal diya, balance badha)
+  ///
+  /// User expects:
+  /// - "In transaction" filter → GREEN items (paise receive kiye)
+  /// - "Out transaction" filter → RED items (maal/paise diye)
   List<LedgerModel> _applyTransactionFilter(List<LedgerModel> ledgers) {
     debugPrint('🔍 Applying transaction filter: ${transactionFilter.value}');
     debugPrint('   Input: ${ledgers.length} ledgers');
 
     // Debug: Show balance distribution
-    final positiveItems = ledgers.where((l) => l.currentBalance >= 0).length;
+    final positiveItems = ledgers.where((l) => l.currentBalance > 0).length;
     final negativeItems = ledgers.where((l) => l.currentBalance < 0).length;
-    debugPrint('   Distribution: Positive(IN)=$positiveItems, Negative(OUT)=$negativeItems');
+    final zeroItems = ledgers.where((l) => l.currentBalance == 0).length;
+    debugPrint('   Distribution: RED(OUT/Positive)=$positiveItems, GREEN(IN/Negative)=$negativeItems, Zero=$zeroItems');
 
     List<LedgerModel> filtered;
     switch (transactionFilter.value) {
       case 'in_transaction':
-        // IN = Positive balance (>= 0) - Customer owes you / Receivable
-        filtered = ledgers.where((l) => l.currentBalance >= 0).toList();
-        debugPrint('   ✅ Filtering IN (positive balance): ${filtered.length} results');
+        // IN = Negative balance (< 0) = GREEN items = You owe customer (paise aaye)
+        filtered = ledgers.where((l) => l.currentBalance < 0).toList();
+        debugPrint('   ✅ Filtering IN (negative balance = GREEN): ${filtered.length} results');
         for (var l in filtered.take(5)) {
-          debugPrint('      - ${l.name}: ₹${l.currentBalance}');
+          debugPrint('      - ${l.name}: ₹${l.currentBalance} (GREEN)');
         }
         return filtered;
       case 'out_transaction':
-        // OUT = Negative balance (< 0) - You owe customer / Payable
-        filtered = ledgers.where((l) => l.currentBalance < 0).toList();
-        debugPrint('   ❌ Filtering OUT (negative balance): ${filtered.length} results');
+        // OUT = Positive balance (> 0) = RED items = Customer owes you (maal diya)
+        filtered = ledgers.where((l) => l.currentBalance > 0).toList();
+        debugPrint('   ❌ Filtering OUT (positive balance = RED): ${filtered.length} results');
         for (var l in filtered.take(5)) {
-          debugPrint('      - ${l.name}: ₹${l.currentBalance}');
+          debugPrint('      - ${l.name}: ₹${l.currentBalance} (RED)');
         }
         return filtered;
       case 'all_transaction':

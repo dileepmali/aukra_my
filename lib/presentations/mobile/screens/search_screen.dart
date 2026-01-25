@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import '../../../app/constants/app_icons.dart';
+import 'package:intl/intl.dart';
 import '../../../app/constants/app_images.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_colors_light.dart';
@@ -10,14 +9,14 @@ import '../../../controllers/search_controller.dart' as app;
 import '../../../core/responsive_layout/device_category.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
-import '../../../core/services/recent_searches_service.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/balance_helper.dart';
+import '../../../models/ledger_model.dart';
 import '../../../models/search_model.dart';
 import '../../widgets/custom_app_bar/custom_app_bar.dart';
 import '../../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../widgets/custom_single_border_color.dart';
 import '../../widgets/list_item_widget.dart';
-import '../../widgets/recent_searches_widget.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -32,28 +31,18 @@ class _SearchScreenState extends State<SearchScreen> {
 
   late app.SearchController _controller;
 
-  // Key to rebuild recent searches widget when updated
-  int _recentSearchesKey = 0;
-
-  // Track last valid search query for saving when user starts new search
-  String _lastValidQuery = '';
-
-  // Track last saved query to prevent duplicates
-  String _lastSavedQuery = '';
-
   @override
   void initState() {
     super.initState();
     // Use existing controller if available, otherwise create new one
     if (Get.isRegistered<app.SearchController>()) {
       _controller = Get.find<app.SearchController>();
-      // Clear previous search state to show recent searches
+      // Clear previous search state
       _controller.clearSearch();
-      // Disable loading if data is already cached
-      if (_controller.allLedgers.isNotEmpty) {
-        _controller.isInitialLoading.value = false;
-      }
-      debugPrint('🔍 SearchScreen: Reusing existing controller, cleared search state');
+      debugPrint('🔍 SearchScreen: Reusing existing controller');
+      // Always fetch fresh data to get latest updates
+      debugPrint('🔄 Fetching FRESH data from API...');
+      _controller.fetchData();
     } else {
       _controller = Get.put(app.SearchController());
       debugPrint('🔍 SearchScreen: Created new controller');
@@ -75,16 +64,11 @@ class _SearchScreenState extends State<SearchScreen> {
   void _handleSearchChanged(String query) {
     final trimmedQuery = query.trim();
 
-    // If user cleared field or starting new search (0-1 chars) and we have previous valid query
-    // Save the previous query
-    if (trimmedQuery.length <= 1 && _lastValidQuery.isNotEmpty) {
-      _saveSearch(_lastValidQuery);
-      _lastValidQuery = '';
-    }
-
-    // Update last valid query if current query is valid (2+ chars)
-    if (trimmedQuery.length >= 2) {
-      _lastValidQuery = trimmedQuery;
+    // ✅ If search is empty, clear search and show all ledgers
+    if (trimmedQuery.isEmpty) {
+      _controller.searchQuery.value = '';
+      _controller.searchResults.clear();
+      return;
     }
 
     // Perform search
@@ -93,57 +77,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
   /// Handle search submission (Enter key pressed)
   void _handleSearchSubmitted(String query) {
-    // Save search only when user explicitly submits (Enter key)
-    if (query.trim().isNotEmpty && query.trim().length >= 2) {
-      _saveSearch(query.trim());
-      _lastValidQuery = ''; // Clear since it's saved
-      _updateRecentSearches();
-    }
-  }
-
-  /// Save search to recent searches (with duplicate prevention)
-  Future<void> _saveSearch(String query) async {
-    if (query.isEmpty || query.length < 2) return;
-    if (query == _lastSavedQuery) return; // Prevent saving same query again
-
-    _lastSavedQuery = query;
-    await RecentSearchesService.saveSearch(query);
-    debugPrint('✅ Search saved: "$query"');
-  }
-
-  /// Save current search when navigating back (if has valid search)
-  Future<void> _saveSearchOnExit() async {
-    // Save last valid query if not already saved
-    if (_lastValidQuery.isNotEmpty) {
-      await _saveSearch(_lastValidQuery);
-    }
-    // Also save current text if different
-    final currentQuery = _searchController.text.trim();
-    if (currentQuery.length >= 2) {
-      await _saveSearch(currentQuery);
+    if (query.trim().isNotEmpty) {
+      _controller.performSearch(query.trim());
     }
   }
 
   /// Handle back navigation (both app back button and Android back)
   Future<bool> _handleBackNavigation() async {
-    await _saveSearchOnExit();
     FocusScope.of(context).unfocus();
     return true; // Allow back navigation
-  }
-
-  /// Handle tap on recent search item
-  void _handleRecentSearchTap(String query) {
-    // Set the search text
-    _searchController.text = query;
-    // Perform the search
-    _controller.performSearch(query);
-  }
-
-  /// Rebuild recent searches widget
-  void _updateRecentSearches() {
-    setState(() {
-      _recentSearchesKey++;
-    });
   }
 
   @override
@@ -226,12 +168,10 @@ class _SearchScreenState extends State<SearchScreen> {
         debugPrint('🔍 Body Obx rebuild:');
         debugPrint('   - isInitialLoading: ${_controller.isInitialLoading.value}');
         debugPrint('   - allLedgers: ${_controller.allLedgers.length}');
-        debugPrint('   - searchResults: ${_controller.searchResults.length}');
+        debugPrint('   - filteredLedgers: ${_controller.filteredLedgers.length}');
         debugPrint('   - searchQuery: "${_controller.searchQuery.value}"');
-        debugPrint('   - hasActiveFilters: ${_controller.hasActiveFilters.value}');
 
         // Show initial loading ONLY if we don't have any cached data
-        // This prevents showing loading on every navigation
         if (_controller.isInitialLoading.value && _controller.allLedgers.isEmpty) {
           debugPrint('   → Showing: LOADING STATE');
           return _buildLoadingState(responsive, isDark);
@@ -243,25 +183,45 @@ class _SearchScreenState extends State<SearchScreen> {
           return _buildErrorState(responsive, isDark);
         }
 
-        // Show search results if we have any (from search or filters)
-        // This check comes FIRST to show results even when default filter is applied
-        if (_controller.searchResults.isNotEmpty) {
-          debugPrint('   → Showing: SEARCH RESULTS');
-          return _buildSearchResults(responsive, isDark);
+        // ✅ If user is searching, show search results
+        if (_controller.searchQuery.value.isNotEmpty) {
+          // Show loading while search is in progress
+          if (_controller.isSearching.value) {
+            debugPrint('   → Showing: SEARCHING...');
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Searching...',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          if (_controller.searchResults.isNotEmpty) {
+            debugPrint('   → Showing: SEARCH RESULTS (${_controller.searchResults.length})');
+            return _buildSearchResults(responsive, isDark);
+          } else {
+            debugPrint('   → Showing: NO SEARCH RESULTS');
+            return _buildNoResultsState(responsive, isDark);
+          }
         }
 
-        // Show recent searches when not searching AND no filters active AND no results
-        if (_controller.searchQuery.value.isEmpty && !_controller.hasActiveFilters.value) {
-          debugPrint('   → Showing: RECENT SEARCHES');
-          return RecentSearchesWidget(
-            key: ValueKey(_recentSearchesKey),
-            onSearchTap: _handleRecentSearchTap,
-            onUpdate: _updateRecentSearches,
-          );
+        // ✅ Default: Show all ledgers (like ledger_screen)
+        final ledgers = _controller.filteredLedgers;
+        if (ledgers.isNotEmpty) {
+          debugPrint('   → Showing: ALL LEDGERS (${ledgers.length} items)');
+          return _buildLedgersList(responsive, isDark, ledgers);
         }
 
-        // Show no results (for search or filters)
-        debugPrint('   → Showing: NO RESULTS STATE');
+        // No data
+        debugPrint('   → Showing: NO DATA STATE');
         return _buildNoResultsState(responsive, isDark);
       }),
       ),
@@ -369,6 +329,123 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  /// Build ledgers list (default view - like ledger_screen)
+  Widget _buildLedgersList(AdvancedResponsiveHelper responsive, bool isDark, List<LedgerModel> ledgers) {
+    return Column(
+      children: [
+        // Results count header
+        Stack(
+          children: [
+            Positioned.fill(child: CustomSingleBorderWidget(position: BorderPosition.bottom)),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: responsive.wp(4),
+                vertical: responsive.hp(1.5),
+              ),
+              child: Center(
+                child: AppText.searchbar1(
+                  '${ledgers.length} ${_controller.config.partyTypeLabel}${ledgers.length == 1 ? '' : 's'}',
+                  color: isDark ? AppColors.white.withOpacity(0.6) : AppColorsLight.textSecondary,
+                  textAlign: TextAlign.center,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // Ledgers list with infinite scrolling
+        Expanded(
+          child: Obx(() {
+            final isLoadingMore = _controller.isLoadingMore.value;
+
+            return ListView.builder(
+              controller: _controller.scrollController,
+              padding: EdgeInsets.only(
+                left: responsive.wp(1),
+                right: responsive.wp(1),
+                top: responsive.hp(2),
+                bottom: responsive.hp(30),
+              ),
+              itemCount: ledgers.length + (isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                // Show loading indicator at the end
+                if (index == ledgers.length) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                        strokeWidth: 2.0,
+                      ),
+                    ),
+                  );
+                }
+
+                final ledger = ledgers[index];
+                return _buildLedgerItem(responsive, isDark, ledger);
+              },
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  /// Build individual ledger item (same as ledger_screen)
+  Widget _buildLedgerItem(AdvancedResponsiveHelper responsive, bool isDark, LedgerModel ledger) {
+    // Format last update date, time and address
+    String subtitle = '';
+    final displayDate = ledger.updatedAt ?? ledger.createdAt;
+    if (displayDate != null) {
+      final localTime = displayDate.toLocal();
+      final dateFormat = DateFormat('d MMM yyyy');
+      final timeFormat = DateFormat('HH:mm');
+      final formattedDate = dateFormat.format(localTime);
+      final formattedTime = timeFormat.format(localTime);
+      subtitle = '$formattedDate, $formattedTime';
+    } else {
+      subtitle = 'No date available';
+    }
+
+    if (ledger.address.isNotEmpty) {
+      subtitle += ' • ${ledger.address}';
+    } else if (ledger.area.isNotEmpty) {
+      subtitle += ' • ${ledger.area}';
+    }
+
+    final amount = '₹${ledger.currentBalance.abs().toStringAsFixed(2)}';
+    final isPositive = BalanceHelper.isPositive(
+      currentBalance: ledger.currentBalance,
+      itemName: '${_controller.config.partyTypeLabel}: ${ledger.name}',
+    );
+
+    return ListItemWidget(
+      title: ledger.name.isNotEmpty
+          ? Formatters.truncateName(ledger.name)
+          : '${_controller.config.partyTypeLabel} #${ledger.id}',
+      subtitle: subtitle,
+      amount: amount,
+      isPositiveAmount: isPositive,
+      showAvatar: true,
+      avatarText: ledger.name.isNotEmpty
+          ? ledger.name.substring(0, ledger.name.length >= 2 ? 2 : 1).toUpperCase()
+          : _controller.config.partyTypeLabel[0],
+      avatarBackgroundGradient: LinearGradient(
+        colors: [AppColors.splaceSecondary2, AppColors.splaceSecondary1],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      avatarTextColor: AppColors.white,
+      onTap: () {
+        debugPrint('${_controller.config.partyTypeLabel} tapped: ${ledger.name}');
+        Get.toNamed('/ledger-detail', arguments: {
+          'ledgerId': ledger.id,
+        });
+      },
+    );
+  }
+
   /// Build search results list
   Widget _buildSearchResults(AdvancedResponsiveHelper responsive, bool isDark) {
     return Column(
@@ -435,7 +512,24 @@ class _SearchScreenState extends State<SearchScreen> {
     bool isDark,
     SearchResultItem result,
   ) {
-    final isPositive = result.isPositiveBalance;
+    // ✅ FIX: Use BalanceHelper logic (same as _buildLedgerItem)
+    // Get original balance from originalData (LedgerModel)
+    final originalLedger = result.originalData;
+    final originalCurrentBalance = originalLedger?.currentBalance ?? 0.0;
+
+    // Debug: Show actual values
+    debugPrint('🎨 _buildResultItem: ${result.name}');
+    debugPrint('   result.balance (abs): ${result.balance}');
+    debugPrint('   result.balanceType: ${result.balanceType}');
+    debugPrint('   originalCurrentBalance: $originalCurrentBalance');
+
+    final isPositive = BalanceHelper.isPositive(
+      currentBalance: originalCurrentBalance,
+      itemName: 'Search: ${result.name}',
+    );
+
+    debugPrint('   isPositive (for color): $isPositive');
+    debugPrint('   → Color should be: ${isPositive ? "GREEN" : "RED"}');
 
     return ListItemWidget(
       title: result.name,
@@ -468,10 +562,6 @@ class _SearchScreenState extends State<SearchScreen> {
     debugPrint('Tapped on: ${result.name} (ID: ${result.id})');
     debugPrint('   Party Type: ${result.partyType}');
     debugPrint('   Balance: ${result.balance} ${result.balanceType}');
-
-    // Save search when user taps on a result (means search was successful)
-    _saveSearch(_searchController.text.trim());
-    _lastValidQuery = ''; // Clear since it's saved
 
     // TODO: Navigate to ledger detail screen
     // Get.to(() => LedgerDetailScreen(), arguments: {'ledgerId': result.id});

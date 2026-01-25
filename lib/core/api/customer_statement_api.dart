@@ -10,13 +10,18 @@ import 'global_api_function.dart';
 class CustomerStatementApi {
   final ApiFetcher _apiFetcher = ApiFetcher();
 
-  /// Fetch customer list only
-  /// GET /api/ledger/{merchantId}?partyType=CUSTOMER
+  /// Fetch customer list with pagination
+  /// GET /api/ledger/{merchantId}?partyType=CUSTOMER&skip=0&limit=20
   Future<CustomerStatementModel> getCustomerStatement({
     required String partyType, // 'CUSTOMER', 'SUPPLIER', 'EMPLOYEE'
+    int page = 1,
+    int limit = 20,
   }) async {
     try {
-      debugPrint('📊 Fetching $partyType list...');
+      // Calculate skip from page (page 1 = skip 0, page 2 = skip 20, etc.)
+      final skip = (page - 1) * limit;
+
+      debugPrint('📊 Fetching $partyType list (Page: $page, Skip: $skip, Limit: $limit)...');
 
       // Get merchant ID from storage
       final merchantId = await AuthStorage.getMerchantId();
@@ -26,9 +31,9 @@ class CustomerStatementApi {
 
       debugPrint('🏢 Merchant ID: $merchantId');
 
-      // Fetch customer/supplier/employee list
+      // Fetch customer/supplier/employee list with pagination (using skip instead of page)
       await _apiFetcher.request(
-        url: 'api/ledger/$merchantId?partyType=$partyType',
+        url: 'api/ledger/$merchantId?partyType=$partyType&skip=$skip&limit=$limit',
         method: 'GET',
         requireAuth: true,
       ).timeout(

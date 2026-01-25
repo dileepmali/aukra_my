@@ -105,7 +105,9 @@ class SearchController extends GetxController {
     // Setup scroll listener for infinite scrolling
     _setupScrollListener();
 
-    // Fetch data
+    // Always fetch fresh data when screen opens
+    debugPrint('🔄 Fetching FRESH data...');
+    allLedgers.clear(); // Clear any cached data
     fetchData();
   }
 
@@ -167,6 +169,23 @@ class SearchController extends GetxController {
 
       debugPrint('✅ Loaded ${allLedgers.length}/${totalCount.value} ${config.partyTypeLabel}s');
       debugPrint('📄 Has more data: ${hasMoreData.value}');
+
+      // Debug: Show data availability for search fields
+      final withMobile = allLedgers.where((l) => l.mobileNumber.isNotEmpty).length;
+      final withArea = allLedgers.where((l) => l.area.isNotEmpty).length;
+      final withAddress = allLedgers.where((l) => l.address.isNotEmpty).length;
+      final withPincode = allLedgers.where((l) => l.pinCode.isNotEmpty).length;
+      debugPrint('📊 Data availability:');
+      debugPrint('   📱 With mobile: $withMobile');
+      debugPrint('   📍 With area: $withArea');
+      debugPrint('   🏠 With address: $withAddress');
+      debugPrint('   📮 With pincode: $withPincode');
+
+      // Show sample pincode data if available
+      if (withPincode > 0) {
+        final samplePincodes = allLedgers.where((l) => l.pinCode.isNotEmpty).take(3);
+        debugPrint('   📮 Sample pincodes: ${samplePincodes.map((l) => '"${l.name}": "${l.pinCode}"').join(", ")}');
+      }
     } catch (e) {
       debugPrint('❌ Error fetching data: $e');
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
@@ -214,6 +233,8 @@ class SearchController extends GetxController {
 
       // Re-apply search if active
       if (searchQuery.value.isNotEmpty) {
+        // Note: performSearch is async but we don't need to await here
+        // since it will just update observables
         performSearch(searchQuery.value);
       } else if (hasActiveFilters.value) {
         showAllWithFilters();
@@ -223,6 +244,50 @@ class SearchController extends GetxController {
       debugPrint('📄 Has more data: ${hasMoreData.value}');
     } catch (e) {
       debugPrint('❌ Error loading more data: $e');
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  /// Load ALL remaining data for comprehensive search
+  /// This ensures search works across ALL ledgers, not just the first page
+  Future<void> _loadAllDataForSearch() async {
+    if (isLoadingMore.value) return;
+
+    try {
+      isLoadingMore.value = true;
+
+      // Load remaining data in batches
+      while (allLedgers.length < totalCount.value) {
+        final nextSkip = allLedgers.length;
+
+        debugPrint('📥 Loading batch: skip=$nextSkip, limit=$_limit');
+
+        final result = await _searchApi.getLedgersByPartyType(
+          config.partyType,
+          skip: nextSkip,
+          limit: _limit,
+        );
+
+        final ledgers = result['data'] as List<LedgerModel>;
+
+        if (ledgers.isEmpty) {
+          debugPrint('📭 No more data available');
+          break;
+        }
+
+        allLedgers.addAll(ledgers);
+        currentSkip.value = nextSkip;
+
+        debugPrint('📥 Loaded ${ledgers.length} more (total: ${allLedgers.length}/${totalCount.value})');
+      }
+
+      hasMoreData.value = false;
+      _calculateSummary();
+
+      debugPrint('✅ All data loaded for search: ${allLedgers.length} ledgers');
+    } catch (e) {
+      debugPrint('❌ Error loading data for search: $e');
     } finally {
       isLoadingMore.value = false;
     }
@@ -261,39 +326,87 @@ class SearchController extends GetxController {
 
   /// Perform search with the given query
   /// Searches across all enabled fields
-  void performSearch(String query) {
-    searchQuery.value = query.trim();
+  /// If not all data is loaded, it will load remaining data first
+  Future<void> performSearch(String query) async {
+    final trimmedQuery = query.trim();
 
-    if (searchQuery.value.isEmpty) {
+    if (trimmedQuery.isEmpty) {
+      searchQuery.value = '';
       searchResults.clear();
+      isSearching.value = false;
       return;
     }
 
+    // Set searching state FIRST (before setting query to avoid UI flash)
     isSearching.value = true;
+    searchQuery.value = trimmedQuery;
+
+    // ========== DEBUG: Show ALL ledgers data ==========
+    debugPrint('');
+    debugPrint('╔═══════════════════════════════════════════════════════════╗');
+    debugPrint('║  SEARCH DEBUG - ALL LEDGERS DATA                          ║');
+    debugPrint('╚═══════════════════════════════════════════════════════════╝');
+    debugPrint('Query: "$trimmedQuery"');
+    debugPrint('Total ledgers: ${allLedgers.length}');
+    debugPrint('');
+    for (int i = 0; i < allLedgers.length; i++) {
+      final l = allLedgers[i];
+      debugPrint('[$i] ${l.name}');
+      debugPrint('    📱 mobile: "${l.mobileNumber}"');
+      debugPrint('    📍 area: "${l.area}"');
+      debugPrint('    🏠 address: "${l.address}"');
+      debugPrint('    📮 pincode: "${l.pinCode}"');
+    }
+    debugPrint('╔═══════════════════════════════════════════════════════════╗');
+    debugPrint('║  END OF LEDGERS DATA                                      ║');
+    debugPrint('╚═══════════════════════════════════════════════════════════╝');
+    debugPrint('');
+
+    // Check if we need to load more data before searching
+    // This ensures search works across ALL ledgers, not just loaded ones
+    if (allLedgers.length < totalCount.value && !isLoadingMore.value) {
+      debugPrint('⚠️ Not all data loaded (${allLedgers.length}/${totalCount.value})');
+      debugPrint('📥 Loading all remaining data for search...');
+      await _loadAllDataForSearch();
+    }
     final results = <SearchResultItem>[];
     final queryLower = searchQuery.value.toLowerCase();
 
     // Debug: Print data availability
-    debugPrint('🔍 Searching for: "$queryLower"');
-    debugPrint('📋 Total ledgers: ${allLedgers.length}');
+    debugPrint('═══════════════════════════════════════════════════════════');
+    debugPrint('🔍 SEARCH STARTED');
+    debugPrint('   Query: "$queryLower"');
+    debugPrint('   Total ledgers loaded: ${allLedgers.length}');
+    debugPrint('───────────────────────────────────────────────────────────');
 
     // Check mobile numbers
     final nonEmptyMobiles = allLedgers.where((l) => l.mobileNumber.isNotEmpty).toList();
     debugPrint('📱 Ledgers with mobile: ${nonEmptyMobiles.length}');
     if (nonEmptyMobiles.isNotEmpty) {
-      debugPrint('📱 Sample mobiles: ${nonEmptyMobiles.take(3).map((l) => '"${l.mobileNumber}"').join(", ")}');
+      debugPrint('   Sample: ${nonEmptyMobiles.take(3).map((l) => '"${l.name}": "${l.mobileNumber}"').join(", ")}');
     }
 
     // Check areas
     final nonEmptyAreas = allLedgers.where((l) => l.area.isNotEmpty).toList();
     debugPrint('📍 Ledgers with area: ${nonEmptyAreas.length}');
     if (nonEmptyAreas.isNotEmpty) {
-      debugPrint('📍 Sample areas: ${nonEmptyAreas.take(3).map((l) => '"${l.area}"').join(", ")}');
+      debugPrint('   Sample: ${nonEmptyAreas.take(3).map((l) => '"${l.name}": "${l.area}"').join(", ")}');
     }
 
     // Check addresses
     final nonEmptyAddresses = allLedgers.where((l) => l.address.isNotEmpty).toList();
     debugPrint('🏠 Ledgers with address: ${nonEmptyAddresses.length}');
+    if (nonEmptyAddresses.isNotEmpty) {
+      debugPrint('   Sample: ${nonEmptyAddresses.take(3).map((l) => '"${l.name}": "${l.address}"').join(", ")}');
+    }
+
+    // Check pincodes
+    final nonEmptyPincodes = allLedgers.where((l) => l.pinCode.isNotEmpty).toList();
+    debugPrint('📮 Ledgers with pincode: ${nonEmptyPincodes.length}');
+    if (nonEmptyPincodes.isNotEmpty) {
+      debugPrint('   Sample: ${nonEmptyPincodes.take(3).map((l) => '"${l.name}": "${l.pinCode}"').join(", ")}');
+    }
+    debugPrint('───────────────────────────────────────────────────────────');
 
     // Check if query is numeric (for balance amount search)
     final numericQuery = double.tryParse(queryLower.replaceAll(',', ''));
@@ -313,18 +426,29 @@ class SearchController extends GetxController {
       }
 
       // Search by Mobile Number
+      // Normalize both query and mobile number by removing non-digit characters for better matching
       if (matchedField == null &&
           config.enabledFields.contains(SearchableField.mobileNumber)) {
-        if (ledger.mobileNumber.isNotEmpty && ledger.mobileNumber.toLowerCase().contains(queryLower)) {
-          debugPrint('✅ Mobile match: "${ledger.name}" - mobile: "${ledger.mobileNumber}"');
-          matchedField = SearchableField.mobileNumber;
+        if (ledger.mobileNumber.isNotEmpty) {
+          // Normalize: remove +, spaces, dashes, etc. for matching
+          final normalizedMobile = ledger.mobileNumber.replaceAll(RegExp(r'[^\d]'), '');
+          final normalizedQuery = queryLower.replaceAll(RegExp(r'[^\d]'), '');
+
+          // Match if query is all digits and mobile contains it
+          // OR if original mobile string contains the query
+          if ((normalizedQuery.isNotEmpty && normalizedMobile.contains(normalizedQuery)) ||
+              ledger.mobileNumber.toLowerCase().contains(queryLower)) {
+            debugPrint('✅ Mobile MATCH: "${ledger.name}" - mobile: "${ledger.mobileNumber}" (query: "$queryLower")');
+            matchedField = SearchableField.mobileNumber;
+          }
         }
       }
 
       // Search by Address
       if (matchedField == null &&
           config.enabledFields.contains(SearchableField.address)) {
-        if (ledger.address.toLowerCase().contains(queryLower)) {
+        if (ledger.address.isNotEmpty && ledger.address.toLowerCase().contains(queryLower)) {
+          debugPrint('✅ Address MATCH: "${ledger.name}" - address: "${ledger.address}" (query: "$queryLower")');
           matchedField = SearchableField.address;
         }
       }
@@ -333,7 +457,7 @@ class SearchController extends GetxController {
       if (matchedField == null &&
           config.enabledFields.contains(SearchableField.area)) {
         if (ledger.area.isNotEmpty && ledger.area.toLowerCase().contains(queryLower)) {
-          debugPrint('✅ Area match: "${ledger.name}" - area: "${ledger.area}"');
+          debugPrint('✅ Area MATCH: "${ledger.name}" - area: "${ledger.area}" (query: "$queryLower")');
           matchedField = SearchableField.area;
         }
       }
@@ -341,7 +465,8 @@ class SearchController extends GetxController {
       // Search by Pincode
       if (matchedField == null &&
           config.enabledFields.contains(SearchableField.pinCode)) {
-        if (ledger.pinCode.toLowerCase().contains(queryLower)) {
+        if (ledger.pinCode.isNotEmpty && ledger.pinCode.toLowerCase().contains(queryLower)) {
+          debugPrint('✅ Pincode MATCH: "${ledger.name}" - pincode: "${ledger.pinCode}" (query: "$queryLower")');
           matchedField = SearchableField.pinCode;
         }
       }
@@ -388,7 +513,23 @@ class SearchController extends GetxController {
     searchResults.value = filteredResults;
     isSearching.value = false;
 
-    debugPrint('🔍 Found ${filteredResults.length} results for "$query"');
+    // Log match summary by field type
+    final matchCounts = <SearchableField, int>{};
+    for (var result in filteredResults) {
+      if (result.matchedField != null) {
+        matchCounts[result.matchedField!] = (matchCounts[result.matchedField!] ?? 0) + 1;
+      }
+    }
+
+    debugPrint('───────────────────────────────────────────────────────────');
+    debugPrint('🔍 SEARCH COMPLETE: ${filteredResults.length} results for "$query"');
+    if (matchCounts.isNotEmpty) {
+      debugPrint('   Match breakdown:');
+      matchCounts.forEach((field, count) {
+        debugPrint('      ${field.label}: $count');
+      });
+    }
+    debugPrint('═══════════════════════════════════════════════════════════');
   }
 
   /// Sort search results based on current sort options
@@ -548,14 +689,13 @@ class SearchController extends GetxController {
     // Check if any filter is active (including sort)
     _updateActiveFiltersFlag();
 
-    // Re-apply search with filters OR show all filtered/sorted results
+    // Re-apply search with filters if user is searching
     if (searchQuery.value.isNotEmpty) {
       performSearch(searchQuery.value);
-    } else {
-      // Always show all ledgers with filters/sort applied when user clicks Apply
-      // This ensures sort-only filters also work
-      showAllWithFilters();
     }
+
+    // ✅ Trigger UI refresh for filteredLedgers getter
+    allLedgers.refresh();
   }
 
   /// Show all ledgers with filters applied (without search query)
@@ -688,37 +828,33 @@ class SearchController extends GetxController {
   }
 
   /// Apply transaction filter (IN/OUT)
-  /// ✅ balanceType is derived from currentBalance SIGN in SearchResultItem.fromLedger()
+  ///
+  /// ✅ KHATABOOK COLOR LOGIC (same as LedgerController):
+  /// - GREEN items = Negative balance = balanceType 'OUT' = "IN" filter (paise aaye)
+  /// - RED items = Positive balance = balanceType 'IN' = "OUT" filter (maal diya)
+  ///
+  /// User expects:
+  /// - "In transaction" filter → GREEN items (paise receive kiye)
+  /// - "Out transaction" filter → RED items (maal/paise diye)
   List<SearchResultItem> _applyTransactionFilter(List<SearchResultItem> results) {
     debugPrint('🎯 _applyTransactionFilter()');
     debugPrint('   Filter value: "${transactionFilter.value}"');
     debugPrint('   Input items: ${results.length}');
 
-    // Show all items with their balanceType
-    for (var item in results) {
-      debugPrint('   → ${item.name}: balance=₹${item.balance}, balanceType=${item.balanceType}');
-    }
-
     List<SearchResultItem> filtered;
     switch (transactionFilter.value) {
       case 'in_transaction':
-        // IN = Positive balance (currentBalance >= 0)
-        filtered = results.where((item) => item.balanceType == 'IN').toList();
-        debugPrint('   ✅ Filtering for IN (positive balance)');
-        debugPrint('   ✅ Found ${filtered.length} items with balanceType == "IN"');
-        for (var item in filtered) {
-          debugPrint('      ✓ ${item.name}: ₹${item.balance} (${item.balanceType})');
-        }
+        // IN filter = Show GREEN items = Negative balance = balanceType 'OUT'
+        filtered = results.where((item) => item.balanceType == 'OUT').toList();
+        debugPrint('   ✅ Filtering for IN (negative balance = GREEN)');
+        debugPrint('   ✅ Found ${filtered.length} items');
         return filtered;
 
       case 'out_transaction':
-        // OUT = Negative balance (currentBalance < 0)
-        filtered = results.where((item) => item.balanceType == 'OUT').toList();
-        debugPrint('   ❌ Filtering for OUT (negative balance)');
-        debugPrint('   ❌ Found ${filtered.length} items with balanceType == "OUT"');
-        for (var item in filtered) {
-          debugPrint('      ✓ ${item.name}: ₹${item.balance} (${item.balanceType})');
-        }
+        // OUT filter = Show RED items = Positive balance = balanceType 'IN'
+        filtered = results.where((item) => item.balanceType == 'IN').toList();
+        debugPrint('   ❌ Filtering for OUT (positive balance = RED)');
+        debugPrint('   ❌ Found ${filtered.length} items');
         return filtered;
 
       case 'all_transaction':
@@ -768,7 +904,6 @@ class SearchController extends GetxController {
   // ============================================================
 
   /// Clear search and reset state for fresh start
-  /// Resets all filters to defaults so RecentSearchesWidget shows first
   void clearSearch() {
     searchQuery.value = '';
     searchResults.clear();
@@ -823,5 +958,99 @@ class SearchController extends GetxController {
       return '$count ${count == 1 ? 'result' : 'results'} (filtered)';
     }
     return '$count ${count == 1 ? 'result' : 'results'} found';
+  }
+
+  // ============================================================
+  // FILTERED GETTERS (like LedgerController)
+  // ============================================================
+
+  /// Get filtered ledgers based on active filters (without search query)
+  /// This is used to display all data by default (like ledger_screen)
+  List<LedgerModel> get filteredLedgers {
+    var result = allLedgers.toList();
+    result = _applyDateFilterToLedgers(result);
+    result = _applyTransactionFilterToLedgers(result);
+    result = _applySortingToLedgers(result);
+    return result;
+  }
+
+  /// Apply date filter to ledgers
+  List<LedgerModel> _applyDateFilterToLedgers(List<LedgerModel> ledgers) {
+    if (dateFilter.value == 'all_time') return ledgers;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return ledgers.where((ledger) {
+      final itemDate = ledger.updatedAt ?? ledger.createdAt;
+      if (itemDate == null) return true;
+
+      final itemDateOnly = DateTime(itemDate.year, itemDate.month, itemDate.day);
+
+      switch (dateFilter.value) {
+        case 'today':
+          return itemDateOnly.isAtSameMomentAs(today);
+        case 'yesterday':
+          final yesterday = today.subtract(const Duration(days: 1));
+          return itemDateOnly.isAtSameMomentAs(yesterday);
+        case 'older_week':
+          final weekAgo = today.subtract(const Duration(days: 7));
+          return itemDateOnly.isBefore(weekAgo);
+        case 'older_month':
+          final monthAgo = DateTime(now.year, now.month - 1, now.day);
+          return itemDateOnly.isBefore(monthAgo);
+        case 'custom':
+          if (customDateFrom.value != null && customDateTo.value != null) {
+            return itemDateOnly.isAfter(customDateFrom.value!.subtract(const Duration(days: 1))) &&
+                   itemDateOnly.isBefore(customDateTo.value!.add(const Duration(days: 1)));
+          }
+          return true;
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
+  /// Apply transaction filter to ledgers (IN/OUT based on currentBalance)
+  /// ✅ KHATABOOK LOGIC: IN filter = GREEN = negative balance, OUT filter = RED = positive balance
+  List<LedgerModel> _applyTransactionFilterToLedgers(List<LedgerModel> ledgers) {
+    switch (transactionFilter.value) {
+      case 'in_transaction':
+        // IN = Negative balance (< 0) = GREEN items
+        return ledgers.where((l) => l.currentBalance < 0).toList();
+      case 'out_transaction':
+        // OUT = Positive balance (> 0) = RED items
+        return ledgers.where((l) => l.currentBalance > 0).toList();
+      case 'all_transaction':
+      default:
+        return ledgers;
+    }
+  }
+
+  /// Apply sorting to ledgers
+  List<LedgerModel> _applySortingToLedgers(List<LedgerModel> ledgers) {
+    final isAsc = sortOrder.value == SearchSortOrder.ascending;
+
+    switch (sortBy.value) {
+      case SearchSortBy.name:
+        ledgers.sort((a, b) => isAsc
+            ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
+            : b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        break;
+      case SearchSortBy.balance:
+        ledgers.sort((a, b) => isAsc
+            ? a.currentBalance.compareTo(b.currentBalance)
+            : b.currentBalance.compareTo(a.currentBalance));
+        break;
+      case SearchSortBy.recent:
+        ledgers.sort((a, b) {
+          final dateA = a.updatedAt ?? a.createdAt ?? DateTime(1970);
+          final dateB = b.updatedAt ?? b.createdAt ?? DateTime(1970);
+          return isAsc ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+        });
+        break;
+    }
+
+    return ledgers;
   }
 }

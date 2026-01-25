@@ -26,6 +26,15 @@ class CustomerStatementController extends GetxController {
   String partyTypeLabel = 'Customer';
 
   // ============================================================
+  // PAGINATION VARIABLES
+  // ============================================================
+  final ScrollController scrollController = ScrollController();
+  final currentPage = 1.obs;
+  final hasMoreData = true.obs;
+  final isLoadingMore = false.obs;
+  final int pageLimit = 20;
+
+  // ============================================================
   // DASHBOARD API DATA GETTERS
   // ============================================================
 
@@ -124,8 +133,73 @@ class CustomerStatementController extends GetxController {
 
     debugPrint('📊 CustomerStatementController initialized for: $partyType');
 
+    // Setup scroll listener for infinite scrolling
+    _setupScrollListener();
+
     // Fetch statement data and dashboard data
     fetchAllData();
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  /// Setup scroll listener for infinite scrolling
+  void _setupScrollListener() {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200) {
+        // User is near the bottom, load more data
+        loadMoreData();
+      }
+    });
+  }
+
+  /// Load more data for pagination
+  Future<void> loadMoreData() async {
+    // Don't load if already loading or no more data
+    if (isLoadingMore.value || !hasMoreData.value || isLoading.value) return;
+
+    try {
+      isLoadingMore.value = true;
+      final nextPage = currentPage.value + 1;
+
+      debugPrint('📡 Loading more $partyType (Page: $nextPage)...');
+
+      final newData = await _statementApi.getCustomerStatement(
+        partyType: partyType,
+        page: nextPage,
+        limit: pageLimit,
+      );
+
+      if (newData.customers.isEmpty) {
+        hasMoreData.value = false;
+        debugPrint('📭 No more data available');
+      } else {
+        // Append new customers to existing list
+        final existingCustomers = statementData.value?.customers ?? [];
+        final allCustomers = [...existingCustomers, ...newData.customers];
+
+        statementData.value = CustomerStatementModel(
+          customers: allCustomers,
+        );
+
+        currentPage.value = nextPage;
+
+        // Check if we got less than limit (means no more data)
+        if (newData.customers.length < pageLimit) {
+          hasMoreData.value = false;
+        }
+
+        debugPrint('✅ Loaded ${newData.customers.length} more items. Total: ${allCustomers.length}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading more data: $e');
+    } finally {
+      isLoadingMore.value = false;
+    }
   }
 
   /// Fetch all data (statement + dashboard)
@@ -156,22 +230,34 @@ class CustomerStatementController extends GetxController {
     }
   }
 
-  /// Fetch statement data
+  /// Fetch statement data with pagination
   Future<void> fetchStatement() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-      debugPrint('📡 Fetching $partyType statement...');
+      // Reset pagination
+      currentPage.value = 1;
+      hasMoreData.value = true;
+
+      debugPrint('📡 Fetching $partyType statement (Page: 1)...');
 
       final data = await _statementApi.getCustomerStatement(
         partyType: partyType,
+        page: 1,
+        limit: pageLimit,
       );
 
       statementData.value = data;
 
+      // Check if we got less than limit (means no more data)
+      if (data.customers.length < pageLimit) {
+        hasMoreData.value = false;
+      }
+
       debugPrint('✅ Statement loaded successfully');
       debugPrint('   - Total customers in list: ${data.customers.length}');
+      debugPrint('   - Has more data: ${hasMoreData.value}');
     } catch (e) {
       debugPrint('❌ Error fetching statement: $e');
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
@@ -180,8 +266,11 @@ class CustomerStatementController extends GetxController {
     }
   }
 
-  /// Refresh statement data and dashboard data
+  /// Refresh statement data and dashboard data (resets pagination)
   Future<void> refreshStatement() async {
+    // Reset pagination on refresh
+    currentPage.value = 1;
+    hasMoreData.value = true;
     await fetchAllData();
   }
 
@@ -321,15 +410,15 @@ class CustomerStatementController extends GetxController {
   }
 
   /// Apply transaction filter (IN/OUT)
-  /// ✅ FIX: Use balanceType for filtering
+  /// ✅ FIX: Swap filter logic - IN filter shows OUT balanceType and vice versa
   List<CustomerStatementItem> _applyTransactionFilter(List<CustomerStatementItem> customers) {
     switch (transactionFilter.value) {
       case 'in_transaction':
-        // IN = Positive (Receivable) - Customer owes you
-        return customers.where((c) => c.balanceType == 'IN').toList();
-      case 'out_transaction':
-        // OUT = Negative (Payable) - You owe customer
+        // IN filter = Show customers with OUT balanceType (negative balance - you owe them)
         return customers.where((c) => c.balanceType == 'OUT').toList();
+      case 'out_transaction':
+        // OUT filter = Show customers with IN balanceType (positive balance - they owe you)
+        return customers.where((c) => c.balanceType == 'IN').toList();
       case 'all_transaction':
       default:
         return customers;

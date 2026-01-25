@@ -144,11 +144,32 @@ class SearchApi {
         throw Exception(_apiFetcher.errorMessage);
       }
 
+      // DEBUG: Print raw response type
+      debugPrint('');
+      debugPrint('🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴');
+      debugPrint('🔴 RAW API RESPONSE TYPE: ${_apiFetcher.data.runtimeType}');
+      debugPrint('🔴 RAW API RESPONSE: ${_apiFetcher.data}');
+      debugPrint('🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴');
+      debugPrint('');
+
       List<LedgerModel> ledgerList = [];
       int totalCount = 0;
 
       if (_apiFetcher.data is Map && _apiFetcher.data['data'] is List) {
         final dataList = _apiFetcher.data['data'] as List;
+
+        // DEBUG: Print first item fields
+        if (dataList.isNotEmpty) {
+          debugPrint('');
+          debugPrint('🟢🟢🟢 FIRST LEDGER RAW DATA 🟢🟢🟢');
+          final firstItem = dataList[0] as Map<String, dynamic>;
+          firstItem.forEach((key, value) {
+            debugPrint('   $key: $value');
+          });
+          debugPrint('🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢');
+          debugPrint('');
+        }
+
         ledgerList = dataList
             .map((json) => LedgerModel.fromJson(json as Map<String, dynamic>))
             .toList();
