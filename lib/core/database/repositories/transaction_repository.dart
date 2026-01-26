@@ -660,11 +660,20 @@ class TransactionRepository {
 
       // 2. Check if there's a matching UNSYNCED local transaction
       // Match by: amount, type, and approximate date (same day)
+      // Use fuzzy matching to handle floating point precision issues
       Transaction? matchingLocal;
       for (final local in unsyncedLocal) {
-        final sameAmount = local.transactionAmount == t.amount;
+        // Fuzzy amount comparison (within 0.01 tolerance for floating point)
+        final amountDiff = (local.transactionAmount - t.amount).abs();
+        final sameAmount = amountDiff < 0.01;
+
         final sameType = local.transactionType == t.transactionType;
-        final sameDescription = (local.comments ?? '') == (t.description ?? '');
+
+        // Flexible description matching (both null or both empty or exact match)
+        final localDesc = (local.comments ?? '').trim();
+        final apiDesc = (t.description ?? '').trim();
+        final sameDescription = localDesc == apiDesc ||
+                                (localDesc.isEmpty && apiDesc.isEmpty);
 
         // Check if same day (API might have slightly different timestamp)
         final localDate = local.transactionDate;
@@ -673,9 +682,43 @@ class TransactionRepository {
                         localDate.month == apiDate.month &&
                         localDate.day == apiDate.day;
 
+        debugPrint('💾 Matching check for local ${local.id} vs API ${t.id}:');
+        debugPrint('   - sameAmount: $sameAmount (local: ${local.transactionAmount}, api: ${t.amount}, diff: $amountDiff)');
+        debugPrint('   - sameType: $sameType (local: ${local.transactionType}, api: ${t.transactionType})');
+        debugPrint('   - sameDay: $sameDay (local: $localDate, api: $apiDate)');
+        debugPrint('   - sameDescription: $sameDescription (local: "$localDesc", api: "$apiDesc")');
+
         if (sameAmount && sameType && sameDay && sameDescription) {
+          debugPrint('✅ MATCH FOUND: local ${local.id} matches API ${t.id}');
           matchingLocal = local;
           break;
+        }
+      }
+
+      // If no exact match found, try fuzzy matching (looser criteria)
+      if (matchingLocal == null) {
+        debugPrint('💾 No exact match, trying fuzzy match...');
+        for (final local in unsyncedLocal) {
+          // Looser amount comparison (within 1.0 tolerance)
+          final amountDiff = (local.transactionAmount - t.amount).abs();
+          final similarAmount = amountDiff < 1.0;
+
+          final sameType = local.transactionType == t.transactionType;
+
+          // Same day check
+          final localDate = local.transactionDate;
+          final apiDate = transactionDate;
+          final sameDay = localDate.year == apiDate.year &&
+                          localDate.month == apiDate.month &&
+                          localDate.day == apiDate.day;
+
+          // For fuzzy match, just need type + day + similar amount
+          if (similarAmount && sameType && sameDay) {
+            debugPrint('✅ FUZZY MATCH FOUND: local ${local.id} ≈ API ${t.id}');
+            debugPrint('   - Amount diff: $amountDiff');
+            matchingLocal = local;
+            break;
+          }
         }
       }
 

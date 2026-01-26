@@ -213,6 +213,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -221,7 +223,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -256,6 +258,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -264,7 +268,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -298,6 +302,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -306,7 +312,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -340,6 +346,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -348,7 +356,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -382,6 +390,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -390,7 +400,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -431,13 +441,15 @@ class AppText {
       letterSpacing: letterSpacing,
       decoration: decoration,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -472,6 +484,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -480,7 +494,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -520,13 +534,15 @@ class AppText {
       letterSpacing: letterSpacing,
       decoration: decoration,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -565,13 +581,15 @@ class AppText {
       letterSpacing: letterSpacing,
       decoration: decoration,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -611,13 +629,15 @@ class AppText {
       letterSpacing: letterSpacing,
       decoration: decoration,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -656,6 +676,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -664,7 +686,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -704,13 +726,15 @@ class AppText {
       letterSpacing: letterSpacing,
       decoration: decoration,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: finalStyle,
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -745,6 +769,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -753,7 +779,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -788,6 +814,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -796,7 +824,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -830,6 +858,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -838,7 +868,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -877,6 +907,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -885,7 +917,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -919,6 +951,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -927,7 +961,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -962,6 +996,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -970,7 +1006,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1005,6 +1041,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1013,7 +1051,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1052,6 +1090,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1060,7 +1100,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1095,6 +1135,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1103,7 +1145,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1138,6 +1180,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1146,7 +1190,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1181,6 +1225,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1189,7 +1235,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1224,6 +1270,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1232,7 +1280,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1272,6 +1320,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // For buttons, default to center, but right for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : TextAlign.center);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1280,7 +1330,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign ?? TextAlign.center,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1316,6 +1366,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // For dialog buttons, default to center, but right for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : TextAlign.center);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1324,7 +1376,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign ?? TextAlign.center,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1359,6 +1411,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1367,7 +1421,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1402,6 +1456,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1410,7 +1466,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1444,6 +1500,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1452,7 +1510,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1487,6 +1545,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1495,7 +1555,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1530,6 +1590,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1538,7 +1600,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1574,6 +1636,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1582,7 +1646,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1621,6 +1685,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1629,7 +1695,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }
@@ -1664,6 +1730,8 @@ class AppText {
       showDecimals: showDecimals,
       useCompactCrore: useCompactCrore,
     );
+    // Default to right alignment for amounts
+    final effectiveAlign = textAlign ?? (amount != null ? TextAlign.right : null);
     return AutoSizeText(
       displayText,
       style: letterSpacing != null
@@ -1672,7 +1740,7 @@ class AppText {
       maxLines: maxLines,
       minFontSize: minFontSize,
       overflow: overflow,
-      textAlign: textAlign,
+      textAlign: effectiveAlign,
       group: group,
     );
   }

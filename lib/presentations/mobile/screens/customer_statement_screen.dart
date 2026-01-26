@@ -279,10 +279,12 @@ class CustomerStatementScreen extends StatelessWidget {
                       ),
                       SizedBox(height: responsive.hp(0.5)),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
                         children: [
                           Padding(
-                            padding: EdgeInsets.only(top: 6.0),
+                            padding: EdgeInsets.only(top: 8.0),
                             child: SvgPicture.asset(
                               AppIcons.vectoeIc3,
                               width: responsive.iconSizeSmall,
@@ -360,10 +362,12 @@ class CustomerStatementScreen extends StatelessWidget {
                       ),
                       SizedBox(height: responsive.hp(0.5)),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
                         children: [
                           Padding(
-                            padding: EdgeInsets.only(top: 6.0),
+                            padding: EdgeInsets.only(top: 8.0),
                             child: SvgPicture.asset(
                               AppIcons.vectoeIc3,
                               width: responsive.iconSizeSmall,

@@ -703,8 +703,9 @@ class LedgerDashboardScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: responsive.hp(0.5)),
-          // Use Row for smaller rupee symbol and amount with AutoSizeText
+          // Use Row for smaller rupee symbol and amount - right aligned together
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
@@ -714,14 +715,14 @@ class LedgerDashboardScreen extends StatelessWidget {
                 color: isDark ? AppColors.white : AppColorsLight.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
-              // Amount with AppText for consistent box size and font
+              // Amount with AppText - flexible to shrink if needed
               Flexible(
-                child: AppText.displayMedium(
+                child: AppText.searchbar2(
                   Formatters.formatAmountWithCommas(amount.toStringAsFixed(2)),
                   color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   maxLines: 1,
-                  minFontSize: 10,
+                  minFontSize: 9,
                 ),
               ),
             ],
@@ -963,7 +964,7 @@ class LedgerDashboardScreen extends StatelessWidget {
               color: isDark ? AppColors.white : AppColorsLight.black,
               fontWeight: FontWeight.w400,
               maxLines: 1,
-              minFontSize: 9,
+              minFontSize: 8,
               textAlign: TextAlign.center,
             ),
           ),

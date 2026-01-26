@@ -249,6 +249,20 @@ class SyncService extends GetxService {
               serverId,
             );
             debugPrint('✅ Transaction linked with serverId: $serverId');
+
+            // Mark ledger for refresh even when serverId is returned
+            try {
+              final payload = jsonDecode(item.payload);
+              if (payload is Map && payload['ledgerId'] != null) {
+                final ledgerId = payload['ledgerId'] as int;
+                markLedgerNeedsRefresh(ledgerId);
+              }
+            } catch (e) {
+              // Ignore
+            }
+
+            // Update last sync time
+            _lastTransactionSyncTime = DateTime.now();
           }
         } else {
           // Server didn't return ID - mark for refresh
@@ -259,8 +273,23 @@ class SyncService extends GetxService {
           // Store the localId for tracking - the caching logic will link it later
           if (item.targetTable == 'transactions') {
             _pendingTransactionLinks.add(item.localId!);
+
+            // Extract ledgerId from payload to mark for refresh
+            try {
+              final payload = jsonDecode(item.payload);
+              if (payload is Map && payload['ledgerId'] != null) {
+                final ledgerId = payload['ledgerId'] as int;
+                markLedgerNeedsRefresh(ledgerId);
+                debugPrint('🔄 Marked ledger $ledgerId for refresh after transaction sync');
+              }
+            } catch (e) {
+              debugPrint('⚠️ Could not extract ledgerId from payload: $e');
+            }
           }
         }
+
+        // Update last sync time
+        _lastTransactionSyncTime = DateTime.now();
       } else if (item.recordId != null) {
         // Update existing record as synced
         if (item.targetTable == 'ledgers') {
@@ -284,6 +313,42 @@ class SyncService extends GetxService {
   /// Clear pending transaction links after refresh
   void clearPendingTransactionLinks() {
     _pendingTransactionLinks.clear();
+  }
+
+  // 🔄 Track which ledgers need refresh after sync
+  // Controllers check this when they become active
+  final Set<int> _ledgersNeedingRefresh = {};
+
+  /// Mark a ledger as needing refresh (called after sync)
+  void markLedgerNeedsRefresh(int ledgerId) {
+    _ledgersNeedingRefresh.add(ledgerId);
+    debugPrint('🔄 Marked ledger $ledgerId as needing refresh');
+  }
+
+  /// Check if a ledger needs refresh
+  bool doesLedgerNeedRefresh(int ledgerId) {
+    return _ledgersNeedingRefresh.contains(ledgerId);
+  }
+
+  /// Clear refresh flag for a ledger (called after controller refreshes)
+  void clearLedgerRefreshFlag(int ledgerId) {
+    _ledgersNeedingRefresh.remove(ledgerId);
+    debugPrint('✅ Cleared refresh flag for ledger $ledgerId');
+  }
+
+  /// Get all ledgers needing refresh
+  Set<int> get ledgersNeedingRefresh => Set.from(_ledgersNeedingRefresh);
+
+  // 🕐 Track last sync time for transactions
+  DateTime? _lastTransactionSyncTime;
+
+  /// Get last transaction sync time
+  DateTime? get lastTransactionSyncTime => _lastTransactionSyncTime;
+
+  /// Check if sync happened after a given time
+  bool didSyncHappenAfter(DateTime time) {
+    if (_lastTransactionSyncTime == null) return false;
+    return _lastTransactionSyncTime!.isAfter(time);
   }
 
   /// Retry failed items

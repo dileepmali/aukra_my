@@ -72,6 +72,9 @@ class LedgerDetailController extends GetxController {
   // Ledger ID
   late final int ledgerId;
 
+  // Track when data was last fetched
+  DateTime? _lastFetchTime;
+
   @override
   void onInit() {
     super.onInit();
@@ -89,13 +92,38 @@ class LedgerDetailController extends GetxController {
     _registerSyncCallback();
 
     if (ledgerId > 0) {
-      // Fetch data on init - use refreshAll to ensure running balance calculation
-      refreshAll();
+      // Check if this ledger needs refresh (sync happened while we were away)
+      _checkAndRefreshIfNeeded();
     } else {
       debugPrint('❌ Invalid ledger ID provided');
       isLoading.value = false;
       isTransactionsLoading.value = false;
     }
+  }
+
+  /// Check if ledger needs refresh due to sync that happened while controller was inactive
+  void _checkAndRefreshIfNeeded() {
+    try {
+      if (Get.isRegistered<SyncService>()) {
+        final syncService = SyncService.instance;
+
+        // Check if this ledger was marked for refresh
+        if (syncService.doesLedgerNeedRefresh(ledgerId)) {
+          debugPrint('🔄 Ledger $ledgerId marked for refresh - sync happened while we were away');
+          syncService.clearLedgerRefreshFlag(ledgerId);
+        }
+
+        // Check if sync happened after our last fetch
+        if (_lastFetchTime != null && syncService.didSyncHappenAfter(_lastFetchTime!)) {
+          debugPrint('🔄 Sync happened after last fetch - forcing refresh');
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Could not check sync status: $e');
+    }
+
+    // Always fetch data on init
+    refreshAll();
   }
 
   /// Callback function for sync completion
@@ -152,6 +180,7 @@ class LedgerDetailController extends GetxController {
 
   @override
   void onClose() {
+    _unregisterSyncCallback();
     scrollController.dispose();
     super.onClose();
   }
@@ -532,8 +561,53 @@ class LedgerDetailController extends GetxController {
       fetchTransactions(),
     ]);
 
+    // Track when data was last fetched
+    _lastFetchTime = DateTime.now();
+
+    // Clear refresh flag for this ledger if set
+    try {
+      if (Get.isRegistered<SyncService>()) {
+        SyncService.instance.clearLedgerRefreshFlag(ledgerId);
+      }
+    } catch (e) {
+      // Ignore
+    }
+
     debugPrint('✅ refreshAll() completed');
     debugPrint('📊 Transaction count AFTER refresh: ${transactionHistory.value?.count ?? 0}');
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+
+    // Check if refresh is needed when screen becomes visible
+    // This handles cases where controller was reused (not recreated)
+    _checkForPendingRefresh();
+  }
+
+  /// Check for pending refresh when screen becomes ready
+  void _checkForPendingRefresh() {
+    try {
+      if (!Get.isRegistered<SyncService>()) return;
+
+      final syncService = SyncService.instance;
+
+      // If ledger is marked for refresh, do it now
+      if (syncService.doesLedgerNeedRefresh(ledgerId)) {
+        debugPrint('🔄 onReady: Ledger $ledgerId needs refresh - triggering refreshAll()');
+        refreshAll();
+        return;
+      }
+
+      // If sync happened after our last fetch, refresh
+      if (_lastFetchTime != null && syncService.didSyncHappenAfter(_lastFetchTime!)) {
+        debugPrint('🔄 onReady: Sync happened after last fetch - triggering refreshAll()');
+        refreshAll();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Could not check pending refresh: $e');
+    }
   }
 
   /// Deactivate ledger
