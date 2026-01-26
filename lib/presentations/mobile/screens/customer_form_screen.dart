@@ -205,7 +205,7 @@ class CustomerFormScreen extends StatelessWidget {
                                 keyboardType: TextInputType.number,
                                 maxLength: 6,
                                 textInputAction: TextInputAction.next,
-                                onSubmitted: (_) => controller.addressFocusNode.requestFocus(),
+                                onSubmitted: (_) => controller.interestRateFocusNode.requestFocus(),
                               ),
                             ],
                           ),
@@ -214,19 +214,19 @@ class CustomerFormScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(2)),
 
-                    // Full Address Field
-                    _buildLabel(context, 'Full address', responsive, isDark),
-                    SizedBox(height: responsive.hp(0.8)),
-                    CustomTextField(
-                      controller: controller.addressController,
-                      focusNode: controller.addressFocusNode,
-                      keyboardType: TextInputType.streetAddress,
-                      textCapitalization: TextCapitalization.sentences,
-                      maxLines: 2,
-                      textInputAction: TextInputAction.next,
-                      onSubmitted: (_) => controller.interestRateFocusNode.requestFocus(),
-                    ),
-                    SizedBox(height: responsive.hp(2)),
+                    // TODO: Full Address Field - Disabled for now
+                    // _buildLabel(context, 'Full address', responsive, isDark),
+                    // SizedBox(height: responsive.hp(0.8)),
+                    // CustomTextField(
+                    //   controller: controller.addressController,
+                    //   focusNode: controller.addressFocusNode,
+                    //   keyboardType: TextInputType.streetAddress,
+                    //   textCapitalization: TextCapitalization.sentences,
+                    //   maxLines: 2,
+                    //   textInputAction: TextInputAction.next,
+                    //   onSubmitted: (_) => controller.interestRateFocusNode.requestFocus(),
+                    // ),
+                    // SizedBox(height: responsive.hp(2)),
 
                     // Annual Interest Rate Field
                     _buildLabel(context, 'Annual interest rate', responsive, isDark),
@@ -296,15 +296,14 @@ class CustomerFormScreen extends StatelessWidget {
 
                     // Quick Credit Limit Chips
                     Obx(() => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildCreditLimitChip(context, '10,000.00', 10000, controller, responsive, isDark),
-                        SizedBox(width: responsive.wp(2)),
-                        _buildCreditLimitChip(context, '20,000.00', 20000, controller, responsive, isDark),
-                        SizedBox(width: responsive.wp(2)),
-                        _buildCreditLimitChip(context, '50,000.00', 50000, controller, responsive, isDark),
-                        SizedBox(width: responsive.wp(2)),
-                        _buildCreditLimitChip(context, '1,00,000.00', 100000, controller, responsive, isDark),
+                        Expanded(child: _buildCreditLimitChip(context, '10,000', 10000, controller, responsive, isDark)),
+                        SizedBox(width: responsive.wp(1.5)),
+                        Expanded(child: _buildCreditLimitChip(context, '20,000', 20000, controller, responsive, isDark)),
+                        SizedBox(width: responsive.wp(1.5)),
+                        Expanded(child: _buildCreditLimitChip(context, '50,000', 50000, controller, responsive, isDark)),
+                        SizedBox(width: responsive.wp(1.5)),
+                        Expanded(child: _buildCreditLimitChip(context, '1,00,000', 100000, controller, responsive, isDark)),
                       ],
                     )),
                     SizedBox(height: responsive.hp(3)),
@@ -466,27 +465,29 @@ class CustomerFormScreen extends StatelessWidget {
       onTap: () => controller.selectCreditLimit(amount),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: responsive.wp(2.5),
+          horizontal: responsive.wp(1),
           vertical: responsive.hp(1),
         ),
         decoration: BoxDecoration(
           gradient: isDark
-        ? LinearGradient(
-        colors: [AppColors.containerLight, AppColors.containerDark],
-          begin: Alignment.topRight,
-          end: Alignment.bottomCenter,
-        )
-            : LinearGradient(
-        colors: [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
-        begin: Alignment.topRight,
-        end: Alignment.bottomCenter,
-      ),
+              ? LinearGradient(
+                  colors: [AppColors.containerLight, AppColors.containerDark],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomCenter,
+                )
+              : LinearGradient(
+                  colors: [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomCenter,
+                ),
           borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
         ),
-        child: AppText.headlineLarge1(
-          label,
-          color: isDark ? Colors.white : AppColorsLight.black,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+        child: Center(
+          child: AppText.headlineLarge1(
+            label,
+            color: isDark ? Colors.white : AppColorsLight.black,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
         ),
       ),
     );

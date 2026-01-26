@@ -230,7 +230,7 @@ class AppBarBuilder {
                           ),
                           child: SvgPicture.asset(
                             // Show plus icon when no filter is active, filter icon when active
-                            isFilterActive ? AppIcons.filtersIc : AppIcons.plusIc,
+                            isFilterActive ? AppIcons.filtersIc : AppIcons.filtersIc,
                             color: isDark ? Colors.white : AppColorsLight.iconPrimary,
                           ),
                         ),

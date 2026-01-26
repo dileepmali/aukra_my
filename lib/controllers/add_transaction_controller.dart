@@ -6,6 +6,8 @@ import '../models/transaction_model.dart';
 import '../core/api/ledger_transaction_api.dart';
 import '../core/api/image_upload_api.dart';
 import '../core/api/auth_storage.dart';
+import '../core/database/repositories/transaction_repository.dart';
+import '../core/services/connectivity_service.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import '../core/services/rate_limiter_service.dart';
@@ -48,6 +50,27 @@ class AddTransactionController extends GetxController {
   // API instances
   final LedgerTransactionApi _transactionApi = LedgerTransactionApi();
   final ImageUploadApi _imageUploadApi = ImageUploadApi();
+
+  // 🗄️ Offline-first repository
+  TransactionRepository? _transactionRepository;
+  TransactionRepository get transactionRepository {
+    if (_transactionRepository == null) {
+      if (Get.isRegistered<TransactionRepository>()) {
+        _transactionRepository = Get.find<TransactionRepository>();
+        debugPrint('✅ AddTransactionController: TransactionRepository found via GetX');
+      } else {
+        debugPrint('⚠️ AddTransactionController: TransactionRepository NOT registered - creating new instance');
+        _transactionRepository = TransactionRepository();
+      }
+    }
+    return _transactionRepository!;
+  }
+
+  // Check if device is online
+  bool get isOnline {
+    if (!Get.isRegistered<ConnectivityService>()) return true;
+    return ConnectivityService.instance.isConnected.value;
+  }
 
   @override
   void onInit() {
@@ -352,7 +375,54 @@ class AddTransactionController extends GetxController {
         throw Exception('Merchant ID not found. Please login again.');
       }
 
-      // Upload images if any
+      // Prepare transaction data
+      final transactionAmount = double.parse(amountController.text.trim());
+      final transactionDate = selectedDate.value.toUtc().toIso8601String();
+      final comments = noteController.text.trim();
+
+      debugPrint('💰 Creating transaction (Online: $isOnline):');
+      debugPrint('   - Ledger ID: $ledgerId');
+      debugPrint('   - Merchant ID: $merchantId');
+      debugPrint('   - Amount: $transactionAmount');
+      debugPrint('   - Type: ${selectedType.value}');
+      debugPrint('   - Account Type: $accountType');
+      debugPrint('   - Date: $transactionDate');
+
+      // 🗄️ OFFLINE-FIRST: Check connectivity
+      if (!isOnline) {
+        debugPrint('📴 OFFLINE MODE - Saving transaction locally...');
+
+        // Create transaction model (without images for offline)
+        final transaction = TransactionModel(
+          ledgerId: ledgerId!,
+          merchantId: merchantId,
+          transactionAmount: transactionAmount,
+          transactionType: selectedType.value,
+          transactionDate: transactionDate,
+          comments: comments,
+          partyMerchantAction: 'VIEW',
+          uploadedKeys: null, // Images not supported offline
+          securityKey: pin,
+        );
+
+        // Save to local DB and queue for sync
+        await transactionRepository.createTransaction(transaction);
+
+        // Success - Show offline success message
+        AdvancedErrorService.showSuccess(
+          'Transaction saved offline. Will sync when online.',
+          type: SuccessType.snackbar,
+          customDuration: Duration(seconds: 3),
+        );
+
+        // Navigate back after delay
+        Future.delayed(Duration(seconds: 1), () {
+          Get.back(result: true);
+        });
+        return;
+      }
+
+      // 🌐 ONLINE MODE - Upload images and call API
       List<int> uploadedKeys = [];
       if (selectedImages.isNotEmpty) {
         debugPrint('📤 Uploading ${selectedImages.length} images...');
@@ -361,19 +431,6 @@ class AddTransactionController extends GetxController {
         debugPrint('✅ Uploaded ${uploadedKeys.length} images: $uploadedKeys');
       }
 
-      // Prepare transaction data
-      final transactionAmount = double.parse(amountController.text.trim());
-      final transactionDate = selectedDate.value.toUtc().toIso8601String();
-      final comments = noteController.text.trim();
-
-      debugPrint('💰 Creating transaction:');
-      debugPrint('   - Ledger ID: $ledgerId');
-      debugPrint('   - Merchant ID: $merchantId');
-      debugPrint('   - Amount: $transactionAmount');
-      debugPrint('   - Type: ${selectedType.value}');
-      debugPrint('   - Account Type: $accountType');
-      debugPrint('   - Date: $transactionDate');
-
       // Create transaction model
       final transaction = TransactionModel(
         ledgerId: ledgerId!,
@@ -381,7 +438,7 @@ class AddTransactionController extends GetxController {
         transactionAmount: transactionAmount,
         transactionType: selectedType.value,
         transactionDate: transactionDate,
-        comments: comments, // Send empty string if no comment, not null
+        comments: comments,
         partyMerchantAction: 'VIEW',
         uploadedKeys: uploadedKeys.isNotEmpty ? uploadedKeys : null,
         securityKey: pin,
@@ -414,6 +471,49 @@ class AddTransactionController extends GetxController {
     } catch (e) {
       SecureLogger.error('Transaction Error: $e');
 
+      // 🗄️ OFFLINE FALLBACK: If network error, save locally
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('socket') ||
+          errorStr.contains('network') ||
+          errorStr.contains('connection') ||
+          errorStr.contains('internet')) {
+        debugPrint('📴 Network error - falling back to offline save...');
+
+        try {
+          final merchantId = await AuthStorage.getMerchantId();
+          final transactionAmount = double.parse(amountController.text.trim());
+          final transactionDate = selectedDate.value.toUtc().toIso8601String();
+          final comments = noteController.text.trim();
+
+          final transaction = TransactionModel(
+            ledgerId: ledgerId!,
+            merchantId: merchantId ?? 0,
+            transactionAmount: transactionAmount,
+            transactionType: selectedType.value,
+            transactionDate: transactionDate,
+            comments: comments,
+            partyMerchantAction: 'VIEW',
+            uploadedKeys: null,
+            securityKey: pin,
+          );
+
+          await transactionRepository.createTransaction(transaction);
+
+          AdvancedErrorService.showSuccess(
+            'Saved offline. Will sync when online.',
+            type: SuccessType.snackbar,
+            customDuration: Duration(seconds: 3),
+          );
+
+          Future.delayed(Duration(seconds: 1), () {
+            Get.back(result: true);
+          });
+          return;
+        } catch (offlineError) {
+          SecureLogger.error('Offline save failed: $offlineError');
+        }
+      }
+
       // Show error using AdvancedErrorService
       AdvancedErrorService.showError(
         e.toString().replaceAll('Exception: ', ''),
@@ -428,7 +528,7 @@ class AddTransactionController extends GetxController {
     }
   }
 
-  // Update existing transaction
+  // Update existing transaction - OFFLINE FIRST
   Future<void> updateTransaction(String pin) async {
     // ✅ Validation is now done in the screen BEFORE PIN dialog opens
     // No need to validate again here
@@ -446,13 +546,18 @@ class AddTransactionController extends GetxController {
     isSubmitting.value = true;
 
     try {
-      // Upload images if any new images are added
+      // Upload images if any new images are added (only when online)
       List<int> uploadedKeys = [];
-      if (selectedImages.isNotEmpty) {
+      final currentlyOnline = isOnline; // Use the getter
+
+      if (selectedImages.isNotEmpty && currentlyOnline) {
         debugPrint('📤 Uploading ${selectedImages.length} images...');
         final imageFiles = selectedImages.map((xfile) => File(xfile.path)).toList();
         uploadedKeys = await _imageUploadApi.uploadMultipleImages(imageFiles);
         debugPrint('✅ Uploaded ${uploadedKeys.length} images: $uploadedKeys');
+      } else if (selectedImages.isNotEmpty && !currentlyOnline) {
+        debugPrint('📴 Offline - Images will be uploaded when online');
+        // TODO: Queue images for upload when online
       }
 
       // Prepare transaction data
@@ -460,33 +565,34 @@ class AddTransactionController extends GetxController {
       final transactionDate = selectedDate.value.toUtc().toIso8601String();
       final comments = noteController.text.trim();
 
-      debugPrint('💰 Updating transaction:');
+      debugPrint('💰 Updating transaction (Online: $currentlyOnline):');
       debugPrint('   - Transaction ID: $transactionId');
       debugPrint('   - Amount: $transactionAmount');
       debugPrint('   - Date: $transactionDate');
 
-      // Call Update API
-      // NOTE: transactionType cannot be changed - backend limitation
-      final response = await _transactionApi.updateTransaction(
+      // Use Repository for OFFLINE-FIRST update
+      final success = await transactionRepository.updateTransaction(
         transactionId: transactionId!,
         transactionAmount: transactionAmount,
         transactionDate: transactionDate,
-        comments: comments, // Send empty string if no comment, not null
+        comments: comments,
         uploadedKeys: uploadedKeys.isNotEmpty ? uploadedKeys : null,
         securityKey: pin,
       );
 
-      // Success - Show success message
-      AdvancedErrorService.showSuccess(
-        response.message,
-        type: SuccessType.snackbar,
-        customDuration: Duration(seconds: 2),
-      );
+      if (success) {
+        // Show success message
+        AdvancedErrorService.showSuccess(
+          currentlyOnline ? 'Transaction updated successfully' : 'Transaction updated locally. Will sync when online.',
+          type: SuccessType.snackbar,
+          customDuration: Duration(seconds: 2),
+        );
 
-      // Navigate back after delay
-      Future.delayed(Duration(seconds: 1), () {
-        Get.back(result: true); // Return true to indicate success
-      });
+        // Navigate back after delay
+        Future.delayed(Duration(seconds: 1), () {
+          Get.back(result: true); // Return true to indicate success
+        });
+      }
     } catch (e) {
       debugPrint('❌ Update Transaction Error: $e');
 

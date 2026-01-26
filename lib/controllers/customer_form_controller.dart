@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/ledger_api.dart';
 import '../core/api/auth_storage.dart';
+import '../core/database/repositories/ledger_repository.dart';
+import '../core/services/connectivity_service.dart';
 import '../models/ledger_model.dart';
 import '../core/utils/formatters.dart';
 import '../core/services/error_service.dart';
@@ -70,6 +72,21 @@ class CustomerFormController extends GetxController {
 
   // API Service
   final LedgerApi _ledgerApi = LedgerApi();
+
+  // 🗄️ Offline-first repository
+  LedgerRepository? _ledgerRepository;
+  LedgerRepository get ledgerRepository {
+    if (_ledgerRepository == null) {
+      if (Get.isRegistered<LedgerRepository>()) {
+        _ledgerRepository = Get.find<LedgerRepository>();
+        debugPrint('✅ CustomerFormController: LedgerRepository found via GetX');
+      } else {
+        debugPrint('⚠️ CustomerFormController: LedgerRepository NOT registered - creating new instance');
+        _ledgerRepository = LedgerRepository();
+      }
+    }
+    return _ledgerRepository!;
+  }
 
   // Initial values from contact (for add mode)
   final String? initialName;
@@ -687,14 +704,44 @@ class CustomerFormController extends GetxController {
 
       debugPrint('📦 Ledger toJson(): ${ledger.toJson()}');
 
-      // Call appropriate API based on mode
-      final response = isEditMode && ledgerId != null
-          ? await _ledgerApi.updateLedger(ledgerId: ledgerId!, ledger: ledger)
-          : await _ledgerApi.createLedger(ledger);
+      // 🗄️ OFFLINE-FIRST: Check connectivity and decide strategy
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
+
+      debugPrint('🌐 Is Online: $isOnline');
+
+      String successMessage;
+
+      if (isEditMode && ledgerId != null) {
+        // EDIT MODE: Always try API first (edits are less critical for offline)
+        if (isOnline) {
+          final response = await _ledgerApi.updateLedger(ledgerId: ledgerId!, ledger: ledger);
+          successMessage = response.message;
+        } else {
+          // Offline edit - save locally
+          await ledgerRepository.updateLedger(ledger.copyWith(id: ledgerId));
+          successMessage = 'Ledger updated offline. Will sync when online.';
+        }
+      } else {
+        // CREATE MODE: Offline-first approach
+        if (isOnline) {
+          // Online - call API directly
+          debugPrint('📡 Online - Creating ledger via API...');
+          final response = await _ledgerApi.createLedger(ledger);
+          successMessage = response.message;
+        } else {
+          // Offline - save to local database
+          debugPrint('📴 Offline - Saving ledger locally...');
+          await ledgerRepository.createLedger(ledger);
+          successMessage = 'Ledger saved offline. Will sync when online.';
+          debugPrint('✅ Ledger saved to local database');
+        }
+      }
 
       // Show success message
       AdvancedErrorService.showSuccess(
-        response.message,
+        successMessage,
         type: SuccessType.snackbar,
       );
 

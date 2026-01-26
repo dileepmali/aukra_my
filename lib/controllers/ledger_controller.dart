@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/auth_storage.dart';
 import '../core/api/global_api_function.dart';
+import '../core/database/repositories/ledger_repository.dart';
+import '../core/services/connectivity_service.dart';
 import '../models/ledger_model.dart';
 
 class LedgerController extends GetxController {
@@ -16,6 +18,22 @@ class LedgerController extends GetxController {
   final RxList<LedgerModel> allLedgers = <LedgerModel>[].obs;
 
   final ApiFetcher _apiFetcher = ApiFetcher();
+
+  // 🗄️ Offline-first repository
+  LedgerRepository? _ledgerRepository;
+  LedgerRepository get ledgerRepository {
+    if (_ledgerRepository == null) {
+      // Check if repository is registered
+      if (Get.isRegistered<LedgerRepository>()) {
+        _ledgerRepository = Get.find<LedgerRepository>();
+        debugPrint('✅ LedgerRepository found via GetX');
+      } else {
+        debugPrint('⚠️ LedgerRepository NOT registered - creating new instance');
+        _ledgerRepository = LedgerRepository();
+      }
+    }
+    return _ledgerRepository!;
+  }
 
   // ============================================================
   // PAGINATION STATE
@@ -135,16 +153,48 @@ class LedgerController extends GetxController {
     });
   }
 
-  /// Fetch merchant details - Always fetch fresh from API (same as my_profile_screen)
+  /// Fetch merchant details - OFFLINE FIRST
+  /// 1. Load from AuthStorage first (instant, works offline)
+  /// 2. If online, fetch fresh from API and update storage
   Future<void> fetchMerchantDetails() async {
     try {
-      debugPrint('📡 Fetching merchant details from API...');
+      debugPrint('📡 Fetching merchant details (OFFLINE-FIRST)...');
 
       // Get merchant ID from storage
       final merchantId = await AuthStorage.getMerchantId();
       debugPrint('🏢 Merchant ID from storage: $merchantId');
 
-      // ✅ Always call API to get fresh merchant data (same as my_profile_screen.dart)
+      // 🗄️ OFFLINE-FIRST: Load cached merchant data first
+      final cachedMerchantName = await AuthStorage.getMerchantName();
+      final cachedBusinessName = await AuthStorage.getBusinessName();
+
+      if (cachedMerchantName != null && cachedMerchantName.isNotEmpty) {
+        merchantName.value = cachedMerchantName;
+        debugPrint('📦 Loaded cached merchant name: $cachedMerchantName');
+      }
+      if (cachedBusinessName != null && cachedBusinessName.isNotEmpty) {
+        businessName.value = cachedBusinessName;
+        debugPrint('📦 Loaded cached business name: $cachedBusinessName');
+      }
+
+      // Check connectivity
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
+
+      debugPrint('🌐 Is Online: $isOnline');
+
+      // If offline, use cached data
+      if (!isOnline) {
+        debugPrint('📴 Offline - Using cached merchant details');
+        if (merchantName.value.isEmpty) {
+          merchantName.value = 'Aukra'; // Default if no cached data
+        }
+        return;
+      }
+
+      // 🌐 ONLINE: Fetch fresh from API
+      debugPrint('🔄 Online - Fetching fresh merchant data from API...');
       await _apiFetcher.request(
         url: 'api/merchant/all',
         method: 'GET',
@@ -152,8 +202,11 @@ class LedgerController extends GetxController {
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          debugPrint('⏱️ Merchant API request timeout');
-          merchantName.value = 'Aukra'; // Default name on timeout
+          debugPrint('⏱️ Merchant API request timeout - using cached data');
+          // Keep using cached data on timeout
+          if (merchantName.value.isEmpty) {
+            merchantName.value = 'Aukra';
+          }
           return;
         },
       );
@@ -161,6 +214,8 @@ class LedgerController extends GetxController {
       debugPrint('📥 Merchant API Response from /api/merchant/all');
       if (_apiFetcher.errorMessage != null) {
         debugPrint('❌ Merchant API Error: ${_apiFetcher.errorMessage}');
+        // Keep using cached data on error
+        return;
       }
 
       // Check if we got valid merchant data from API
@@ -197,12 +252,12 @@ class LedgerController extends GetxController {
             debugPrint('🏢 Merchant Name (from API): ${merchantName.value}');
             debugPrint('🏪 Business Name (from API): ${businessName.value}');
 
-            // Save to storage for consistency
+            // Save to storage for offline use
             await AuthStorage.saveMerchantName(merchantName.value);
             if (businessName.value.isNotEmpty) {
               await AuthStorage.saveBusinessName(businessName.value);
             }
-            debugPrint('💾 Merchant data saved to storage');
+            debugPrint('💾 Merchant data saved to storage for offline use');
           } else {
             merchantName.value = 'Aukra';
           }
@@ -217,24 +272,29 @@ class LedgerController extends GetxController {
           debugPrint('🏢 Merchant Name (from API): ${merchantName.value}');
           debugPrint('🏪 Business Name (from API): ${businessName.value}');
 
-          // Save to storage
+          // Save to storage for offline use
           await AuthStorage.saveMerchantName(merchantName.value);
           if (businessName.value.isNotEmpty) {
             await AuthStorage.saveBusinessName(businessName.value);
           }
-          debugPrint('💾 Merchant data saved to storage');
+          debugPrint('💾 Merchant data saved to storage for offline use');
         }
       } else {
-        debugPrint('❌ Failed to fetch merchant details from API: ${_apiFetcher.errorMessage}');
-        merchantName.value = 'Aukra'; // Default name on error
+        debugPrint('⚠️ API returned no data - keeping cached merchant details');
+        // Keep using cached data
       }
     } catch (e) {
       debugPrint('❌ Error fetching merchant details: $e');
-      merchantName.value = 'Aukra'; // Default name on exception
+      // Keep using cached data on exception
+      if (merchantName.value.isEmpty) {
+        merchantName.value = 'Aukra'; // Default name on exception
+      }
     }
   }
 
-  /// Fetch all ledgers (customers, suppliers, employers) from GET api/ledger
+  /// Fetch all ledgers (customers, suppliers, employers) - OFFLINE FIRST
+  /// 1. Load from local SQLite database first (instant)
+  /// 2. If online, sync with server in background
   Future<void> fetchAllLedgers() async {
     // Prevent multiple simultaneous fetches
     if (isLoading.value) {
@@ -244,7 +304,14 @@ class LedgerController extends GetxController {
 
     try {
       isLoading.value = true;
-      debugPrint('📡 Fetching all ledgers from API...');
+      debugPrint('');
+      debugPrint('═══════════════════════════════════════════════════════');
+      debugPrint('📡 LEDGER_CONTROLLER: fetchAllLedgers() - OFFLINE-FIRST');
+      debugPrint('═══════════════════════════════════════════════════════');
+
+      // Check database initialization status
+      debugPrint('🔍 ConnectivityService registered: ${Get.isRegistered<ConnectivityService>()}');
+      debugPrint('🔍 LedgerRepository registered: ${Get.isRegistered<LedgerRepository>()}');
 
       // Get merchant ID from storage
       final merchantId = await AuthStorage.getMerchantId();
@@ -270,14 +337,10 @@ class LedgerController extends GetxController {
       employeesCurrentSkip.value = 0;
       employeesHasMoreData.value = true;
 
-      // Fetch first page of each type sequentially with delays to avoid rate limiting (429 errors)
-      await _fetchLedgersByType(merchantId, 'CUSTOMER', skip: 0, limit: _limit);
-      await Future.delayed(const Duration(milliseconds: 300)); // Small delay
-
-      await _fetchLedgersByType(merchantId, 'SUPPLIER', skip: 0, limit: _limit);
-      await Future.delayed(const Duration(milliseconds: 300)); // Small delay
-
-      await _fetchLedgersByType(merchantId, 'EMPLOYEE', skip: 0, limit: _limit);
+      // 🗄️ OFFLINE-FIRST: Fetch from repository (local DB + API sync)
+      await _fetchLedgersOfflineFirst(merchantId, 'CUSTOMER');
+      await _fetchLedgersOfflineFirst(merchantId, 'SUPPLIER');
+      await _fetchLedgersOfflineFirst(merchantId, 'EMPLOYEE');
 
       debugPrint('📊 Total ledgers: ${allLedgers.length}');
       debugPrint('👥 Customers: ${customers.length}/${customersTotalCount.value}');
@@ -290,11 +353,69 @@ class LedgerController extends GetxController {
     }
   }
 
-  /// Fetch ledgers by party type with pagination
+  /// 🗄️ OFFLINE-FIRST: Fetch ledgers from repository
+  Future<void> _fetchLedgersOfflineFirst(int merchantId, String partyType) async {
+    try {
+      debugPrint('');
+      debugPrint('🟢🟢🟢 LEDGER_CONTROLLER: _fetchLedgersOfflineFirst() 🟢🟢🟢');
+      debugPrint('   merchantId: $merchantId, partyType: $partyType');
+
+      // Check if repository is registered
+      final isRepoRegistered = Get.isRegistered<LedgerRepository>();
+      debugPrint('   📦 LedgerRepository registered: $isRepoRegistered');
+
+      // Repository handles: local DB first, then API sync if online
+      final ledgers = await ledgerRepository.getLedgersByPartyType(merchantId, partyType);
+
+      debugPrint('   ✅ Got ${ledgers.length} $partyType from repository');
+
+      // Add to appropriate list
+      for (final ledger in ledgers) {
+        allLedgers.add(ledger);
+
+        switch (ledger.partyType.toUpperCase()) {
+          case 'CUSTOMER':
+            customers.add(ledger);
+            break;
+          case 'SUPPLIER':
+            suppliers.add(ledger);
+            break;
+          case 'EMPLOYEE':
+            employers.add(ledger);
+            break;
+        }
+      }
+
+      // Update counts
+      switch (partyType.toUpperCase()) {
+        case 'CUSTOMER':
+          customersTotalCount.value = ledgers.length;
+          customersHasMoreData.value = false; // Repository returns all
+          break;
+        case 'SUPPLIER':
+          suppliersTotalCount.value = ledgers.length;
+          suppliersHasMoreData.value = false;
+          break;
+        case 'EMPLOYEE':
+          employeesTotalCount.value = ledgers.length;
+          employeesHasMoreData.value = false;
+          break;
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching $partyType from repository: $e');
+      // Fallback to direct API call if repository fails
+      await _fetchLedgersByType(merchantId, partyType, skip: 0, limit: _limit);
+    }
+  }
+
+  /// Fetch ledgers by party type with pagination (FALLBACK - Direct API)
   Future<void> _fetchLedgersByType(int merchantId, String partyType, {int skip = 0, int limit = 10}) async {
     try {
       final fetcher = ApiFetcher();
 
+      debugPrint('');
+      debugPrint('🔴🔴🔴 FALLBACK: _fetchLedgersByType() 🔴🔴🔴');
+      debugPrint('   ⚠️ Using DIRECT API call (not repository)');
       debugPrint('📡 Fetching $partyType ledgers (skip: $skip, limit: $limit)...');
 
       // Call GET API with merchantId, partyType, and pagination
@@ -477,10 +598,24 @@ class LedgerController extends GetxController {
     }
   }
 
-  /// Refresh all data (with delays to avoid rate limiting)
+  /// Refresh all data - forces API sync if online
   Future<void> refreshAll() async {
     await fetchMerchantDetails();
-    await Future.delayed(const Duration(milliseconds: 300)); // Small delay
+
+    // Check if online for force refresh
+    final isOnline = Get.isRegistered<ConnectivityService>()
+        ? ConnectivityService.instance.isConnected.value
+        : true;
+
+    if (isOnline) {
+      debugPrint('🔄 Online - forcing API refresh...');
+      // Force sync from server
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId != null) {
+        await ledgerRepository.fullSync(merchantId);
+      }
+    }
+
     await fetchAllLedgers();
   }
 
@@ -737,6 +872,88 @@ class LedgerController extends GetxController {
   // ============================================================
   // LOCAL ACTIVITY UPDATE (for transaction edit fix)
   // ============================================================
+
+  /// Remove a ledger from local lists (for deactivation)
+  /// Call this after deactivating a ledger to immediately update UI
+  void removeLedgerFromLists(int ledgerId) {
+    debugPrint('🗑️ Removing ledger $ledgerId from local lists...');
+
+    // Remove from customers list
+    final customerIndex = customers.indexWhere((l) => l.id == ledgerId);
+    if (customerIndex != -1) {
+      final removedName = customers[customerIndex].name;
+      customers.removeAt(customerIndex);
+      customers.refresh();
+      debugPrint('✅ Removed customer ledger $ledgerId ($removedName) from list');
+      return;
+    }
+
+    // Remove from suppliers list
+    final supplierIndex = suppliers.indexWhere((l) => l.id == ledgerId);
+    if (supplierIndex != -1) {
+      final removedName = suppliers[supplierIndex].name;
+      suppliers.removeAt(supplierIndex);
+      suppliers.refresh();
+      debugPrint('✅ Removed supplier ledger $ledgerId ($removedName) from list');
+      return;
+    }
+
+    // Remove from employers list
+    final employerIndex = employers.indexWhere((l) => l.id == ledgerId);
+    if (employerIndex != -1) {
+      final removedName = employers[employerIndex].name;
+      employers.removeAt(employerIndex);
+      employers.refresh();
+      debugPrint('✅ Removed employer ledger $ledgerId ($removedName) from list');
+      return;
+    }
+
+    // Also remove from allLedgers
+    allLedgers.removeWhere((l) => l.id == ledgerId);
+    allLedgers.refresh();
+
+    debugPrint('⚠️ Ledger $ledgerId not found in any list');
+  }
+
+  /// Add a ledger to local lists (for activation)
+  /// Call this after activating a ledger to immediately update UI
+  void addLedgerToLists(LedgerModel ledger) {
+    debugPrint('➕ Adding ledger ${ledger.id} (${ledger.name}) to local lists...');
+
+    // Check if already exists to avoid duplicates
+    final existsInAll = allLedgers.any((l) => l.id == ledger.id);
+    if (existsInAll) {
+      debugPrint('⚠️ Ledger ${ledger.id} already exists in lists');
+      return;
+    }
+
+    // Add to allLedgers
+    allLedgers.add(ledger);
+
+    // Add to appropriate list based on party type
+    switch (ledger.partyType.toUpperCase()) {
+      case 'CUSTOMER':
+        customers.add(ledger);
+        customers.refresh();
+        debugPrint('✅ Added customer ledger ${ledger.id} (${ledger.name}) to list');
+        break;
+      case 'SUPPLIER':
+        suppliers.add(ledger);
+        suppliers.refresh();
+        debugPrint('✅ Added supplier ledger ${ledger.id} (${ledger.name}) to list');
+        break;
+      case 'EMPLOYEE':
+      case 'EMPLOYER':
+        employers.add(ledger);
+        employers.refresh();
+        debugPrint('✅ Added employer ledger ${ledger.id} (${ledger.name}) to list');
+        break;
+      default:
+        debugPrint('⚠️ Unknown party type: ${ledger.partyType}');
+    }
+
+    allLedgers.refresh();
+  }
 
   /// Update a specific ledger's last activity date locally
   /// Call this after transaction create/edit/delete to update the date in UI

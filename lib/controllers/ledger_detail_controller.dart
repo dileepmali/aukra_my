@@ -2,14 +2,48 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/ledger_detail_api.dart';
 import '../core/api/ledger_transaction_api.dart';
+import '../core/database/repositories/ledger_repository.dart';
+import '../core/database/repositories/transaction_repository.dart';
+import '../core/services/connectivity_service.dart';
+import '../core/services/sync_service.dart';
 import '../models/ledger_detail_model.dart';
 import '../models/transaction_list_model.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
+import 'ledger_controller.dart';
 
 class LedgerDetailController extends GetxController {
   final LedgerDetailApi _api = LedgerDetailApi();
   final LedgerTransactionApi _transactionApi = LedgerTransactionApi();
+
+  // 🗄️ Offline-first repositories
+  TransactionRepository? _transactionRepository;
+  TransactionRepository get transactionRepository {
+    if (_transactionRepository == null) {
+      if (Get.isRegistered<TransactionRepository>()) {
+        _transactionRepository = Get.find<TransactionRepository>();
+        debugPrint('✅ TransactionRepository found via GetX');
+      } else {
+        debugPrint('⚠️ TransactionRepository NOT registered - creating new instance');
+        _transactionRepository = TransactionRepository();
+      }
+    }
+    return _transactionRepository!;
+  }
+
+  LedgerRepository? _ledgerRepository;
+  LedgerRepository get ledgerRepository {
+    if (_ledgerRepository == null) {
+      if (Get.isRegistered<LedgerRepository>()) {
+        _ledgerRepository = Get.find<LedgerRepository>();
+        debugPrint('✅ LedgerRepository found via GetX');
+      } else {
+        debugPrint('⚠️ LedgerRepository NOT registered - creating new instance');
+        _ledgerRepository = LedgerRepository();
+      }
+    }
+    return _ledgerRepository!;
+  }
 
   // Observable states
   var isLoading = true.obs;
@@ -51,6 +85,9 @@ class LedgerDetailController extends GetxController {
     // Setup scroll listener for infinite scrolling
     _setupScrollListener();
 
+    // Register for sync completion callbacks to auto-refresh after sync
+    _registerSyncCallback();
+
     if (ledgerId > 0) {
       // Fetch data on init - use refreshAll to ensure running balance calculation
       refreshAll();
@@ -58,6 +95,39 @@ class LedgerDetailController extends GetxController {
       debugPrint('❌ Invalid ledger ID provided');
       isLoading.value = false;
       isTransactionsLoading.value = false;
+    }
+  }
+
+  /// Callback function for sync completion
+  void _onSyncComplete(bool hadTransactions) {
+    if (hadTransactions) {
+      debugPrint('🔄 Sync completed with transactions - refreshing ledger detail data...');
+      // Refresh to link any newly synced transactions
+      refreshAll();
+    }
+  }
+
+  /// Register callback to listen for sync completion
+  void _registerSyncCallback() {
+    try {
+      if (Get.isRegistered<SyncService>()) {
+        SyncService.instance.onSyncComplete(_onSyncComplete);
+        debugPrint('✅ Registered sync completion callback');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Could not register sync callback: $e');
+    }
+  }
+
+  /// Unregister sync callback
+  void _unregisterSyncCallback() {
+    try {
+      if (Get.isRegistered<SyncService>()) {
+        SyncService.instance.removeSyncCompleteCallback(_onSyncComplete);
+        debugPrint('✅ Unregistered sync completion callback');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Could not unregister sync callback: $e');
     }
   }
 
@@ -86,16 +156,72 @@ class LedgerDetailController extends GetxController {
     super.onClose();
   }
 
-  /// Fetch ledger details
+  /// Fetch ledger details - OFFLINE FIRST
   Future<void> fetchLedgerDetails() async {
     try {
       isLoading.value = true;
 
-      debugPrint('🔄 Fetching ledger details...');
-      final detail = await _api.getLedgerDetails(ledgerId);
+      debugPrint('🔄 Fetching ledger details (OFFLINE-FIRST)...');
 
-      ledgerDetail.value = detail;
-      debugPrint('✅ Ledger details loaded: ${detail.partyName}');
+      // Check connectivity
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
+
+      // 🗄️ OFFLINE-FIRST: Try cached ledger first
+      try {
+        final cachedLedger = await ledgerRepository.getLedgerById(ledgerId);
+        if (cachedLedger != null) {
+          debugPrint('📦 Loaded cached ledger: ${cachedLedger.name}, Balance: ${cachedLedger.currentBalance}');
+          ledgerDetail.value = LedgerDetailModel(
+            id: cachedLedger.id ?? 0,
+            merchantId: cachedLedger.merchantId,
+            partyName: cachedLedger.name,
+            partyType: cachedLedger.partyType,
+            mobileNumber: cachedLedger.mobileNumber,
+            currentBalance: cachedLedger.currentBalance,
+            openingBalance: cachedLedger.openingBalance,
+            area: cachedLedger.area,
+            address: cachedLedger.address,
+            pinCode: cachedLedger.pinCode,
+            creditLimit: cachedLedger.creditLimit,
+            creditDay: cachedLedger.creditDay,
+            interestType: cachedLedger.interestType,
+            interestRate: cachedLedger.interestRate,
+            transactionType: cachedLedger.transactionType,
+            isDelete: false,
+            salary: 0.0,
+            salaryType: 'MONTHLY',
+            createdAt: cachedLedger.createdAt ?? DateTime.now(),
+            updatedAt: cachedLedger.updatedAt ?? DateTime.now(),
+          );
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not load cached ledger: $e');
+      }
+
+      // If online, fetch fresh data from API
+      if (isOnline) {
+        try {
+          final detail = await _api.getLedgerDetails(ledgerId);
+          ledgerDetail.value = detail;
+          debugPrint('✅ Ledger details loaded from API: ${detail.partyName}');
+
+          // 🗄️ Cache ledger to local DB for offline use
+          await ledgerRepository.cacheLedgerDetailFromApi(detail);
+        } catch (apiError) {
+          debugPrint('⚠️ API fetch failed: $apiError');
+          // If we have cached data, don't show error
+          if (ledgerDetail.value == null) {
+            rethrow;
+          }
+        }
+      } else {
+        debugPrint('📴 Offline - Using cached ledger details');
+        if (ledgerDetail.value == null) {
+          throw Exception('No cached data available. Please connect to internet.');
+        }
+      }
     } catch (e) {
       debugPrint('❌ Error fetching ledger details: $e');
       AdvancedErrorService.showError(
@@ -108,7 +234,7 @@ class LedgerDetailController extends GetxController {
     }
   }
 
-  /// Fetch transaction history for this specific ledger (first page)
+  /// Fetch transaction history for this specific ledger - OFFLINE FIRST
   Future<void> fetchTransactions() async {
     try {
       isTransactionsLoading.value = true;
@@ -118,58 +244,214 @@ class LedgerDetailController extends GetxController {
       hasMoreData.value = true;
       allTransactions.clear();
 
-      debugPrint('🔄 Fetching transaction history for ledger: $ledgerId (skip: ${currentOffset.value}, limit: $_limit)');
+      debugPrint('🔄 Fetching transaction history for ledger: $ledgerId (OFFLINE-FIRST)');
 
-      // Use the correct API endpoint for specific ledger transactions with pagination
-      final history = await _transactionApi.getLedgerTransactions(
-        ledgerId: ledgerId,
-        skip: currentOffset.value,
-        limit: _limit,
-      );
+      // Check connectivity
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
 
-      debugPrint('📊 Fetched ${history.data.length} transactions (total: ${history.totalCount})');
-      debugPrint('📋 Transaction IDs: ${history.data.map((t) => t.id).toList()}');
+      debugPrint('🌐 Is Online: $isOnline');
 
-      // Store total count for pagination check (use totalCount from API)
-      totalTransactionCount.value = history.totalCount;
+      // 🔧 REPAIR: Fix duplicates and recalculate balances first
+      await transactionRepository.repairLedgerData(ledgerId);
 
-      // Sort transactions by transactionDate (descending - newest first) for display
-      final sortedData = List.of(history.data);
-      sortedData.sort((a, b) {
-        try {
-          final dateA = DateTime.parse(a.transactionDate);
-          final dateB = DateTime.parse(b.transactionDate);
-          return dateB.compareTo(dateA); // Descending order (newest first)
-        } catch (e) {
-          return 0;
+      // 🔄 Refresh ledger balance from DB (after recalculation)
+      final updatedBalance = await transactionRepository.getLedgerBalanceFromDb(ledgerId);
+      if (ledgerDetail.value != null) {
+        ledgerDetail.value = LedgerDetailModel(
+          id: ledgerDetail.value!.id,
+          merchantId: ledgerDetail.value!.merchantId,
+          partyName: ledgerDetail.value!.partyName,
+          partyType: ledgerDetail.value!.partyType,
+          mobileNumber: ledgerDetail.value!.mobileNumber,
+          currentBalance: updatedBalance, // Updated balance from DB
+          openingBalance: ledgerDetail.value!.openingBalance,
+          area: ledgerDetail.value!.area,
+          address: ledgerDetail.value!.address,
+          pinCode: ledgerDetail.value!.pinCode,
+          creditLimit: ledgerDetail.value!.creditLimit,
+          creditDay: ledgerDetail.value!.creditDay,
+          interestType: ledgerDetail.value!.interestType,
+          interestRate: ledgerDetail.value!.interestRate,
+          transactionType: ledgerDetail.value!.transactionType,
+          isDelete: ledgerDetail.value!.isDelete,
+          salary: ledgerDetail.value!.salary,
+          salaryType: ledgerDetail.value!.salaryType,
+          createdAt: ledgerDetail.value!.createdAt,
+          updatedAt: ledgerDetail.value!.updatedAt,
+        );
+        debugPrint('💰 Ledger balance updated in UI: $updatedBalance');
+      }
+
+      // 🗄️ OFFLINE-FIRST: Load cached data with proper balances
+      List<TransactionItemModel> cachedTransactions = [];
+      List<TransactionItemModel> unsyncedTransactions = [];
+
+      try {
+        // Get cached transactions with proper balance calculation
+        cachedTransactions = await transactionRepository.getTransactionsWithBalances(ledgerId);
+        debugPrint('📦 Loaded ${cachedTransactions.length} cached transactions');
+
+        // 🔍 DEBUG: Log each transaction's full details
+        debugPrint('📦📦📦 CACHED TRANSACTIONS DETAIL:');
+        for (final tx in cachedTransactions) {
+          final deleteIcon = tx.isDelete ? '🗑️' : '✅';
+          debugPrint('   $deleteIcon ID: ${tx.id}');
+          debugPrint('      Amount: ₹${tx.amount}');
+          debugPrint('      Type: ${tx.transactionType}');
+          debugPrint('      Date: ${tx.transactionDate}');
+          debugPrint('      Description: "${tx.description ?? "No description"}"');
         }
-      });
+        debugPrint('📦📦📦 Total deleted in cache: ${cachedTransactions.where((t) => t.isDelete).length}');
 
-      // Add to accumulated list
-      allTransactions.addAll(sortedData);
+        // Get unsynced transactions separately (to preserve during API merge)
+        unsyncedTransactions = await transactionRepository.getUnsyncedTransactionsByLedger(ledgerId);
+        debugPrint('📤 Found ${unsyncedTransactions.length} unsynced transactions');
+        for (final tx in unsyncedTransactions) {
+          debugPrint('   📤 Unsynced - ID: ${tx.id}, isDelete: ${tx.isDelete}');
+        }
 
-      // Update hasMoreData based on total count
-      hasMoreData.value = allTransactions.length < totalTransactionCount.value;
+        // Show cached data immediately
+        if (cachedTransactions.isNotEmpty) {
+          _updateTransactionUI(cachedTransactions);
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not load cached transactions: $e');
+      }
 
-      // Update transaction history for UI
-      transactionHistory.value = TransactionListModel(
-        count: allTransactions.length,
-        totalCount: totalTransactionCount.value,
-        data: allTransactions.toList(),
-      );
+      // 🌐 If online, fetch fresh data from API and merge with unsynced
+      if (isOnline) {
+        try {
+          debugPrint('🔄 Online - Fetching fresh transactions from API...');
+          final history = await _transactionApi.getLedgerTransactions(
+            ledgerId: ledgerId,
+            skip: currentOffset.value,
+            limit: _limit,
+          );
+
+          // Get API transactions
+          List<TransactionItemModel> apiTransactions = history.data;
+          totalTransactionCount.value = history.totalCount;
+
+          debugPrint('✅ Got ${apiTransactions.length} transactions from API (total: ${history.totalCount})');
+
+          // 🗄️ Cache API transactions to local DB for offline use
+          // This preserves local deletes (isDelete: true) that haven't synced yet
+          await transactionRepository.cacheTransactionsFromApi(apiTransactions, ledgerId);
+
+          // 🔄 IMPORTANT: Re-fetch from cache to get preserved local deletes
+          // The apiTransactions list has isDelete: false from API, but cache has isDelete: true for pending deletes
+          final cachedAfterSync = await transactionRepository.getTransactionsWithBalances(ledgerId);
+          debugPrint('📦 Re-fetched ${cachedAfterSync.length} transactions from cache (with preserved deletes)');
+
+          // 🔍 DEBUG: Log each transaction's full details after sync
+          debugPrint('🔄🔄🔄 AFTER ONLINE SYNC - CACHED TRANSACTIONS DETAIL:');
+          for (final tx in cachedAfterSync) {
+            final deleteIcon = tx.isDelete ? '🗑️' : '✅';
+            debugPrint('   $deleteIcon ID: ${tx.id}');
+            debugPrint('      Amount: ₹${tx.amount}');
+            debugPrint('      Type: ${tx.transactionType}');
+            debugPrint('      Date: ${tx.transactionDate}');
+            debugPrint('      Description: "${tx.description ?? "No description"}"');
+            debugPrint('      isDelete: ${tx.isDelete}');
+          }
+
+          // Count how many are deleted (for verification)
+          final deletedCount = cachedAfterSync.where((t) => t.isDelete).length;
+          debugPrint('🗑️🗑️🗑️ TOTAL with isDelete=true AFTER SYNC: $deletedCount');
+
+          // Update total count
+          totalTransactionCount.value = cachedAfterSync.length;
+
+          debugPrint('🔀 Using ${cachedAfterSync.length} cached transactions (includes preserved deletes)');
+
+          // Update UI with cached data (which has correct isDelete values)
+          allTransactions.clear();
+          _updateTransactionUI(cachedAfterSync);
+
+        } catch (apiError) {
+          debugPrint('⚠️ API fetch failed: $apiError');
+          // If we have cached data, keep using it
+          if (allTransactions.isEmpty && cachedTransactions.isNotEmpty) {
+            debugPrint('📦 Using cached data as fallback');
+            _updateTransactionUI(cachedTransactions);
+          } else if (allTransactions.isEmpty) {
+            rethrow;
+          }
+        }
+      } else {
+        debugPrint('📴 Offline - Using cached transactions with balances');
+        if (cachedTransactions.isEmpty) {
+          debugPrint('⚠️ No cached transactions available');
+        }
+      }
 
       debugPrint('✅ Transactions loaded: ${allTransactions.length}/${totalTransactionCount.value} for ledger $ledgerId');
       debugPrint('📄 Has more data: ${hasMoreData.value}');
     } catch (e) {
       debugPrint('❌ Error fetching transactions: $e');
-      AdvancedErrorService.showError(
-        e.toString().replaceAll('Exception: ', ''),
-        severity: ErrorSeverity.high,
-        category: ErrorCategory.network,
-      );
+      // Don't show error if we're offline and have no data
+      if (allTransactions.isEmpty) {
+        AdvancedErrorService.showError(
+          e.toString().replaceAll('Exception: ', ''),
+          severity: ErrorSeverity.high,
+          category: ErrorCategory.network,
+        );
+      }
     } finally {
       isTransactionsLoading.value = false;
     }
+  }
+
+  /// Helper method to update transaction UI
+  void _updateTransactionUI(List<TransactionItemModel> transactions) {
+    debugPrint('');
+    debugPrint('🎯🎯🎯 ========== _updateTransactionUI CALLED ========== 🎯🎯🎯');
+    debugPrint('🎯 Input transactions count: ${transactions.length}');
+    debugPrint('🎯 Deleted in input: ${transactions.where((t) => t.isDelete).length}');
+
+    // Store total count if not set
+    if (totalTransactionCount.value == 0) {
+      totalTransactionCount.value = transactions.length;
+    }
+
+    // Sort transactions by transactionDate (descending - newest first) for display
+    final sortedData = List.of(transactions);
+    sortedData.sort((a, b) {
+      try {
+        final dateA = DateTime.parse(a.transactionDate);
+        final dateB = DateTime.parse(b.transactionDate);
+        return dateB.compareTo(dateA); // Descending order (newest first)
+      } catch (e) {
+        return 0;
+      }
+    });
+
+    // Add to accumulated list
+    allTransactions.addAll(sortedData);
+
+    // 🔍 DEBUG: Log final transaction list going to UI
+    debugPrint('🎯 FINAL TRANSACTIONS FOR UI:');
+    for (final tx in allTransactions) {
+      final deleteIcon = tx.isDelete ? '🗑️ DELETED' : '✅ ACTIVE';
+      debugPrint('   $deleteIcon - ID: ${tx.id}, ₹${tx.amount}');
+    }
+    debugPrint('🎯 Total in allTransactions: ${allTransactions.length}');
+    debugPrint('🎯 Total deleted for strikethrough: ${allTransactions.where((t) => t.isDelete).length}');
+
+    // Update hasMoreData based on total count
+    hasMoreData.value = allTransactions.length < totalTransactionCount.value;
+
+    // Update transaction history for UI
+    transactionHistory.value = TransactionListModel(
+      count: allTransactions.length,
+      totalCount: totalTransactionCount.value,
+      data: allTransactions.toList(),
+    );
+
+    debugPrint('🎯🎯🎯 ========== _updateTransactionUI END ========== 🎯🎯🎯');
+    debugPrint('');
   }
 
   /// Load more transactions (next page) for infinite scrolling
@@ -267,6 +549,20 @@ class LedgerDetailController extends GetxController {
       );
 
       debugPrint('✅ Ledger deactivated: ${response.message}');
+
+      // Update local DB to mark ledger as inactive
+      await ledgerRepository.updateLedgerStatus(ledgerId, false, securityKey);
+      debugPrint('💾 Local DB updated - ledger marked as inactive');
+
+      // Immediately remove from LedgerController lists for instant UI update
+      try {
+        final ledgerController = Get.find<LedgerController>();
+        ledgerController.removeLedgerFromLists(ledgerId);
+        debugPrint('🗑️ Ledger removed from LedgerController lists');
+      } catch (e) {
+        debugPrint('⚠️ LedgerController not found: $e');
+      }
+
       return true;
     } catch (e) {
       debugPrint('❌ Error deactivating ledger: $e');
@@ -301,6 +597,43 @@ class LedgerDetailController extends GetxController {
         category: ErrorCategory.general,
       );
       return false;
+    }
+  }
+
+  // ============ OFFLINE-FIRST HELPERS ============
+
+  /// Refresh ledger balance from local DB after offline transaction
+  Future<void> refreshLedgerBalanceFromDb() async {
+    try {
+      final cachedLedger = await ledgerRepository.getLedgerById(ledgerId);
+      if (cachedLedger != null && ledgerDetail.value != null) {
+        // Update the observable with new balance
+        ledgerDetail.value = LedgerDetailModel(
+          id: ledgerDetail.value!.id,
+          merchantId: ledgerDetail.value!.merchantId,
+          partyName: ledgerDetail.value!.partyName,
+          partyType: ledgerDetail.value!.partyType,
+          mobileNumber: ledgerDetail.value!.mobileNumber,
+          currentBalance: cachedLedger.currentBalance, // Updated balance
+          openingBalance: ledgerDetail.value!.openingBalance,
+          area: ledgerDetail.value!.area,
+          address: ledgerDetail.value!.address,
+          pinCode: ledgerDetail.value!.pinCode,
+          creditLimit: ledgerDetail.value!.creditLimit,
+          creditDay: ledgerDetail.value!.creditDay,
+          interestType: ledgerDetail.value!.interestType,
+          interestRate: ledgerDetail.value!.interestRate,
+          transactionType: ledgerDetail.value!.transactionType,
+          isDelete: ledgerDetail.value!.isDelete,
+          salary: ledgerDetail.value!.salary,
+          salaryType: ledgerDetail.value!.salaryType,
+          createdAt: ledgerDetail.value!.createdAt,
+          updatedAt: ledgerDetail.value!.updatedAt,
+        );
+        debugPrint('💰 Ledger balance refreshed from DB: ${cachedLedger.currentBalance}');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to refresh ledger balance: $e');
     }
   }
 

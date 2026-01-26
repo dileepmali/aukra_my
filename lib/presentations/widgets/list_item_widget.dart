@@ -172,7 +172,6 @@ class ListItemWidget extends StatelessWidget {
                               title.length > 24 ? '${title.substring(0, 24)}...' : title,
                               color: titleColor ?? (isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.textPrimary),
                               fontWeight: titleFontWeight ?? FontWeight.w500,
-                              letterSpacing: titleLetterSpacing ?? 1.2,
                               decoration: titleDecoration,
                               maxLines: 1,
                               minFontSize: 10,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/search_api.dart';
+import '../core/api/auth_storage.dart';
+import '../core/database/repositories/ledger_repository.dart';
+import '../core/services/connectivity_service.dart';
 import '../models/ledger_model.dart';
 import '../models/search_model.dart';
 
@@ -8,6 +11,21 @@ import '../models/search_model.dart';
 /// Uses SearchModel for configuration and results
 class SearchController extends GetxController {
   final SearchApi _searchApi = SearchApi();
+
+  // 🗄️ Offline-first repository
+  LedgerRepository? _ledgerRepository;
+  LedgerRepository get ledgerRepository {
+    if (_ledgerRepository == null) {
+      if (Get.isRegistered<LedgerRepository>()) {
+        _ledgerRepository = Get.find<LedgerRepository>();
+        debugPrint('✅ SearchController: LedgerRepository found via GetX');
+      } else {
+        debugPrint('⚠️ SearchController: LedgerRepository NOT registered - creating new instance');
+        _ledgerRepository = LedgerRepository();
+      }
+    }
+    return _ledgerRepository!;
+  }
 
   // ============================================================
   // CONFIGURATION
@@ -139,7 +157,7 @@ class SearchController extends GetxController {
   // DATA FETCHING
   // ============================================================
 
-  /// Fetch ledger data for the configured party type (first page)
+  /// Fetch ledger data for the configured party type - OFFLINE FIRST
   Future<void> fetchData() async {
     try {
       isInitialLoading.value = true;
@@ -150,19 +168,34 @@ class SearchController extends GetxController {
       hasMoreData.value = true;
       allLedgers.clear();
 
-      debugPrint('📡 Fetching ${config.partyTypeLabel} data (skip: 0, limit: $_limit)...');
+      debugPrint('📡 Fetching ${config.partyTypeLabel} data (OFFLINE-FIRST)...');
 
-      final result = await _searchApi.getLedgersByPartyType(
-        config.partyType,
-        skip: 0,
-        limit: _limit,
-      );
+      // Get merchant ID
+      final merchantId = await AuthStorage.getMerchantId();
+      if (merchantId == null) {
+        throw Exception('Merchant ID not found');
+      }
 
-      final ledgers = result['data'] as List<LedgerModel>;
-      totalCount.value = result['totalCount'] as int;
+      // 🗄️ OFFLINE-FIRST: Try repository first
+      List<LedgerModel> ledgers = [];
+      try {
+        ledgers = await ledgerRepository.getLedgersByPartyType(merchantId, config.partyType);
+        debugPrint('🗄️ Got ${ledgers.length} ${config.partyTypeLabel}s from repository');
+        totalCount.value = ledgers.length;
+      } catch (e) {
+        debugPrint('⚠️ Repository failed, falling back to API: $e');
+        // Fallback to direct API call
+        final result = await _searchApi.getLedgersByPartyType(
+          config.partyType,
+          skip: 0,
+          limit: _limit,
+        );
+        ledgers = result['data'] as List<LedgerModel>;
+        totalCount.value = result['totalCount'] as int;
+      }
 
       allLedgers.addAll(ledgers);
-      hasMoreData.value = allLedgers.length < totalCount.value;
+      hasMoreData.value = false; // Repository returns all data
 
       // Calculate summary
       _calculateSummary();

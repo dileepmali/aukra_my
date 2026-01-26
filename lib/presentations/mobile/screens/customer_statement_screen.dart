@@ -93,8 +93,7 @@ class CustomerStatementScreen extends StatelessWidget {
                   color: isDark ? Colors.white : AppColorsLight.textPrimary,
                   fontWeight: FontWeight.w500,
                   maxLines: 1,
-                  minFontSize: 13,
-                  letterSpacing: 1.2,
+                  minFontSize: 12,
                 ),
               ],
             )
@@ -181,12 +180,16 @@ class CustomerStatementScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                         SizedBox(width: responsive.wp(1)),
-                        AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(netBalance.abs().toString()),
-                          color: isPositive
-                              ? AppColors.primeryamount
-                              : AppColors.red500,
-                          fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: AppText.searchbar2(
+                            Formatters.formatAmountWithCommas(netBalance.abs().toString()),
+                            color: isPositive
+                                ? AppColors.primeryamount
+                                : AppColors.red500,
+                            fontWeight: FontWeight.w600,
+                            maxLines: 1,
+                            minFontSize: 9,
+                          ),
                         ),
                       ],
                     ),
@@ -288,10 +291,14 @@ class CustomerStatementScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: responsive.wp(0.8)),
-                          AppText.displaySmall(
-                            Formatters.formatAmountWithCommas(todayIn.toString()),
-                            color: AppColors.primeryamount,
-                            fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: AppText.searchbar2(
+                              Formatters.formatAmountWithCommas(todayIn.toString()),
+                              color: AppColors.primeryamount,
+                              fontWeight: FontWeight.w600,
+                              maxLines: 1,
+                              minFontSize: 9,
+                            ),
                           ),
                         ],
                       ),
@@ -365,10 +372,14 @@ class CustomerStatementScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: responsive.wp(0.9)),
-                          AppText.displaySmall(
-                            Formatters.formatAmountWithCommas(todayOut.toString()),
-                            color: AppColors.red500,
-                            fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: AppText.searchbar2(
+                              Formatters.formatAmountWithCommas(todayOut.toString()),
+                              color: AppColors.red500,
+                              fontWeight: FontWeight.w600,
+                              maxLines: 1,
+                              minFontSize: 9,
+                            ),
                           ),
                         ],
                       ),
@@ -431,12 +442,16 @@ class CustomerStatementScreen extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           SizedBox(width: responsive.wp(1)),
-                          AppText.displaySmall(
-                            Formatters.formatAmountWithCommas(netBalance.abs().toString()),
-                            color: isPositive
-                                ? AppColors.primeryamount
-                                : AppColors.red500,
-                            fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: AppText.displayMedium(
+                              Formatters.formatAmountWithCommas(netBalance.abs().toString()),
+                              color: isPositive
+                                  ? AppColors.primeryamount
+                                  : AppColors.red500,
+                              fontWeight: FontWeight.w600,
+                              maxLines: 1,
+                              minFontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -545,10 +560,14 @@ class CustomerStatementScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: responsive.wp(0.8)),
-                        AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(todayIn.toString()),
-                          color: AppColors.primeryamount,
-                          fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: AppText.displayMedium(
+                            Formatters.formatAmountWithCommas(todayIn.toString()),
+                            color: AppColors.primeryamount,
+                            fontWeight: FontWeight.w600,
+                            maxLines: 1,
+                            minFontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -625,10 +644,14 @@ class CustomerStatementScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: responsive.wp(0.9)),
-                        AppText.displaySmall(
-                          Formatters.formatAmountWithCommas(todayOut.toString()),
-                          color: AppColors.red500,
-                          fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: AppText.displayMedium(
+                            Formatters.formatAmountWithCommas(todayOut.toString()),
+                            color: AppColors.red500,
+                            fontWeight: FontWeight.w600,
+                            maxLines: 1,
+                            minFontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -738,10 +761,13 @@ class CustomerStatementScreen extends StatelessWidget {
     debugPrint('💰 Statement: ${customer.name} - balance: ${customer.balance}, signedBalance: ${customer.signedBalance}, balanceType: ${customer.balanceType}');
 
     // ✅ FIX: Use signedBalance (calculated from abs balance + balanceType)
-    final isPositive = BalanceHelper.isPositive(
-      currentBalance: customer.signedBalance,
-      itemName: 'Statement Item: ${customer.name}',
-    );
+    // Handle zero balance - show GREEN (settled/clear)
+    final bool? isPositive = customer.signedBalance == 0
+        ? true  // GREEN for zero balance (settled)
+        : BalanceHelper.isPositive(
+            currentBalance: customer.signedBalance,
+            itemName: 'Statement Item: ${customer.name}',
+          );
 
     return ListItemWidget(
       title: customer.name,
@@ -750,7 +776,7 @@ class CustomerStatementScreen extends StatelessWidget {
       isPositiveAmount: isPositive,
       subtitleColor: isDark ? AppColors.textDisabled : AppColorsLight.black,
       titlePrefixIcon: SvgPicture.asset(
-        isPositive ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
+        isPositive == true ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
         width: responsive.iconSizeMedium,
         height: responsive.iconSizeMedium,
         color: isDark ? AppColors.white : AppColorsLight.textSecondary,

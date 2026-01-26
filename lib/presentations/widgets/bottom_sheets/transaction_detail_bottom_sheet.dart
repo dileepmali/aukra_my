@@ -17,6 +17,8 @@ import '../dialogs/pin_verification_dialog.dart';
 import '../dialogs/image_preview_dialog.dart';
 import '../../routes/app_routes.dart';
 import '../../../core/api/ledger_transaction_api.dart';
+import '../../../core/database/repositories/transaction_repository.dart';
+import '../../../core/services/connectivity_service.dart';
 import '../../../core/services/error_service.dart';
 import '../../../core/untils/error_types.dart';
 import '../../../controllers/ledger_controller.dart';
@@ -736,11 +738,14 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
       pin = dialogResult['pin'];
     }
 
-    // PIN verified or skipped, proceed with deletion
+    // PIN verified or skipped, proceed with deletion - OFFLINE FIRST
     try {
-      // Call Delete API
-      final api = LedgerTransactionApi();
-      final response = await api.deleteTransaction(
+      final isOnline = ConnectivityService.instance.isConnected.value;
+      debugPrint('🗑️ Deleting transaction (Online: $isOnline)');
+
+      // Use Repository for OFFLINE-FIRST delete
+      final transactionRepository = TransactionRepository();
+      final success = await transactionRepository.deleteTransaction(
         transactionId: deleteTransactionId,
         securityKey: pin!,
       );
@@ -748,29 +753,31 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
       // Close bottom sheet
       Navigator.pop(context);
 
-      // Show success message
-      AdvancedErrorService.showSuccess(
-        response.message,
-        type: SuccessType.snackbar,
-        customDuration: Duration(seconds: 2),
-      );
+      if (success) {
+        // Show success message
+        AdvancedErrorService.showSuccess(
+          isOnline ? 'Transaction deleted successfully' : 'Transaction deleted locally. Will sync when online.',
+          type: SuccessType.snackbar,
+          customDuration: Duration(seconds: 2),
+        );
 
-      debugPrint('✅ Transaction deleted successfully - triggering refresh');
+        debugPrint('✅ Transaction deleted successfully - triggering refresh');
 
-      // Call onDelete callback to refresh LedgerDetailController
-      widget.onDelete?.call();
+        // Call onDelete callback to refresh LedgerDetailController
+        widget.onDelete?.call();
 
-      // Update ledger's last activity date locally (fixes date not updating issue)
-      try {
-        final ledgerController = Get.find<LedgerController>();
-        final targetLedgerId = _transactionDetail?.ledgerId ?? widget.ledgerId;
-        if (targetLedgerId != null) {
-          debugPrint('🔄 Updating ledger $targetLedgerId last activity date after delete...');
-          ledgerController.updateLedgerLastActivity(targetLedgerId);
+        // Update ledger's last activity date locally (fixes date not updating issue)
+        try {
+          final ledgerController = Get.find<LedgerController>();
+          final targetLedgerId = _transactionDetail?.ledgerId ?? widget.ledgerId;
+          if (targetLedgerId != null) {
+            debugPrint('🔄 Updating ledger $targetLedgerId last activity date after delete...');
+            ledgerController.updateLedgerLastActivity(targetLedgerId);
+          }
+          debugPrint('✅ LedgerController updated successfully');
+        } catch (e) {
+          debugPrint('⚠️ LedgerController not found, skipping update');
         }
-        debugPrint('✅ LedgerController updated successfully');
-      } catch (e) {
-        debugPrint('⚠️ LedgerController not found, skipping update');
       }
     } catch (e) {
       debugPrint('❌ Delete Transaction Error: $e');

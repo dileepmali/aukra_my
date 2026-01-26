@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../core/api/auth_storage.dart';
 import '../core/api/customer_statement_api.dart';
 import '../core/api/merchant_dashboard_api.dart';
+import '../core/database/repositories/ledger_repository.dart';
+import '../core/database/repositories/transaction_repository.dart';
+import '../core/services/connectivity_service.dart';
 import '../core/services/error_service.dart';
 import '../core/untils/error_types.dart';
 import '../models/customer_statement_model.dart';
@@ -11,6 +15,31 @@ import '../models/merchant_dashboard_model.dart';
 class CustomerStatementController extends GetxController {
   final CustomerStatementApi _statementApi = CustomerStatementApi();
   final MerchantDashboardApi _dashboardApi = MerchantDashboardApi();
+
+  // 🗄️ Offline-first repositories
+  LedgerRepository? _ledgerRepository;
+  LedgerRepository get ledgerRepository {
+    if (_ledgerRepository == null) {
+      if (Get.isRegistered<LedgerRepository>()) {
+        _ledgerRepository = Get.find<LedgerRepository>();
+      } else {
+        _ledgerRepository = LedgerRepository();
+      }
+    }
+    return _ledgerRepository!;
+  }
+
+  TransactionRepository? _transactionRepository;
+  TransactionRepository get transactionRepository {
+    if (_transactionRepository == null) {
+      if (Get.isRegistered<TransactionRepository>()) {
+        _transactionRepository = Get.find<TransactionRepository>();
+      } else {
+        _transactionRepository = TransactionRepository();
+      }
+    }
+    return _transactionRepository!;
+  }
 
   // Observable variables
   final isLoading = false.obs;
@@ -229,13 +258,24 @@ class CustomerStatementController extends GetxController {
   }
 
   /// Fetch all data (statement + dashboard)
+  /// 🗄️ OFFLINE-FIRST: Fetch statement first, then dashboard (dashboard depends on statement data)
   Future<void> fetchAllData() async {
-    await Future.wait([
-      // 🧪 TEST: Comment out fetchStatement() to test UI visibility on error
-      fetchStatement(),
-      // _simulateErrorForTesting(), // Simulates error state for testing
-      fetchDashboard(),
-    ]);
+    // Check connectivity
+    final isOnline = Get.isRegistered<ConnectivityService>()
+        ? ConnectivityService.instance.isConnected.value
+        : true;
+
+    if (isOnline) {
+      // Online: Fetch in parallel for speed
+      await Future.wait([
+        fetchStatement(),
+        fetchDashboard(),
+      ]);
+    } else {
+      // Offline: Fetch sequentially (dashboard depends on statement data)
+      await fetchStatement();
+      await fetchDashboard();
+    }
   }
 
   /// 🧪 TEST METHOD: Simulates an error for testing UI visibility
@@ -246,27 +286,162 @@ class CustomerStatementController extends GetxController {
     isLoading.value = false;
   }
 
-  /// Fetch dashboard data from GET /api/merchant/{merchantId}/dashboard
+  /// Fetch dashboard data from GET /api/merchant/{merchantId}/dashboard - OFFLINE FIRST
   Future<void> fetchDashboard() async {
     try {
-      debugPrint('📊 Fetching dashboard data for $partyType...');
+      // Check connectivity
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
 
-      final data = await _dashboardApi.getMerchantDashboard();
-      dashboardData.value = data;
+      debugPrint('📊 Fetching dashboard data for $partyType (OFFLINE-FIRST)...');
+      debugPrint('🌐 Is Online: $isOnline');
 
-      debugPrint('✅ Dashboard loaded successfully for $partyType');
-      debugPrint('   - Party Net Balance: ₹$partyNetBalance');
-      debugPrint('   - Party Net Balance Type: $partyNetBalanceType');
-      debugPrint('   - Party Total: $partyTotal');
-      debugPrint('   - Party Overall Received (IN): ₹$todayIn');
-      debugPrint('   - Party Overall Given (OUT): ₹$todayOut');
+      // 🗄️ OFFLINE: Skip if dashboard already calculated from fetchStatement()
+      if (!isOnline) {
+        if (dashboardData.value != null) {
+          debugPrint('📴 Offline - Dashboard already calculated, skipping');
+          return;
+        }
+        // Try to calculate if not yet done
+        if (statementData.value != null && statementData.value!.customers.isNotEmpty) {
+          await _calculateDashboardFromCachedData();
+          debugPrint('📦 Dashboard calculated from cached data');
+        }
+        return;
+      }
+
+      // 🌐 If online, fetch fresh data from API
+      try {
+        debugPrint('🔄 Online - Fetching fresh dashboard from API...');
+        final data = await _dashboardApi.getMerchantDashboard();
+        dashboardData.value = data;
+
+        debugPrint('✅ Dashboard loaded from API successfully for $partyType');
+        debugPrint('   - Party Net Balance: ₹$partyNetBalance');
+        debugPrint('   - Party Net Balance Type: $partyNetBalanceType');
+        debugPrint('   - Party Total: $partyTotal');
+        debugPrint('   - Party Overall Received (IN): ₹$todayIn');
+        debugPrint('   - Party Overall Given (OUT): ₹$todayOut');
+      } catch (apiError) {
+        debugPrint('⚠️ API fetch failed: $apiError');
+        // If API fails, try to calculate from cached data
+        if (dashboardData.value == null && statementData.value != null) {
+          await _calculateDashboardFromCachedData();
+        }
+      }
     } catch (e) {
       debugPrint('❌ Error fetching dashboard: $e');
-      // Don't set error message - dashboard is secondary data
     }
   }
 
-  /// Fetch statement data with pagination
+  /// Calculate dashboard stats from cached statement data - OFFLINE FIRST
+  Future<void> _calculateDashboardFromCachedData() async {
+    if (statementData.value == null) return;
+
+    double overallReceived = 0; // Total IN (money received from party)
+    double overallGiven = 0;    // Total OUT (money given to party)
+    int totalCount = 0;
+
+    // Calculate overall totals from ledger balances
+    for (final customer in statementData.value!.customers) {
+      totalCount++;
+      // Balance type 'IN' = customer owes you (positive balance)
+      // Balance type 'OUT' = you owe customer (negative balance)
+      if (customer.balanceType == 'IN') {
+        overallGiven += customer.balance; // They owe you = you gave them
+      } else {
+        overallReceived += customer.balance; // You owe them = you received from them
+      }
+    }
+
+    // Calculate net balance
+    final netBalance = overallGiven - overallReceived;
+    final netBalanceType = netBalance >= 0 ? 'OUT' : 'IN';
+
+    // Calculate today's IN/OUT from cached transactions
+    double todayInAmount = 0;
+    double todayOutAmount = 0;
+
+    try {
+      final merchantId = await _getMerchantId();
+      if (merchantId != null) {
+        // Get all ledgers for this party type
+        final ledgers = await ledgerRepository.getLedgersByPartyType(merchantId, partyType);
+
+        // Get today's date range
+        final now = DateTime.now();
+        final todayStart = DateTime(now.year, now.month, now.day);
+        final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+        // Sum up today's transactions from all ledgers
+        for (final ledger in ledgers) {
+          if (ledger.id != null) {
+            final todayTransactions = await transactionRepository.getTransactionsByDateRange(
+              ledger.id!,
+              todayStart,
+              todayEnd,
+            );
+
+            for (final tx in todayTransactions) {
+              if (!tx.isDelete) {
+                if (tx.transactionType == 'IN') {
+                  todayInAmount += tx.amount;
+                } else {
+                  todayOutAmount += tx.amount;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error calculating today transactions: $e');
+    }
+
+    // Create MerchantPartyData for current party type
+    final partyData = MerchantPartyData(
+      total: totalCount,
+      netBalance: netBalance.abs(),
+      netBalanceType: netBalanceType,
+      overallGiven: overallGiven,
+      overallReceived: overallReceived,
+    );
+
+    final emptyParty = MerchantPartyData(
+      total: 0,
+      netBalance: 0,
+      netBalanceType: 'OUT',
+      overallGiven: 0,
+      overallReceived: 0,
+    );
+
+    // Create dashboard model
+    dashboardData.value = MerchantDashboardModel(
+      todayIn: todayInAmount,
+      todayOut: todayOutAmount,
+      overallGiven: overallGiven,
+      overallReceived: overallReceived,
+      netBalance: netBalance.abs(),
+      netBalanceType: netBalanceType,
+      party: MerchantPartyBreakdown(
+        customer: partyType == 'CUSTOMER' ? partyData : emptyParty,
+        supplier: partyType == 'SUPPLIER' ? partyData : emptyParty,
+        employee: partyType == 'EMPLOYEE' ? partyData : emptyParty,
+      ),
+    );
+
+    debugPrint('📦 Dashboard calculated from cached data:');
+    debugPrint('   - Party Type: $partyType');
+    debugPrint('   - Total Count: $totalCount');
+    debugPrint('   - Overall Given (OUT): ₹$overallGiven');
+    debugPrint('   - Overall Received (IN): ₹$overallReceived');
+    debugPrint('   - Net Balance: ₹${netBalance.abs()} ($netBalanceType)');
+    debugPrint('   - Today IN: ₹$todayInAmount');
+    debugPrint('   - Today OUT: ₹$todayOutAmount');
+  }
+
+  /// Fetch statement data with pagination - OFFLINE FIRST
   Future<void> fetchStatement() async {
     try {
       isLoading.value = true;
@@ -276,29 +451,96 @@ class CustomerStatementController extends GetxController {
       currentPage.value = 1;
       hasMoreData.value = true;
 
-      debugPrint('📡 Fetching $partyType statement (Page: 1)...');
+      debugPrint('📡 Fetching $partyType statement (OFFLINE-FIRST)...');
 
-      final data = await _statementApi.getCustomerStatement(
-        partyType: partyType,
-        page: 1,
-        limit: pageLimit,
-      );
+      // Check connectivity
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
 
-      statementData.value = data;
+      debugPrint('🌐 Is Online: $isOnline');
 
-      // Check if we got less than limit (means no more data)
-      if (data.customers.length < pageLimit) {
-        hasMoreData.value = false;
+      // 🗄️ OFFLINE-FIRST: Try to load cached ledgers first
+      try {
+        final merchantId = await _getMerchantId();
+        if (merchantId != null) {
+          final cachedLedgers = await ledgerRepository.getLedgersByPartyType(merchantId, partyType);
+          if (cachedLedgers.isNotEmpty) {
+            debugPrint('📦 Loaded ${cachedLedgers.length} cached $partyType ledgers');
+
+            // Convert LedgerModel to CustomerStatementItem
+            final cachedCustomers = cachedLedgers.map((ledger) => CustomerStatementItem(
+              id: ledger.id ?? 0,
+              name: ledger.name,
+              mobileNumber: ledger.mobileNumber,
+              location: ledger.area ?? '',
+              balance: ledger.currentBalance.abs(),
+              balanceType: ledger.currentBalance >= 0 ? 'IN' : 'OUT',
+              lastTransactionDate: ledger.updatedAt ?? DateTime.now(),
+            )).toList();
+
+            statementData.value = CustomerStatementModel(customers: cachedCustomers);
+            debugPrint('📦 Using ${cachedCustomers.length} cached items');
+
+            // 🗄️ Calculate dashboard stats immediately after loading cached data
+            await _calculateDashboardFromCachedData();
+            debugPrint('📦 Dashboard calculated from cached data immediately');
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not load cached ledgers: $e');
       }
 
-      debugPrint('✅ Statement loaded successfully');
-      debugPrint('   - Total customers in list: ${data.customers.length}');
-      debugPrint('   - Has more data: ${hasMoreData.value}');
+      // If online, fetch fresh data from API
+      if (isOnline) {
+        try {
+          debugPrint('🔄 Online - Fetching fresh data from API...');
+          final data = await _statementApi.getCustomerStatement(
+            partyType: partyType,
+            page: 1,
+            limit: pageLimit,
+          );
+
+          statementData.value = data;
+
+          // Check if we got less than limit (means no more data)
+          if (data.customers.length < pageLimit) {
+            hasMoreData.value = false;
+          }
+
+          debugPrint('✅ Statement loaded from API successfully');
+          debugPrint('   - Total customers in list: ${data.customers.length}');
+          debugPrint('   - Has more data: ${hasMoreData.value}');
+        } catch (apiError) {
+          debugPrint('⚠️ API fetch failed: $apiError');
+          // If we have cached data, don't show error
+          if (statementData.value == null || statementData.value!.customers.isEmpty) {
+            rethrow;
+          } else {
+            debugPrint('📦 Using cached data as fallback');
+          }
+        }
+      } else {
+        debugPrint('📴 Offline - Using cached data');
+        if (statementData.value == null || statementData.value!.customers.isEmpty) {
+          errorMessage.value = 'No cached data available. Please connect to internet.';
+        }
+      }
     } catch (e) {
       debugPrint('❌ Error fetching statement: $e');
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Get merchant ID from storage
+  Future<int?> _getMerchantId() async {
+    try {
+      return await AuthStorage.getMerchantId();
+    } catch (e) {
+      debugPrint('⚠️ Could not get merchant ID: $e');
+      return null;
     }
   }
 

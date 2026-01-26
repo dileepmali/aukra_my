@@ -86,7 +86,6 @@ class _AccountScreenState extends State<AccountScreen> {
                       fontWeight: FontWeight.w500,
                       maxLines: 1,
                       minFontSize: 12,
-                      letterSpacing: 1.2,
                     ),
                     SizedBox(width: responsive.spacing(8)),
                     SvgPicture.asset(
@@ -179,6 +178,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               ? AppColors.primeryamount
                               : AppColors.red500,
                           fontWeight: FontWeight.w600,
+                          minFontSize: 9,
                         ),
                       ],
                     ),
@@ -420,7 +420,8 @@ class _AccountScreenState extends State<AccountScreen> {
                       color: isPositive
                           ? AppColors.primeryamount
                           : AppColors.red500,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
+                      minFontSize: 9,
                     ),
                   ],
                 ),

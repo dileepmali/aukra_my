@@ -7,19 +7,10 @@ class AppFonts {
   // ============================================================================
 
   /// Primary font family (Google Sans - main app font)
-  static const String primary = 'GoogleSans';
+  static const String secondary = 'GoogleSans';
 
-  /// Secondary font family (Tahoma - fallback)
-  static const String secondary = 'Tahoma';
-
-  /// Accent font family (Future font - to be added)
-  static const String accent = 'Poppins'; // Fallback to system font
-
-  /// Monospace font family (For code/data display)
-  static const String monospace = 'Courier New';
-
-  /// Default system font fallback
-  static const String systemDefault = 'System';
+  /// Secondary font family (Roboto - fallback)
+  static const String primary = 'Roboto';
 
   // ============================================================================
   // 🎯 FONT WEIGHT DEFINITIONS
@@ -541,7 +532,7 @@ class AppFonts {
     double? fontSize,
   }) {
     return TextStyle(
-      fontFamily: fontFamily ?? monospace,
+      fontFamily: fontFamily ?? primary,
       fontSize: fontSize ?? 10.5.sp,  // 14px on standard devices, responsive with sp
       fontWeight: fontWeight ?? regular,
       height: 1.4,
@@ -559,9 +550,6 @@ class AppFonts {
     return [
       primary,
       secondary,
-      accent,
-      monospace,
-      systemDefault,
     ];
   }
   

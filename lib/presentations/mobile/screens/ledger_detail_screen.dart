@@ -155,9 +155,9 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                                     color: isDark
                                         ? AppColors.white
                                         : AppColorsLight.textPrimary,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w400,
                                     maxLines: 1,
-                                    minFontSize: 12,
+                                    minFontSize: 10,
                                   ),
                                   SizedBox(height: responsive.hp(0.2)),
                 
@@ -381,29 +381,30 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppText.headlineLarge(
+                  AppText.searchbar4(
                     'Closing Balance',
                     color: isDark ? AppColors.white.withOpacity(0.8) : AppColorsLight.black,
                     fontWeight: FontWeight.w400,
+                    minFontSize: 10,
                   ),
                   SizedBox(height: responsive.hp(1)),
                   Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(top: responsive.hp(1.0)), // Fine-tune vertical position
+                        padding: EdgeInsets.only(top: responsive.hp(0.7)), // Fine-tune vertical position
                         child: Builder(
                           builder: (context) {
                             // ✅ KHATABOOK LOGIC: Use balance value for color
                             // Positive = RED (Customer owes you - You will RECEIVE)
                             // Negative = GREEN (You owe customer - You will GIVE)
-                            // Zero = NEUTRAL (no color indicator)
+                            // Zero = GREEN (Settled/Clear)
                             return SvgPicture.asset(
                               AppIcons.vectoeIc3,
-                              width: responsive.iconSizeSmall + 5,
-                              height: responsive.iconSizeSmall + 5,
+                              width: responsive.iconSizeSmall + 2,
+                              height: responsive.iconSizeSmall + 2,
                               colorFilter: ColorFilter.mode(
                                 isZeroBalance
-                                    ? (isDark ? AppColors.white : AppColorsLight.textPrimary)
+                                    ? AppColors.primeryamount  // GREEN for zero balance
                                     : BalanceHelper.getBalanceColorFromValue(balance),
                                 BlendMode.srcIn,
                               ),
@@ -418,15 +419,16 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                             // ✅ KHATABOOK LOGIC: Use balance value for color
                             // Positive = RED (Customer owes you - You will RECEIVE)
                             // Negative = GREEN (You owe customer - You will GIVE)
-                            // Zero = NEUTRAL (no color indicator)
-                            return AppText.displayMedium1(
+                            // Zero = GREEN (Settled/Clear)
+                            return AppText.searchbar2(
                               isZeroBalance
                                   ? '0.00'
                                   : '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
                               color: isZeroBalance
-                                  ? (isDark ? AppColors.white : AppColorsLight.textPrimary)
+                                  ? AppColors.primeryamount  // GREEN for zero balance
                                   : BalanceHelper.getBalanceColorFromValue(balance),
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
+                              minFontSize: 10,
                             );
                           },
                         ),

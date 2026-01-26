@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -488,13 +487,12 @@ class LedgerDashboardScreen extends StatelessWidget {
                 ),
                 SizedBox(width: responsive.wp(2)),
                 Flexible(
-                  child: AppText.displaySmall(
-                    null,
-                    amount: monthlyOut,
-                    prefix: '₹ ',
-                    minFontSize: 10,
-                    color: isDark?AppColors.white : AppColorsLight.black,
+                  child: AppText.displayMedium(
+                    '₹ ${Formatters.formatAmountWithCommas(monthlyOut.toStringAsFixed(2))}',
+                    color: isDark ? AppColors.white : AppColorsLight.black,
                     fontWeight: FontWeight.w700,
+                    maxLines: 1,
+                    minFontSize: 10,
                   ),
                 ),
               ],
@@ -510,19 +508,18 @@ class LedgerDashboardScreen extends StatelessWidget {
                   width: responsive.iconSizeLarge,
                   height: responsive.iconSizeLarge,
                   colorFilter: ColorFilter.mode(
-                     isDark?AppColors.white : AppColorsLight.black,
+                     isDark ? AppColors.white : AppColorsLight.black,
                     BlendMode.srcIn,
                   ),
                 ),
                 SizedBox(width: responsive.wp(2)),
                 Flexible(
-                  child: AppText.displaySmall(
-                    null,
-                    amount: monthlyIn,
-                    prefix: '₹ ',
-                    minFontSize: 10,
-                    color: isDark?AppColors.white : AppColorsLight.black,
+                  child: AppText.displayMedium(
+                    '₹ ${Formatters.formatAmountWithCommas(monthlyIn.toStringAsFixed(2))}',
+                    color: isDark ? AppColors.white : AppColorsLight.black,
                     fontWeight: FontWeight.w700,
+                    maxLines: 1,
+                    minFontSize: 10,
                   ),
                 ),
               ],
@@ -706,14 +703,28 @@ class LedgerDashboardScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: responsive.hp(0.5)),
-          // Use AppText for auto-scaling amount
-          AppText.displaySmall(
-            null,
-            amount: amount,
-            prefix: '₹ ',
-            minFontSize: 12,
-            color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-            fontWeight: FontWeight.w600,
+          // Use Row for smaller rupee symbol and amount with AutoSizeText
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              // Smaller rupee symbol
+              AppText.headlineLarge(
+                '₹ ',
+                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              // Amount with AppText for consistent box size and font
+              Flexible(
+                child: AppText.displayMedium(
+                  Formatters.formatAmountWithCommas(amount.toStringAsFixed(2)),
+                  color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  maxLines: 1,
+                  minFontSize: 10,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -947,17 +958,12 @@ class LedgerDashboardScreen extends StatelessWidget {
 
           // Label : Value (centered format) - Auto-scaling text
           Flexible(
-            child: AutoSizeText(
+            child: AppText.headlineLarge1(
               '$label : $value',
-              style: TextStyle(
-                color: isDark ? AppColors.white : AppColorsLight.black,
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-              ),
-              maxFontSize: 14,
-              minFontSize: 9,
+              color: isDark ? AppColors.white : AppColorsLight.black,
+              fontWeight: FontWeight.w400,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              minFontSize: 9,
               textAlign: TextAlign.center,
             ),
           ),
@@ -1020,18 +1026,13 @@ class LedgerDashboardScreen extends StatelessWidget {
           BlendMode.srcIn,
         ),
       ),
-      // Use AutoSizeText for balance to prevent overflow
-      subtitleSuffix: AutoSizeText(
+      // Use AppText for balance to prevent overflow with correct font
+      subtitleSuffix: AppText.headlineLarge1(
         'Bal. - ${NumberFormat('#,##,##0.00', 'en_IN').format(transaction.lastBalance)}',
-        style: TextStyle(
-          color: AppColors.white,
-          fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
-          fontSize: 12,
-        ),
-        maxFontSize: 12,
-        minFontSize: 8,
+        color: AppColors.white,
+        fontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
         maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+        minFontSize: 8,
       ),
       subtitleFontWeight: isPositive ? FontWeight.w600 : FontWeight.w400,
       amount: formattedAmount,

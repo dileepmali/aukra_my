@@ -21,6 +21,7 @@ import 'core/services/contact_cache_service.dart';
 import 'core/services/device_info_service.dart';
 import 'core/services/fcm_service.dart';
 import 'core/utils/balance_helper.dart';
+import 'core/database/database_initializer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,9 @@ Future<void> _initializeBackgroundServices() async {
 
   // Initialize Hive for contact caching
   await ContactCacheService.init();
+
+  // 🗄️ Initialize offline-first database (SQLite with Drift)
+  await DatabaseInitializer.initialize();
 
   // ✅ DON'T initialize FCM here - it will be initialized in MainScreen AFTER login
   // FCM requires authentication for backend registration and preference updates

@@ -294,7 +294,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             fontWeight: FontWeight.w500,
             maxLines: 1,
             minFontSize: 12,
-            letterSpacing: 1.1,
           ),
 
         ),

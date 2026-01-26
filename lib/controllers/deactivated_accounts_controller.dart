@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/auth_storage.dart';
 import '../core/api/ledger_detail_api.dart';
+import '../core/database/repositories/ledger_repository.dart';
 import '../models/deactivated_ledger_model.dart';
+import 'ledger_controller.dart';
 
 class DeactivatedAccountsController extends GetxController {
   final LedgerDetailApi _api = LedgerDetailApi();
@@ -75,8 +77,24 @@ class DeactivatedAccountsController extends GetxController {
 
       debugPrint('✅ Ledger activated: ${response.message}');
 
-      // Remove from local list
+      // Update local database - set isActive = true
+      final ledgerRepository = Get.isRegistered<LedgerRepository>()
+          ? Get.find<LedgerRepository>()
+          : LedgerRepository();
+      await ledgerRepository.updateLedgerStatus(ledgerId, true, securityKey);
+      debugPrint('💾 Local DB updated: ledger $ledgerId isActive = true');
+
+      // Remove from local deactivated list first
       deactivatedAccounts.removeWhere((account) => account.id == ledgerId);
+
+      // Refresh LedgerController to fetch all active ledgers from API
+      // This ensures the activated ledger appears in ledger_screen.dart
+      if (Get.isRegistered<LedgerController>()) {
+        final ledgerController = Get.find<LedgerController>();
+        debugPrint('🔄 Refreshing LedgerController to show activated ledger...');
+        await ledgerController.refreshAll();
+        debugPrint('✅ LedgerController refreshed - ledger should now appear in ledger_screen.dart');
+      }
 
       return true;
     } catch (e) {

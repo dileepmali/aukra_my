@@ -7,8 +7,35 @@ import '../models/ledger_detail_model.dart';
 import '../models/transaction_list_model.dart';
 import '../core/api/ledger_detail_api.dart';
 import '../core/api/ledger_transaction_api.dart';
+import '../core/database/repositories/ledger_repository.dart';
+import '../core/database/repositories/transaction_repository.dart';
+import '../core/services/connectivity_service.dart';
 
 class LedgerDashboardController extends GetxController {
+  // 🗄️ Offline-first repositories
+  LedgerRepository? _ledgerRepository;
+  LedgerRepository get ledgerRepository {
+    if (_ledgerRepository == null) {
+      if (Get.isRegistered<LedgerRepository>()) {
+        _ledgerRepository = Get.find<LedgerRepository>();
+      } else {
+        _ledgerRepository = LedgerRepository();
+      }
+    }
+    return _ledgerRepository!;
+  }
+
+  TransactionRepository? _transactionRepository;
+  TransactionRepository get transactionRepository {
+    if (_transactionRepository == null) {
+      if (Get.isRegistered<TransactionRepository>()) {
+        _transactionRepository = Get.find<TransactionRepository>();
+      } else {
+        _transactionRepository = TransactionRepository();
+      }
+    }
+    return _transactionRepository!;
+  }
   // Reactive variables
   final Rx<LedgerDashboardModel?> dashboardData = Rx<LedgerDashboardModel?>(null);
   final Rx<LedgerDetailModel?> ledgerDetail = Rx<LedgerDetailModel?>(null);
@@ -51,6 +78,7 @@ class LedgerDashboardController extends GetxController {
   }
 
   /// Fetch dashboard data using ledger detail, transactions, and dashboard summary APIs
+  /// 🗄️ OFFLINE-FIRST: Try cached data first, then API
   Future<void> fetchDashboard() async {
     try {
       isLoading.value = true;
@@ -61,32 +89,112 @@ class LedgerDashboardController extends GetxController {
         throw Exception('Invalid ledger ID. Cannot fetch dashboard data.');
       }
 
-      debugPrint('📊 Fetching dashboard for ledger: $ledgerId');
+      debugPrint('📊 Fetching dashboard for ledger: $ledgerId (OFFLINE-FIRST)');
 
-      // Fetch ledger details, transactions, and dashboard summary in parallel
-      final results = await Future.wait([
-        _ledgerDetailApi.getLedgerDetails(ledgerId!),
-        _transactionApi.getLedgerTransactions(ledgerId: ledgerId!),
-        _ledgerDetailApi.getDashboardSummary(ledgerId!),
-      ]);
+      // Check connectivity
+      final isOnline = Get.isRegistered<ConnectivityService>()
+          ? ConnectivityService.instance.isConnected.value
+          : true;
 
-      ledgerDetail.value = results[0] as LedgerDetailModel;
-      transactions.value = results[1] as TransactionListModel;
-      final summaryData = results[2] as LedgerDashboardSummaryModel;
+      debugPrint('🌐 Is Online: $isOnline');
 
-      // Use API data for dashboard statistics
-      _setDashboardStatsFromApi(summaryData);
-
-      // Fetch monthly dashboard separately to ensure it runs
-      debugPrint('📅 Starting monthly dashboard fetch...');
+      // 🗄️ OFFLINE-FIRST: Try to load cached transactions first
       try {
-        monthlyDashboard.value = await _ledgerDetailApi.getMonthlyDashboard(ledgerId!);
-        debugPrint('📅 Monthly Dashboard loaded: IN=₹${monthlyDashboard.value?.totalIn}, OUT=₹${monthlyDashboard.value?.totalOut}');
-      } catch (monthlyError) {
-        debugPrint('📅 Monthly Dashboard Error: $monthlyError');
+        final cachedTransactions = await transactionRepository.getTransactionsByLedger(ledgerId!);
+        if (cachedTransactions.isNotEmpty) {
+          debugPrint('📦 Loaded ${cachedTransactions.length} cached transactions');
+          transactions.value = TransactionListModel(
+            count: cachedTransactions.length,
+            totalCount: cachedTransactions.length,
+            data: cachedTransactions,
+          );
+          // Calculate dashboard stats from cached data
+          _calculateDashboardStats();
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not load cached transactions: $e');
       }
 
-      debugPrint('✅ Dashboard data loaded successfully');
+      // 🗄️ Try to load cached ledger detail
+      try {
+        final cachedLedger = await ledgerRepository.getLedgerById(ledgerId!);
+        if (cachedLedger != null) {
+          debugPrint('📦 Loaded cached ledger: ${cachedLedger.name}');
+          ledgerDetail.value = LedgerDetailModel(
+            id: cachedLedger.id ?? 0,
+            merchantId: cachedLedger.merchantId,
+            partyName: cachedLedger.name,
+            partyType: cachedLedger.partyType,
+            mobileNumber: cachedLedger.mobileNumber,
+            currentBalance: cachedLedger.currentBalance,
+            openingBalance: cachedLedger.openingBalance,
+            area: cachedLedger.area,
+            address: cachedLedger.address,
+            pinCode: cachedLedger.pinCode,
+            creditLimit: cachedLedger.creditLimit,
+            creditDay: cachedLedger.creditDay,
+            interestType: cachedLedger.interestType,
+            interestRate: cachedLedger.interestRate,
+            transactionType: cachedLedger.transactionType,
+            isDelete: false,
+            salary: 0.0,
+            salaryType: 'MONTHLY',
+            createdAt: cachedLedger.createdAt ?? DateTime.now(),
+            updatedAt: cachedLedger.updatedAt ?? DateTime.now(),
+          );
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not load cached ledger detail: $e');
+      }
+
+      // If online, fetch fresh data from API
+      if (isOnline) {
+        debugPrint('🔄 Online - Fetching fresh data from API...');
+        try {
+          // Fetch ledger details, transactions, and dashboard summary in parallel
+          final results = await Future.wait([
+            _ledgerDetailApi.getLedgerDetails(ledgerId!),
+            _transactionApi.getLedgerTransactions(ledgerId: ledgerId!),
+            _ledgerDetailApi.getDashboardSummary(ledgerId!),
+          ]);
+
+          ledgerDetail.value = results[0] as LedgerDetailModel;
+          transactions.value = results[1] as TransactionListModel;
+          final summaryData = results[2] as LedgerDashboardSummaryModel;
+
+          // Use API data for dashboard statistics
+          _setDashboardStatsFromApi(summaryData);
+
+          // Fetch monthly dashboard separately to ensure it runs
+          debugPrint('📅 Starting monthly dashboard fetch...');
+          try {
+            monthlyDashboard.value = await _ledgerDetailApi.getMonthlyDashboard(ledgerId!);
+            debugPrint('📅 Monthly Dashboard loaded: IN=₹${monthlyDashboard.value?.totalIn}, OUT=₹${monthlyDashboard.value?.totalOut}');
+          } catch (monthlyError) {
+            debugPrint('📅 Monthly Dashboard Error: $monthlyError');
+          }
+
+          debugPrint('✅ Dashboard data loaded from API successfully');
+        } catch (apiError) {
+          debugPrint('⚠️ API fetch failed: $apiError');
+          // If API fails but we have cached data, use that
+          if (transactions.value != null && transactions.value!.data.isNotEmpty) {
+            debugPrint('📦 Using cached data as fallback');
+            _calculateDashboardStats();
+          } else {
+            rethrow;
+          }
+        }
+      } else {
+        debugPrint('📴 Offline - Using cached data');
+        // If offline and we have cached data, calculate stats from it
+        if (transactions.value != null && transactions.value!.data.isNotEmpty) {
+          _calculateDashboardStats();
+          debugPrint('✅ Dashboard stats calculated from cached data');
+        } else {
+          errorMessage.value = 'No cached data available. Please connect to internet.';
+        }
+      }
     } catch (e) {
       debugPrint('❌ Dashboard Fetch Error: $e');
       errorMessage.value = e.toString().replaceAll('Exception: ', '');

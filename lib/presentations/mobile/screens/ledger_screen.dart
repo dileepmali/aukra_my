@@ -226,7 +226,6 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                     fontWeight: FontWeight.w500,
                   maxLines: 1,
                   minFontSize: 10,
-                  letterSpacing: 1.2,
                 ),
                 SizedBox(width: responsive.spacing(8)),
                 SvgPicture.asset(
@@ -414,10 +413,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       }
 
                       final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
-                      final isPositive = BalanceHelper.isPositive(
-                        currentBalance: customer.currentBalance,
-                        itemName: 'Customer: ${customer.name}',
-                      );
+                      // Handle zero balance - show GREEN (settled/clear)
+                      final bool? isPositive = customer.currentBalance == 0
+                          ? true  // GREEN for zero balance (settled)
+                          : BalanceHelper.isPositive(
+                              currentBalance: customer.currentBalance,
+                              itemName: 'Customer: ${customer.name}',
+                            );
 
                       return ListItemWidget(
                         title: customer.name.isNotEmpty
@@ -539,10 +541,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       }
 
                       final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
-                      final isPositive = BalanceHelper.isPositive(
-                        currentBalance: supplier.currentBalance,
-                        itemName: 'Supplier: ${supplier.name}',
-                      );
+                      // Handle zero balance - show GREEN (settled/clear)
+                      final bool? isPositive = supplier.currentBalance == 0
+                          ? true  // GREEN for zero balance (settled)
+                          : BalanceHelper.isPositive(
+                              currentBalance: supplier.currentBalance,
+                              itemName: 'Supplier: ${supplier.name}',
+                            );
 
                       return ListItemWidget(
                         title: supplier.name.isNotEmpty
@@ -665,10 +670,13 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
                       }
 
                       final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
-                      final isPositive = BalanceHelper.isPositive(
-                        currentBalance: employer.currentBalance,
-                        itemName: 'Employee: ${employer.name}',
-                      );
+                      // Handle zero balance - show GREEN (settled/clear)
+                      final bool? isPositive = employer.currentBalance == 0
+                          ? true  // GREEN for zero balance (settled)
+                          : BalanceHelper.isPositive(
+                              currentBalance: employer.currentBalance,
+                              itemName: 'Employee: ${employer.name}',
+                            );
 
                       return ListItemWidget(
                         title: employer.name.isNotEmpty

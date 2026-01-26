@@ -359,16 +359,18 @@ class AccountStatementWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        dailyGroup.inAmount > 0
-                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.inAmount.toString())}'
-                            : '-',
-                        style: TextStyle(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 2),
+                        child: AppText.headlineLarge1(
+                          dailyGroup.inAmount > 0
+                              ? '₹${Formatters.formatAmountWithCommas(dailyGroup.inAmount.toString())}'
+                              : '-',
                           color: dailyGroup.inAmount > 0
                               ? AppColors.successPrimary
                               : AppColors.white,
-                          fontSize: responsive.fontSize(12),
                           fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          minFontSize: 8,
                         ),
                       ),
                     ),
@@ -382,16 +384,18 @@ class AccountStatementWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        dailyGroup.outAmount > 0
-                            ? '₹${Formatters.formatAmountWithCommas(dailyGroup.outAmount.toString())}'
-                            : '-',
-                        style: TextStyle(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 2),
+                        child: AppText.headlineLarge1(
+                          dailyGroup.outAmount > 0
+                              ? '₹${Formatters.formatAmountWithCommas(dailyGroup.outAmount.toString())}'
+                              : '-',
                           color: dailyGroup.outAmount > 0
                               ? AppColors.red500
                               : AppColors.white,
-                          fontSize: responsive.fontSize(12),
                           fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          minFontSize: 8,
                         ),
                       ),
                     ),
@@ -405,9 +409,10 @@ class AccountStatementWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        '₹${Formatters.formatAmountWithCommas(dailyGroup.balance.abs().toString())}',
-                        style: TextStyle(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 2),
+                        child: AppText.headlineLarge1(
+                          '₹${Formatters.formatAmountWithCommas(dailyGroup.balance.abs().toString())}',
                           // ✅ KHATABOOK LOGIC:
                           // Positive (> 0) = RED (Customer owes you - You will RECEIVE)
                           // Negative (< 0) = GREEN (You owe customer - You will GIVE)
@@ -416,8 +421,9 @@ class AccountStatementWidget extends StatelessWidget {
                               : dailyGroup.balance < 0
                                   ? AppColors.successPrimary  // GREEN - Payable
                                   : AppColors.white,          // Neutral for zero
-                          fontSize: responsive.fontSize(12),
                           fontWeight: FontWeight.w700,
+                          maxLines: 1,
+                          minFontSize: 8,
                         ),
                       ),
                     ),

@@ -620,18 +620,17 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                                 fontWeight: FontWeight.w500,
                                         maxLines: 1,
                                         minFontSize: 9,
-                                        letterSpacing: 1.0,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             // Show merchant business address instead of device address
                                           if (_merchantAddress.isNotEmpty) ...[
                                               SizedBox(height: responsive.hp(0.3)),
-                                              AppText.searchbar(
+                                              AppText.headlineLarge1(
                                                 _merchantAddress,
                                                   color: AppColors.textDisabled,
                                                 maxLines: 1,
                                                 minFontSize: 10,
-                                                letterSpacing: 1.0,
+                                                fontWeight: FontWeight.w400,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
