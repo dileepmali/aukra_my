@@ -538,7 +538,7 @@ class CustomerStatementController extends GetxController {
         isDelete: false,
         currentBalance: ledger.currentBalance,
         description: null,
-        transactionDate: ledger.updatedAt ?? DateTime.now(),
+        transactionDate: ledger.transactionDate ?? ledger.updatedAt ?? DateTime.now(),
         updatedAt: ledger.updatedAt ?? DateTime.now(),
         transactionType: ledger.currentBalance >= 0 ? 'IN' : 'OUT',
         balanceType: ledger.currentBalance >= 0 ? 'IN' : 'OUT',

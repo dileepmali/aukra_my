@@ -416,6 +416,27 @@ class LedgerDetailController extends GetxController {
         }
       }
 
+      // Update ledger's cached transactionDate to the latest transaction date
+      if (allTransactions.isNotEmpty) {
+        try {
+          // Find the latest transactionDate from loaded transactions
+          DateTime? latestDate;
+          for (final tx in allTransactions) {
+            try {
+              final txDate = DateTime.parse(tx.transactionDate);
+              if (latestDate == null || txDate.isAfter(latestDate)) {
+                latestDate = txDate;
+              }
+            } catch (_) {}
+          }
+          if (latestDate != null) {
+            await ledgerRepository.updateLedgerTransactionDate(ledgerId, latestDate);
+          }
+        } catch (e) {
+          debugPrint('⚠️ Could not update ledger transactionDate: $e');
+        }
+      }
+
       debugPrint('✅ Transactions loaded: ${allTransactions.length}/${totalTransactionCount.value} for ledger $ledgerId');
       debugPrint('📄 Has more data: ${hasMoreData.value}');
     } catch (e) {

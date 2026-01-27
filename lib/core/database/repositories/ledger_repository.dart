@@ -298,7 +298,28 @@ class LedgerRepository {
     // 3. Now insert/upsert the API ledgers
     // API returns ACTIVE ledgers from server, so trust the server as source of truth
     // The API only returns active ledgers - if a ledger is in this list, it's active on server
+
+    // Build a map of existing cached transactionDates to preserve newer values
+    final existingLedgers = <int, DateTime?>{};
+    for (final l in ledgers) {
+      if (l.id != null) {
+        final existing = await _db.ledgerDao.getLedgerById(l.id!);
+        if (existing != null && existing.transactionDate != null) {
+          existingLedgers[l.id!] = existing.transactionDate;
+        }
+      }
+    }
+
     final companions = ledgers.map((l) {
+      // Use the newer transactionDate: keep cached if newer than API's
+      DateTime? bestTransactionDate = l.transactionDate;
+      final cachedDate = existingLedgers[l.id];
+      if (cachedDate != null) {
+        if (bestTransactionDate == null || cachedDate.isAfter(bestTransactionDate)) {
+          bestTransactionDate = cachedDate;
+        }
+      }
+
       return LedgersCompanion(
         id: Value(l.id ?? 0),
         merchantId: Value(l.merchantId),
@@ -318,7 +339,7 @@ class LedgerRepository {
         isSynced: const Value(true),
         createdAt: Value(l.createdAt),
         updatedAt: Value(l.updatedAt),
-        transactionDate: Value(l.transactionDate),
+        transactionDate: Value(bestTransactionDate),
         // Server says active, so set active - server is source of truth
         isActive: const Value(true),
       );
@@ -406,6 +427,8 @@ class LedgerRepository {
         isSynced: const Value(true),
         createdAt: Value(detail.createdAt),
         updatedAt: Value(detail.updatedAt),
+        // Preserve existing transactionDate from cache (LedgerDetailModel doesn't have this field)
+        transactionDate: Value(existingLedger?.transactionDate),
         // Preserve local deactivation status
         isActive: Value(!isLocallyDeactivated),
       );
@@ -414,6 +437,19 @@ class LedgerRepository {
       debugPrint('💾 Ledger cached to local DB: ${detail.partyName}');
     } catch (e) {
       debugPrint('⚠️ Failed to cache ledger: $e');
+    }
+  }
+
+  /// Update ledger's transactionDate in local DB
+  /// Called after fetching transactions to ensure the latest transaction date is cached
+  Future<void> updateLedgerTransactionDate(int ledgerId, DateTime transactionDate) async {
+    try {
+      await _db.ledgerDao.updateLedgerById(ledgerId, LedgersCompanion(
+        transactionDate: Value(transactionDate),
+      ));
+      debugPrint('📅 Updated ledger $ledgerId transactionDate to $transactionDate');
+    } catch (e) {
+      debugPrint('⚠️ Failed to update transactionDate: $e');
     }
   }
 
