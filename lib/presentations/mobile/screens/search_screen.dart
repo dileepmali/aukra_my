@@ -192,13 +192,14 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(),
+                  CircularProgressIndicator(
+                    color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                    strokeWidth: 1.0,
+                  ),
                   const SizedBox(height: 16),
-                  Text(
+                  AppText.bodyMedium(
                     'Searching...',
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
+                    color: isDark ? AppColors.textSecondary : AppColorsLight.textSecondary,
                   ),
                 ],
               ),
@@ -354,39 +355,45 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
 
-        // Ledgers list with infinite scrolling
+        // Ledgers list with infinite scrolling + pull to refresh
         Expanded(
-          child: Obx(() {
-            final isLoadingMore = _controller.isLoadingMore.value;
+          child: RefreshIndicator(
+            color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+            backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+            onRefresh: () => _controller.refresh(),
+            child: Obx(() {
+              final isLoadingMore = _controller.isLoadingMore.value;
 
-            return ListView.builder(
-              controller: _controller.scrollController,
-              padding: EdgeInsets.only(
-                left: responsive.wp(1),
-                right: responsive.wp(1),
-                top: responsive.hp(2),
-                bottom: responsive.hp(30),
-              ),
-              itemCount: ledgers.length + (isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Show loading indicator at the end
-                if (index == ledgers.length) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                        strokeWidth: 2.0,
+              return ListView.builder(
+                controller: _controller.scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(
+                  left: responsive.wp(1),
+                  right: responsive.wp(1),
+                  top: responsive.hp(2),
+                  bottom: responsive.hp(30),
+                ),
+                itemCount: ledgers.length + (isLoadingMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  // Show loading indicator at the end
+                  if (index == ledgers.length) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                          strokeWidth: 2.0,
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                final ledger = ledgers[index];
-                return _buildLedgerItem(responsive, isDark, ledger);
-              },
-            );
-          }),
+                  final ledger = ledgers[index];
+                  return _buildLedgerItem(responsive, isDark, ledger);
+                },
+              );
+            }),
+          ),
         ),
       ],
     );
@@ -415,10 +422,13 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     final amount = '₹${ledger.currentBalance.abs().toStringAsFixed(2)}';
-    final isPositive = BalanceHelper.isPositive(
-      currentBalance: ledger.currentBalance,
-      itemName: '${_controller.config.partyTypeLabel}: ${ledger.name}',
-    );
+    // Handle zero balance - show GREEN (settled/clear)
+    final bool? isPositive = ledger.currentBalance.abs() < 0.01
+        ? true  // GREEN for zero balance (settled)
+        : BalanceHelper.isPositive(
+            currentBalance: ledger.currentBalance,
+            itemName: '${_controller.config.partyTypeLabel}: ${ledger.name}',
+          );
 
     return ListItemWidget(
       title: ledger.name.isNotEmpty
@@ -473,34 +483,40 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
 
-        // Results list with infinite scrolling
+        // Results list with infinite scrolling + pull to refresh
         Expanded(
-          child: Obx(() {
-            final isLoadingMore = _controller.isLoadingMore.value;
-            final results = _controller.searchResults;
+          child: RefreshIndicator(
+            color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+            backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
+            onRefresh: () => _controller.refresh(),
+            child: Obx(() {
+              final isLoadingMore = _controller.isLoadingMore.value;
+              final results = _controller.searchResults;
 
-            return ListView.builder(
-              controller: _controller.scrollController,
-              itemCount: results.length + (isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Show loading indicator at the end
-                if (index == results.length) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
-                        strokeWidth: 2.0,
+              return ListView.builder(
+                controller: _controller.scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: results.length + (isLoadingMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  // Show loading indicator at the end
+                  if (index == results.length) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: responsive.hp(2)),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: isDark ? AppColors.white : AppColorsLight.splaceSecondary1,
+                          strokeWidth: 2.0,
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                final result = results[index];
-                return _buildResultItem(responsive, isDark, result);
-              },
-            );
-          }),
+                  final result = results[index];
+                  return _buildResultItem(responsive, isDark, result);
+                },
+              );
+            }),
+          ),
         ),
       ],
     );
@@ -523,13 +539,17 @@ class _SearchScreenState extends State<SearchScreen> {
     debugPrint('   result.balanceType: ${result.balanceType}');
     debugPrint('   originalCurrentBalance: $originalCurrentBalance');
 
-    final isPositive = BalanceHelper.isPositive(
-      currentBalance: originalCurrentBalance,
-      itemName: 'Search: ${result.name}',
-    );
+    // Handle zero balance - show GREEN (settled/clear)
+    final bool? isPositive = (result.balance.abs() < 0.01 && originalCurrentBalance.abs() < 0.01)
+        ? true  // GREEN for zero balance (settled)
+        : BalanceHelper.isPositive(
+            currentBalance: originalCurrentBalance.abs() >= 0.01
+                ? originalCurrentBalance
+                : (result.balanceType == 'IN' ? result.balance : -result.balance),
+            itemName: 'Search: ${result.name}',
+          );
 
     debugPrint('   isPositive (for color): $isPositive');
-    debugPrint('   → Color should be: ${isPositive ? "GREEN" : "RED"}');
 
     return ListItemWidget(
       title: result.name,

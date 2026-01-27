@@ -119,7 +119,6 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                   fontWeight: FontWeight.w500,
                 maxLines: 1,
                 minFontSize: 12,
-                letterSpacing: 1.2,
               )),
             ],
           ),
@@ -557,7 +556,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
         SizedBox(height: responsive.hp(0.2)),
         // Location (if available)
         if (location != null && location.isNotEmpty) ...[
-          AppText.searchbar(
+          AppText.searchbar1(
             location,
             color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
           ),
@@ -572,7 +571,7 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
           color: closingBalance.abs() < 0.01
               ? (isDark ? AppColors.textDisabled : AppColorsLight.textSecondary)
               : BalanceHelper.getBalanceColorFromValue(closingBalance),
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
         ),
       ],
       ),

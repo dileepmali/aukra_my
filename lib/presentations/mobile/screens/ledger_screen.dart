@@ -414,7 +414,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                       final amount = '₹${customer.currentBalance.abs().toStringAsFixed(2)}';
                       // Handle zero balance - show GREEN (settled/clear)
-                      final bool? isPositive = customer.currentBalance == 0
+                      final bool? isPositive = customer.currentBalance.abs() < 0.01
                           ? true  // GREEN for zero balance (settled)
                           : BalanceHelper.isPositive(
                               currentBalance: customer.currentBalance,
@@ -542,7 +542,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                       final amount = '₹${supplier.currentBalance.abs().toStringAsFixed(2)}';
                       // Handle zero balance - show GREEN (settled/clear)
-                      final bool? isPositive = supplier.currentBalance == 0
+                      final bool? isPositive = supplier.currentBalance.abs() < 0.01
                           ? true  // GREEN for zero balance (settled)
                           : BalanceHelper.isPositive(
                               currentBalance: supplier.currentBalance,
@@ -671,7 +671,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                       final amount = '₹${employer.currentBalance.abs().toStringAsFixed(2)}';
                       // Handle zero balance - show GREEN (settled/clear)
-                      final bool? isPositive = employer.currentBalance == 0
+                      final bool? isPositive = employer.currentBalance.abs() < 0.01
                           ? true  // GREEN for zero balance (settled)
                           : BalanceHelper.isPositive(
                               currentBalance: employer.currentBalance,

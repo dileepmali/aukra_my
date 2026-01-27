@@ -69,11 +69,12 @@ class LedgerModel {
   }
 
   // Convert to JSON for UPDATE API (PUT)
-  // Excludes: id, openingBalance, transactionType, merchantId, partyType, mobileNumber
+  // Excludes: id, openingBalance, transactionType, merchantId, partyType
   // NOTE: Backend does NOT allow updating openingBalance via PUT - it's fixed after creation
   Map<String, dynamic> toUpdateJson() {
     return {
       'name': name,
+      'mobileNumber': mobileNumber,
       'creditLimit': creditLimit,
       'creditDay': creditDay,
       'interestType': interestType,
