@@ -332,7 +332,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: _buildInfoTab(
                     context: context,
-                    label: 'Credit Days',
+                    label: 'C Days',
                     value: '${controller.ledgerDetail.value?.creditDay ?? 0} days',
                     isDark: isDark,
                     responsive: responsive,
@@ -344,7 +344,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: _buildInfoTab(
                     context: context,
-                    label: 'Credit Limit',
+                    label: 'C Limit',
                     value: '₹${Formatters.formatAmountWithCommas((controller.ledgerDetail.value?.creditLimit ?? 0).toString())}',
                     isDark: isDark,
                     responsive: responsive,
@@ -377,7 +377,7 @@ class LedgerDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: _buildInfoTab(
                     context: context,
-                    label: 'Credit Score',
+                    label: 'C Score',
                     value: '---', // Placeholder - data will be passed later
                     isDark: isDark,
                     responsive: responsive,
@@ -839,7 +839,7 @@ class LedgerDashboardScreen extends StatelessWidget {
     return AnimatedPieChart(
       usedValue: displayUsedPercent,
       remainingValue: displayRemainingPercent,
-      centerSubText: 'Credit Used',
+      centerSubText: 'C Used',
       centerText: '${usagePercentage.toStringAsFixed(0)}%',
       usedColor: AppColors.primeryamount, // Orange/Yellow for used credit
       remainingColor: isDark ? AppColors.containerDark : AppColorsLight.gradientColor2, // Green for remaining credit

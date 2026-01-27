@@ -470,34 +470,34 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Get.to(() => const SelectLanguageScreen(fromProfile: true));
         },
       },
-      {
-        'icon': AppIcons.mobileIc,
-        'title': 'Recovery mobile',
-        'subtitle': recoveryPhone.isNotEmpty
-            ? Formatters.formatPhoneWithCountryCode(recoveryPhone)
-            : 'Not added',
-        'onTap': () async {
-          debugPrint('🔐 Recovery mobile tapped');
-          final controller = Get.put(RecoveryMobileController(), tag: 'recovery_mobile');
-
-          final success = await controller.startRecoveryMobileFlow(
-            context: context,
-            currentMobileNumber: _mobileNumber,
-            onSuccess: () {
-              // Refresh data after successful update
-              _loadAllData();
-            },
-          );
-
-          // Cleanup controller
-          Get.delete<RecoveryMobileController>(tag: 'recovery_mobile');
-
-          if (success) {
-            debugPrint('✅ Recovery mobile updated successfully');
-          }
-        },
-        'hasRecoveryData': recoveryPhone.isNotEmpty,
-      },
+      // {
+      //   'icon': AppIcons.mobileIc,
+      //   'title': 'Recovery mobile',
+      //   'subtitle': recoveryPhone.isNotEmpty
+      //       ? Formatters.formatPhoneWithCountryCode(recoveryPhone)
+      //       : 'Not added',
+      //   'onTap': () async {
+      //     debugPrint('🔐 Recovery mobile tapped');
+      //     final controller = Get.put(RecoveryMobileController(), tag: 'recovery_mobile');
+      //
+      //     final success = await controller.startRecoveryMobileFlow(
+      //       context: context,
+      //       currentMobileNumber: _mobileNumber,
+      //       onSuccess: () {
+      //         // Refresh data after successful update
+      //         _loadAllData();
+      //       },
+      //     );
+      //
+      //     // Cleanup controller
+      //     Get.delete<RecoveryMobileController>(tag: 'recovery_mobile');
+      //
+      //     if (success) {
+      //       debugPrint('✅ Recovery mobile updated successfully');
+      //     }
+      //   },
+      //   'hasRecoveryData': recoveryPhone.isNotEmpty,
+      // },
       {
         'icon': AppIcons.boxIc,
         'title': 'Deactivated account',
@@ -511,18 +511,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         'deactivatedCount': _deactivatedAccountsCount,
       },
       {
-        'icon': AppIcons.messageIc,
-        'title': 'Help center',
-        'subtitle': 'Need help or want to read docs?',
+        'icon': AppIcons.bookIc,
+        'title': 'Legal documents',
+        'subtitle': 'Terms of service & policies',
         'onTap': () {
           debugPrint('📚 Navigating to Help Center (Policy & Terms)...');
           Get.to(() => const PolicyTermsScreen());
         },
       },
       {
-        'icon': AppIcons.bookIc,
-        'title': 'Legal documents',
-        'subtitle': 'Terms of service & policies',
+        'icon': AppIcons.messageIc,
+        'title': 'Help center',
+        'subtitle': 'Need help or want to read docs?',
         'onTap': () => debugPrint('About tapped'),
       },
       {

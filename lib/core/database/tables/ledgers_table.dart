@@ -37,6 +37,7 @@ class Ledgers extends Table {
   // Timestamps
   DateTimeColumn get createdAt => dateTime().nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();
+  DateTimeColumn get transactionDate => dateTime().nullable()(); // Last transaction date from API
   DateTimeColumn get localUpdatedAt => dateTime().nullable()(); // Local modification time
 
   // Status

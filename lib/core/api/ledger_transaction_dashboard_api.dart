@@ -26,8 +26,8 @@ class LedgerTransactionDashboardApi {
 
   Future<LedgerTransactionDashboardModel> getLedgerTransactionDashboard({
     String? partyType,
-    int skip = 0,
-    int limit = 20,
+    int skip = 1,
+    int limit = 10,
     String? search,
     String? sortBy,
     String? sortOrder,

@@ -68,7 +68,7 @@ class CustomerStatementController extends GetxController {
   // PAGINATION VARIABLES
   // ============================================================
   final ScrollController scrollController = ScrollController();
-  final currentSkip = 0.obs;
+  final currentSkip = 1.obs;
   final hasMoreData = true.obs;
   final isLoadingMore = false.obs;
   final int pageLimit = 10;
@@ -174,9 +174,23 @@ class CustomerStatementController extends GetxController {
   /// Setup scroll listener for infinite scrolling
   void _setupScrollListener() {
     scrollController.addListener(() {
-      if (scrollController.position.pixels >=
-          scrollController.position.maxScrollExtent - 200) {
-        // User is near the bottom, load more data
+      if (!scrollController.hasClients) return;
+
+      final maxScroll = scrollController.position.maxScrollExtent;
+      final currentScroll = scrollController.position.pixels;
+      final threshold = maxScroll * 0.8;
+
+      if (currentScroll >= threshold) {
+        debugPrint('📜 SCROLL: pixels=$currentScroll, max=$maxScroll, threshold=$threshold');
+        debugPrint('   isLoadingMore=${isLoadingMore.value}, hasMoreData=${hasMoreData.value}, isLoading=${isLoading.value}');
+        debugPrint('   currentSkip=${currentSkip.value}, totalCount=${totalCount.value}, loaded=${transactionData.value?.data.length ?? 0}');
+      }
+
+      if (currentScroll >= threshold &&
+          !isLoadingMore.value &&
+          hasMoreData.value &&
+          !isLoading.value) {
+        debugPrint('🚀 SCROLL TRIGGER → calling loadMoreData()');
         loadMoreData();
       }
     });
@@ -185,13 +199,29 @@ class CustomerStatementController extends GetxController {
   /// Load more data for pagination (infinite scrolling)
   Future<void> loadMoreData() async {
     // Don't load if already loading or no more data
-    if (isLoadingMore.value || !hasMoreData.value || isLoading.value) return;
+    if (isLoadingMore.value || !hasMoreData.value || isLoading.value) {
+      debugPrint('⛔ loadMoreData SKIPPED: isLoadingMore=${isLoadingMore.value}, hasMoreData=${hasMoreData.value}, isLoading=${isLoading.value}');
+      return;
+    }
+
+    // Stop if we already loaded all items
+    final loadedCount = transactionData.value?.data.length ?? 0;
+    if (totalCount.value > 0 && loadedCount >= totalCount.value) {
+      hasMoreData.value = false;
+      debugPrint('📭 All data already loaded: $loadedCount/${totalCount.value}');
+      return;
+    }
 
     try {
       isLoadingMore.value = true;
+      // Offset-based: skip=1 (first), skip=11 (second), skip=21 (third)
       final nextSkip = currentSkip.value + pageLimit;
 
-      debugPrint('📡 Loading more transactions (Skip: $nextSkip)...');
+      debugPrint('');
+      debugPrint('📡 ===== LOAD MORE DATA =====');
+      debugPrint('   nextSkip=$nextSkip (currentSkip=${currentSkip.value} + limit=$pageLimit)');
+      debugPrint('   Current loaded: $loadedCount');
+      debugPrint('   totalCount: ${totalCount.value}');
 
       final newData = await _transactionApi.getLedgerTransactionDashboard(
         partyType: _getPartyTypeForApi(),
@@ -206,31 +236,60 @@ class CustomerStatementController extends GetxController {
         transactionType: _getTransactionTypeForApi(),
       );
 
+      debugPrint('   API returned: ${newData.data.length} items, totalCount: ${newData.totalCount}');
+
       if (newData.data.isEmpty) {
         hasMoreData.value = false;
-        debugPrint('📭 No more data available');
+        debugPrint('📭 No more data - empty response');
       } else {
-        // Append new items to existing list
-        final existingItems = transactionData.value?.data ?? [];
-        final allItems = [...existingItems, ...newData.data];
-
-        transactionData.value = LedgerTransactionDashboardModel(
-          count: newData.count,
-          totalCount: newData.totalCount,
-          data: allItems,
-        );
-
-        currentSkip.value = nextSkip;
-
-        // Check if we got less than limit (means no more data)
-        if (newData.data.length < pageLimit) {
-          hasMoreData.value = false;
+        // Log new items for debugging
+        for (int i = 0; i < newData.data.length; i++) {
+          final item = newData.data[i];
+          debugPrint('   NEW[$i] ledgerId=${item.ledgerId}, txnId=${item.transactionId}, '
+              'name=${item.partyName}, balance=${item.currentBalance}, '
+              'balanceType=${item.balanceType}, txnType=${item.transactionType}');
         }
 
-        debugPrint('✅ Loaded ${newData.data.length} more items. Total: ${allItems.length}');
+        // Check for duplicate items (safety check)
+        final existingItems = transactionData.value?.data ?? [];
+        final existingIds = existingItems.map((e) => e.transactionId).toSet();
+        final uniqueNew = newData.data.where((item) => !existingIds.contains(item.transactionId)).toList();
+        final duplicates = newData.data.length - uniqueNew.length;
+
+        debugPrint('   Unique: ${uniqueNew.length}, Duplicates: $duplicates');
+
+        if (uniqueNew.isEmpty) {
+          hasMoreData.value = false;
+          debugPrint('📭 All duplicates — stopping pagination');
+        } else {
+          final allItems = [...existingItems, ...uniqueNew];
+
+          transactionData.value = LedgerTransactionDashboardModel(
+            count: newData.count,
+            totalCount: newData.totalCount,
+            data: allItems,
+          );
+
+          currentSkip.value = nextSkip;
+          totalCount.value = newData.totalCount;
+
+          // Stop conditions
+          if (newData.data.length < pageLimit) {
+            hasMoreData.value = false;
+            debugPrint('📭 Got ${newData.data.length} < limit $pageLimit → stopping');
+          } else if (allItems.length >= newData.totalCount) {
+            hasMoreData.value = false;
+            debugPrint('📭 Loaded all: ${allItems.length}/${newData.totalCount} → stopping');
+          }
+
+          debugPrint('✅ Added ${uniqueNew.length} items. Total: ${allItems.length}/${newData.totalCount}');
+        }
       }
+      debugPrint('   hasMoreData: ${hasMoreData.value}');
+      debugPrint('=============================');
     } catch (e) {
-      debugPrint('❌ Error loading more data: $e');
+      debugPrint('❌ Error loading more: $e');
+      hasMoreData.value = false; // Stop on error
     } finally {
       isLoadingMore.value = false;
     }
@@ -362,8 +421,8 @@ class CustomerStatementController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      // Reset pagination
-      currentSkip.value = 0;
+      // Reset pagination — API uses page numbers: skip=1 (page 1), skip=2 (page 2)
+      currentSkip.value = 1;
       hasMoreData.value = true;
 
       debugPrint('');
@@ -380,7 +439,7 @@ class CustomerStatementController extends GetxController {
       debugPrint('   search: ${searchQuery.value.isEmpty ? "none" : searchQuery.value}');
       debugPrint('   customDateFrom: ${customDateFrom.value}');
       debugPrint('   customDateTo: ${customDateTo.value}');
-      debugPrint('   skip: 0, limit: $pageLimit');
+      debugPrint('   skip: 1 (page 1), limit: $pageLimit');
       debugPrint('========================================');
 
       // Check connectivity
@@ -398,10 +457,10 @@ class CustomerStatementController extends GetxController {
 
       // 🌐 Online: Fetch from API
       try {
-        debugPrint('🔄 Making API call...');
+        debugPrint('🔄 Making API call... skip=1 (page 1)');
         final data = await _transactionApi.getLedgerTransactionDashboard(
           partyType: _getPartyTypeForApi(),
-          skip: 0,
+          skip: 1,
           limit: pageLimit,
           search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
           sortBy: _getSortByForApi(),
@@ -423,8 +482,18 @@ class CustomerStatementController extends GetxController {
         debugPrint('✅ API SUCCESS - Transaction list loaded');
         debugPrint('   Count: ${data.count}, TotalCount: ${data.totalCount}');
         debugPrint('   Items received: ${data.data.length}');
-        if (data.data.isNotEmpty) {
-          debugPrint('   First item: ${data.data.first.partyName} - ₹${data.data.first.amount}');
+        debugPrint('   hasMoreData: ${hasMoreData.value}');
+        // Log ALL items with full detail
+        for (int i = 0; i < data.data.length; i++) {
+          final item = data.data[i];
+          debugPrint('   ITEM[$i] ledgerId=${item.ledgerId}, txnId=${item.transactionId}, '
+              'name=${item.partyName}, '
+              'amount=${item.amount}, '
+              'currentBalance=${item.currentBalance}, '
+              'signedBalance=${item.signedBalance}, '
+              'txnType=${item.transactionType}, '
+              'balanceType=${item.balanceType}, '
+              'date=${item.transactionDate}');
         }
       } catch (apiError) {
         debugPrint('');
@@ -501,7 +570,7 @@ class CustomerStatementController extends GetxController {
 
   /// Refresh data (resets pagination and refetches)
   Future<void> refreshStatement() async {
-    currentSkip.value = 0;
+    currentSkip.value = 1;
     hasMoreData.value = true;
     await fetchAllData();
   }

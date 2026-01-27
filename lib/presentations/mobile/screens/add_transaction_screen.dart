@@ -211,11 +211,6 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
 
                     SizedBox(height: responsive.hp(3)),
 
-                    // Add Note - Uses CustomTextField with built-in auto-scroll
-                    _buildNoteInput(responsive, isDark),
-
-                    SizedBox(height: responsive.hp(1)),
-
                     // Date and Photos Row
                     Obx(() => Padding(
                       padding:  EdgeInsets.symmetric(horizontal: responsive.wp(4)),
@@ -265,6 +260,16 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
                         enableSweepGradient: true,
                       ),
                     )),
+
+                    SizedBox(height: responsive.hp(2)),
+
+                    // Add Note - Uses CustomTextField with built-in auto-scroll
+                    _buildNoteInput(responsive, isDark),
+
+                    SizedBox(height: responsive.hp(1.5)),
+
+                    // Quick Note Chips (Cash, UPI, Goods)
+                    _buildQuickNoteChips(responsive, isDark),
 
                     SizedBox(height: responsive.hp(2)),
 
@@ -665,6 +670,75 @@ class AddTransactionScreen extends GetView<AddTransactionController> {
         scrollDelayMs: 400,
       ),
     );
+  }
+
+  Widget _buildQuickNoteChips(AdvancedResponsiveHelper responsive, bool isDark) {
+    final chips = ['Cash', 'UPI', 'Goods'];
+
+    return Obx(() => Padding(
+      padding: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
+      child: Row(
+        children: chips.asMap().entries.map((entry) {
+          final index = entry.key;
+          final label = entry.value;
+          final isSelected = controller.selectedNoteChip.value == label;
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(right: index < chips.length - 1 ? responsive.wp(2) : 0),
+              child: GestureDetector(
+                onTap: () {
+                  if (isSelected) {
+                    // Deselect: clear chip and remove from note
+                    controller.selectedNoteChip.value = '';
+                    controller.noteController.text = '';
+                  } else {
+                    // Select: set chip and set note text
+                    controller.selectedNoteChip.value = label;
+                    controller.noteController.text = label;
+                  }
+                  controller.noteController.selection = TextSelection.fromPosition(
+                    TextPosition(offset: controller.noteController.text.length),
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: responsive.hp(1.2)),
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? LinearGradient(
+                            colors: [AppColors.splaceSecondary1, AppColors.splaceSecondary2],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          )
+                        : isDark
+                            ? LinearGradient(
+                                colors: [AppColors.containerLight, AppColors.containerDark],
+                                begin: Alignment.topRight,
+                                end: Alignment.bottomCenter,
+                              )
+                            : LinearGradient(
+                                colors: [AppColorsLight.gradientColor1, AppColorsLight.gradientColor2],
+                                begin: Alignment.topRight,
+                                end: Alignment.bottomCenter,
+                              ),
+                    borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
+                    border: Border.all(color: isDark ? AppColors.driver: AppColorsLight.shadowMedium),
+                  ),
+                  child: Center(
+                    child: AppText.headlineLarge1(
+                      label,
+                      color: isSelected
+                          ? AppColors.white
+                          : (isDark ? Colors.white : AppColorsLight.textPrimary),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ));
   }
 
   Widget _buildSelectedImagesGallery(AdvancedResponsiveHelper responsive, bool isDark) {

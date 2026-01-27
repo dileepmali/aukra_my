@@ -231,6 +231,18 @@ class $LedgersTable extends Ledgers with TableInfo<$LedgersTable, Ledger> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _transactionDateMeta = const VerificationMeta(
+    'transactionDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> transactionDate =
+      GeneratedColumn<DateTime>(
+        'transaction_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _localUpdatedAtMeta = const VerificationMeta(
     'localUpdatedAt',
   );
@@ -279,6 +291,7 @@ class $LedgersTable extends Ledgers with TableInfo<$LedgersTable, Ledger> {
     localId,
     createdAt,
     updatedAt,
+    transactionDate,
     localUpdatedAt,
     isActive,
   ];
@@ -430,6 +443,15 @@ class $LedgersTable extends Ledgers with TableInfo<$LedgersTable, Ledger> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('transaction_date')) {
+      context.handle(
+        _transactionDateMeta,
+        transactionDate.isAcceptableOrUnknown(
+          data['transaction_date']!,
+          _transactionDateMeta,
+        ),
+      );
+    }
     if (data.containsKey('local_updated_at')) {
       context.handle(
         _localUpdatedAtMeta,
@@ -530,6 +552,10 @@ class $LedgersTable extends Ledgers with TableInfo<$LedgersTable, Ledger> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       ),
+      transactionDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}transaction_date'],
+      ),
       localUpdatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}local_updated_at'],
@@ -567,6 +593,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
   final String? localId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? transactionDate;
   final DateTime? localUpdatedAt;
   final bool isActive;
   const Ledger({
@@ -589,6 +616,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
     this.localId,
     this.createdAt,
     this.updatedAt,
+    this.transactionDate,
     this.localUpdatedAt,
     required this.isActive,
   });
@@ -619,6 +647,9 @@ class Ledger extends DataClass implements Insertable<Ledger> {
     }
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || transactionDate != null) {
+      map['transaction_date'] = Variable<DateTime>(transactionDate);
     }
     if (!nullToAbsent || localUpdatedAt != null) {
       map['local_updated_at'] = Variable<DateTime>(localUpdatedAt);
@@ -654,6 +685,9 @@ class Ledger extends DataClass implements Insertable<Ledger> {
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      transactionDate: transactionDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transactionDate),
       localUpdatedAt: localUpdatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(localUpdatedAt),
@@ -686,6 +720,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
       localId: serializer.fromJson<String?>(json['localId']),
       createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      transactionDate: serializer.fromJson<DateTime?>(json['transactionDate']),
       localUpdatedAt: serializer.fromJson<DateTime?>(json['localUpdatedAt']),
       isActive: serializer.fromJson<bool>(json['isActive']),
     );
@@ -713,6 +748,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
       'localId': serializer.toJson<String?>(localId),
       'createdAt': serializer.toJson<DateTime?>(createdAt),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'transactionDate': serializer.toJson<DateTime?>(transactionDate),
       'localUpdatedAt': serializer.toJson<DateTime?>(localUpdatedAt),
       'isActive': serializer.toJson<bool>(isActive),
     };
@@ -738,6 +774,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
     Value<String?> localId = const Value.absent(),
     Value<DateTime?> createdAt = const Value.absent(),
     Value<DateTime?> updatedAt = const Value.absent(),
+    Value<DateTime?> transactionDate = const Value.absent(),
     Value<DateTime?> localUpdatedAt = const Value.absent(),
     bool? isActive,
   }) => Ledger(
@@ -760,6 +797,9 @@ class Ledger extends DataClass implements Insertable<Ledger> {
     localId: localId.present ? localId.value : this.localId,
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    transactionDate: transactionDate.present
+        ? transactionDate.value
+        : this.transactionDate,
     localUpdatedAt: localUpdatedAt.present
         ? localUpdatedAt.value
         : this.localUpdatedAt,
@@ -802,6 +842,9 @@ class Ledger extends DataClass implements Insertable<Ledger> {
       localId: data.localId.present ? data.localId.value : this.localId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      transactionDate: data.transactionDate.present
+          ? data.transactionDate.value
+          : this.transactionDate,
       localUpdatedAt: data.localUpdatedAt.present
           ? data.localUpdatedAt.value
           : this.localUpdatedAt,
@@ -831,6 +874,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
           ..write('localId: $localId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('transactionDate: $transactionDate, ')
           ..write('localUpdatedAt: $localUpdatedAt, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -858,6 +902,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
     localId,
     createdAt,
     updatedAt,
+    transactionDate,
     localUpdatedAt,
     isActive,
   ]);
@@ -884,6 +929,7 @@ class Ledger extends DataClass implements Insertable<Ledger> {
           other.localId == this.localId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.transactionDate == this.transactionDate &&
           other.localUpdatedAt == this.localUpdatedAt &&
           other.isActive == this.isActive);
 }
@@ -908,6 +954,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
   final Value<String?> localId;
   final Value<DateTime?> createdAt;
   final Value<DateTime?> updatedAt;
+  final Value<DateTime?> transactionDate;
   final Value<DateTime?> localUpdatedAt;
   final Value<bool> isActive;
   const LedgersCompanion({
@@ -930,6 +977,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
     this.localId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.transactionDate = const Value.absent(),
     this.localUpdatedAt = const Value.absent(),
     this.isActive = const Value.absent(),
   });
@@ -953,6 +1001,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
     this.localId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.transactionDate = const Value.absent(),
     this.localUpdatedAt = const Value.absent(),
     this.isActive = const Value.absent(),
   }) : merchantId = Value(merchantId),
@@ -977,6 +1026,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
     Expression<String>? localId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? transactionDate,
     Expression<DateTime>? localUpdatedAt,
     Expression<bool>? isActive,
   }) {
@@ -1000,6 +1050,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
       if (localId != null) 'local_id': localId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (transactionDate != null) 'transaction_date': transactionDate,
       if (localUpdatedAt != null) 'local_updated_at': localUpdatedAt,
       if (isActive != null) 'is_active': isActive,
     });
@@ -1025,6 +1076,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
     Value<String?>? localId,
     Value<DateTime?>? createdAt,
     Value<DateTime?>? updatedAt,
+    Value<DateTime?>? transactionDate,
     Value<DateTime?>? localUpdatedAt,
     Value<bool>? isActive,
   }) {
@@ -1048,6 +1100,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
       localId: localId ?? this.localId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      transactionDate: transactionDate ?? this.transactionDate,
       localUpdatedAt: localUpdatedAt ?? this.localUpdatedAt,
       isActive: isActive ?? this.isActive,
     );
@@ -1113,6 +1166,9 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (transactionDate.present) {
+      map['transaction_date'] = Variable<DateTime>(transactionDate.value);
+    }
     if (localUpdatedAt.present) {
       map['local_updated_at'] = Variable<DateTime>(localUpdatedAt.value);
     }
@@ -1144,6 +1200,7 @@ class LedgersCompanion extends UpdateCompanion<Ledger> {
           ..write('localId: $localId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('transactionDate: $transactionDate, ')
           ..write('localUpdatedAt: $localUpdatedAt, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -3017,6 +3074,7 @@ typedef $$LedgersTableCreateCompanionBuilder =
       Value<String?> localId,
       Value<DateTime?> createdAt,
       Value<DateTime?> updatedAt,
+      Value<DateTime?> transactionDate,
       Value<DateTime?> localUpdatedAt,
       Value<bool> isActive,
     });
@@ -3041,6 +3099,7 @@ typedef $$LedgersTableUpdateCompanionBuilder =
       Value<String?> localId,
       Value<DateTime?> createdAt,
       Value<DateTime?> updatedAt,
+      Value<DateTime?> transactionDate,
       Value<DateTime?> localUpdatedAt,
       Value<bool> isActive,
     });
@@ -3146,6 +3205,11 @@ class $$LedgersTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get transactionDate => $composableBuilder(
+    column: $table.transactionDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3264,6 +3328,11 @@ class $$LedgersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get transactionDate => $composableBuilder(
+    column: $table.transactionDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get localUpdatedAt => $composableBuilder(
     column: $table.localUpdatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -3357,6 +3426,11 @@ class $$LedgersTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get transactionDate => $composableBuilder(
+    column: $table.transactionDate,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get localUpdatedAt => $composableBuilder(
     column: $table.localUpdatedAt,
     builder: (column) => column,
@@ -3413,6 +3487,7 @@ class $$LedgersTableTableManager
                 Value<String?> localId = const Value.absent(),
                 Value<DateTime?> createdAt = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> transactionDate = const Value.absent(),
                 Value<DateTime?> localUpdatedAt = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
               }) => LedgersCompanion(
@@ -3435,6 +3510,7 @@ class $$LedgersTableTableManager
                 localId: localId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                transactionDate: transactionDate,
                 localUpdatedAt: localUpdatedAt,
                 isActive: isActive,
               ),
@@ -3459,6 +3535,7 @@ class $$LedgersTableTableManager
                 Value<String?> localId = const Value.absent(),
                 Value<DateTime?> createdAt = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> transactionDate = const Value.absent(),
                 Value<DateTime?> localUpdatedAt = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
               }) => LedgersCompanion.insert(
@@ -3481,6 +3558,7 @@ class $$LedgersTableTableManager
                 localId: localId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                transactionDate: transactionDate,
                 localUpdatedAt: localUpdatedAt,
                 isActive: isActive,
               ),

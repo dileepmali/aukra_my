@@ -318,6 +318,7 @@ class LedgerRepository {
         isSynced: const Value(true),
         createdAt: Value(l.createdAt),
         updatedAt: Value(l.updatedAt),
+        transactionDate: Value(l.transactionDate),
         // Server says active, so set active - server is source of truth
         isActive: const Value(true),
       );
@@ -369,6 +370,7 @@ class LedgerRepository {
       partyType: l.partyType,
       createdAt: l.createdAt,
       updatedAt: l.updatedAt,
+      transactionDate: l.transactionDate,
     );
   }
 

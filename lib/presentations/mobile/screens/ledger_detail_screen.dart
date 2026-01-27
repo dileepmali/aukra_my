@@ -555,6 +555,7 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
     // Format date for subtitle using Formatters utility (time first, then date)
     // Use transactionDate to show original transaction date (not updatedAt which changes on edit)
     final formattedDate = Formatters.formatStringToTimeAndDate(transaction.transactionDate);
+    debugPrint('📅 SUBTITLE DEBUG - ID: ${transaction.id}, raw transactionDate: "${transaction.transactionDate}", formatted: "$formattedDate"');
 
     // ✅ Use note/description as title, fallback to "No note" if empty
     final noteTitle = (transaction.description != null && transaction.description.toString().trim().isNotEmpty)

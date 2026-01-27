@@ -632,6 +632,29 @@ class CustomerStatementScreen extends StatelessWidget {
       final customers = controller.filteredCustomers;
       final isLoadingMore = controller.isLoadingMore.value;
 
+      // DEBUG: Log all items data for testing
+      debugPrint('');
+      debugPrint('🧪 ===== LIST BUILD DEBUG =====');
+      debugPrint('   Total items: ${customers.length}');
+      debugPrint('   isLoadingMore: $isLoadingMore');
+      debugPrint('   hasMoreData: ${controller.hasMoreData.value}');
+      debugPrint('   currentSkip: ${controller.currentSkip.value}');
+      debugPrint('   totalCount: ${controller.totalCount.value}');
+      for (int i = 0; i < customers.length; i++) {
+        final c = customers[i];
+        final isPos = c.currentBalance.abs() < 0.01
+            ? true
+            : BalanceHelper.isPositive(currentBalance: c.currentBalance);
+        debugPrint('   [$i] ledgerId=${c.ledgerId}, txnId=${c.transactionId}, '
+            'name=${c.partyName}, '
+            'amount=${c.amount}, '
+            'currentBalance=${c.currentBalance}, '
+            'txnType=${c.transactionType}, '
+            'balanceType=${c.balanceType}, '
+            'color=${isPos == true ? "GREEN" : "RED"}');
+      }
+      debugPrint('==============================');
+
       // Show empty state
       if (customers.isEmpty) {
         return Center(
@@ -677,13 +700,21 @@ class CustomerStatementScreen extends StatelessWidget {
     LedgerTransactionItem item,
     CustomerStatementController controller,
   ) {
-    // Use signedBalance for color determination
-    final bool? isPositive = item.currentBalance == 0
+    // Use currentBalance directly with Khatabook logic — SAME as ledger_screen.dart
+    // API currentBalance CAN be negative (e.g., -1197490.0)
+    // Khatabook: negative → GREEN (you owe them), positive → RED (they owe you)
+    final bool? isPositive = item.currentBalance.abs() < 0.01
         ? true  // GREEN for zero balance (settled)
         : BalanceHelper.isPositive(
-            currentBalance: item.signedBalance,
+            currentBalance: item.currentBalance,
             itemName: 'Statement Item: ${item.partyName}',
           );
+
+    debugPrint('🎨 ITEM COLOR: ${item.partyName} | '
+        'currentBalance=${item.currentBalance} | '
+        'balanceType=${item.balanceType} | '
+        'txnType=${item.transactionType} | '
+        'isPositive=$isPositive → ${isPositive == true ? "GREEN" : "RED"}');
 
     return ListItemWidget(
       title: item.partyName,

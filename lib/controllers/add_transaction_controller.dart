@@ -35,6 +35,7 @@ class AddTransactionController extends GetxController {
   final selectedImages = <XFile>[].obs;
   final isSubmitting = false.obs;
   final isEditMode = false.obs; // Track if we're in edit mode
+  final selectedNoteChip = ''.obs; // Selected quick note chip (Cash, UPI, Goods)
 
   // Amount warning spam prevention
   DateTime? _lastAmountWarningTime;

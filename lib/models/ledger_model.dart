@@ -18,7 +18,8 @@ class LedgerModel {
   final String pinCode;
   final String partyType; // CUSTOMER, SUPPLIER
   final DateTime? createdAt; // Customer creation date/time
-  final DateTime? updatedAt; // Last update date/time (transaction date)
+  final DateTime? updatedAt; // Last update date/time
+  final DateTime? transactionDate; // Last transaction date/time
 
   LedgerModel({
     this.id,
@@ -41,6 +42,7 @@ class LedgerModel {
     required this.partyType,
     this.createdAt,
     this.updatedAt,
+    this.transactionDate,
   });
 
   // Convert to JSON for API request (CREATE)
@@ -115,6 +117,9 @@ class LedgerModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : null,
+      transactionDate: json['transactionDate'] != null
+          ? DateTime.parse(json['transactionDate'])
+          : null,
     );
   }
 
@@ -140,6 +145,7 @@ class LedgerModel {
     String? partyType,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? transactionDate,
   }) {
     return LedgerModel(
       id: id ?? this.id,
@@ -162,6 +168,7 @@ class LedgerModel {
       partyType: partyType ?? this.partyType,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      transactionDate: transactionDate ?? this.transactionDate,
     );
   }
 }

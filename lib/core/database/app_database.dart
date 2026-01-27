@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
 
   // Schema version - increment when tables change
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   // Migration strategy
   @override
@@ -54,6 +54,9 @@ class AppDatabase extends _$AppDatabase {
           // Using raw SQL to avoid dependency on generated code
           await customStatement('ALTER TABLE transactions ADD COLUMN current_balance REAL NOT NULL DEFAULT 0.0');
           await customStatement('ALTER TABLE transactions ADD COLUMN last_balance REAL NOT NULL DEFAULT 0.0');
+        }
+        if (from < 3) {
+          await customStatement('ALTER TABLE ledgers ADD COLUMN transaction_date INTEGER');
         }
       },
       beforeOpen: (details) async {

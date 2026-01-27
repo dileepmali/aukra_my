@@ -394,7 +394,8 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                       // Format last update date, time and address
                       String subtitle = '';
-                      final displayDate = customer.updatedAt ?? customer.createdAt;
+                      final displayDate = customer.transactionDate ?? customer.updatedAt ?? customer.createdAt;
+                      debugPrint('📅 LEDGER LIST DEBUG - ${customer.name}: transactionDate=${customer.transactionDate}, updatedAt=${customer.updatedAt}, createdAt=${customer.createdAt}, displayDate=$displayDate');
                       if (displayDate != null) {
                         final localTime = displayDate.toLocal();
                         final dateFormat = DateFormat('d MMM yyyy');
@@ -522,7 +523,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                       // Format last update date, time and address
                       String subtitle = '';
-                      final displayDate = supplier.updatedAt ?? supplier.createdAt;
+                      final displayDate = supplier.transactionDate ?? supplier.updatedAt ?? supplier.createdAt;
                       if (displayDate != null) {
                         final localTime = displayDate.toLocal();
                         final dateFormat = DateFormat('d MMM yyyy');
@@ -651,7 +652,7 @@ class _LedgerScreenState extends State<LedgerScreen> with WidgetsBindingObserver
 
                       // Format last update date, time and address
                       String subtitle = '';
-                      final displayDate = employer.updatedAt ?? employer.createdAt;
+                      final displayDate = employer.transactionDate ?? employer.updatedAt ?? employer.createdAt;
                       if (displayDate != null) {
                         final localTime = displayDate.toLocal();
                         final dateFormat = DateFormat('d MMM yyyy');
