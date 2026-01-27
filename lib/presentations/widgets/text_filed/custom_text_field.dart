@@ -89,7 +89,7 @@ class CustomTextField extends StatefulWidget {
     this.maxLines = 1,
     this.minLines,
     this.maxLength,
-    this.textCapitalization = TextCapitalization.none,
+    this.textCapitalization = TextCapitalization.sentences,
     this.onChanged,
     this.onSubmitted,
     this.onTap,

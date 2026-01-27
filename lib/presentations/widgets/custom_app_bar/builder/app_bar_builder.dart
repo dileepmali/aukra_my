@@ -194,13 +194,19 @@ class AppBarBuilder {
 
                     return GestureDetector(
                       onTap: () {
+                        debugPrint('🔵 FILTER ICON TAPPED');
+                        debugPrint('   onFilterTap is null: ${config.onFilterTap == null}');
+                        debugPrint('   onFiltersApplied is null: ${config.onFiltersApplied == null}');
+
                         // ✅ Haptic feedback on filter icon tap
                         HapticService.mediumImpact();
 
                         // ✅ Use custom onFilterTap if provided, otherwise use default
                         if (config.onFilterTap != null) {
+                          debugPrint('🔵 Using custom onFilterTap');
                           config.onFilterTap!();
                         } else {
+                          debugPrint('🔵 Opening FiltersBottomSheet');
                           _showFiltersBottomSheet(
                             context,
                             config.onFiltersApplied,
@@ -335,10 +341,22 @@ class AppBarBuilder {
     DateTime? currentCustomDateFrom,
     DateTime? currentCustomDateTo,
   ) {
-    if (context == null) return;
+    debugPrint('🟡 _showFiltersBottomSheet called');
+    debugPrint('   context is null: ${context == null}');
+    debugPrint('   onFiltersApplied is null: ${onFiltersApplied == null}');
+
+    if (context == null) {
+      debugPrint('🟡 ❌ RETURNING - context is null');
+      return;
+    }
 
     // ✅ Don't show bottom sheet if onFiltersApplied is null (disabled for that screen)
-    if (onFiltersApplied == null) return;
+    if (onFiltersApplied == null) {
+      debugPrint('🟡 ❌ RETURNING - onFiltersApplied is null');
+      return;
+    }
+
+    debugPrint('🟡 ✅ Showing modal bottom sheet...');
 
     showModalBottomSheet(
       context: context,

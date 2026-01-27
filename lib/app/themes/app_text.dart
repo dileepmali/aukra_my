@@ -149,21 +149,13 @@ class AppText {
       // Convert to Crore
       final croreValue = absAmount / oneCrore;
 
-      // Format with full precision, then remove trailing zeros
+      // Format with specified decimal places (always show decimals)
       String formatted = croreValue.toStringAsFixed(decimalPlaces);
-
-      // Remove trailing zeros after decimal point
-      if (formatted.contains('.')) {
-        formatted = formatted.replaceAll(RegExp(r'0+$'), '');
-        if (formatted.endsWith('.')) {
-          formatted = formatted.substring(0, formatted.length - 1);
-        }
-      }
 
       return '$prefix$formatted Cr';
     } else {
-      // Below 1 Crore - use normal Indian format
-      return formatIndianAmount(amount, decimalPlaces: 0, showDecimals: false);
+      // Below 1 Crore - use normal Indian format with decimals
+      return formatIndianAmount(amount, decimalPlaces: decimalPlaces, showDecimals: true);
     }
   }
 
@@ -1749,6 +1741,107 @@ class AppText {
   // 💡 HELPER METHOD - Rich Text Support
   // ============================================================================
 
+  // ============================================================================
+  // 💰 AMOUNT ROW - Small ₹ symbol (bottom-aligned) + Amount text
+  // ============================================================================
+
+  /// Displays amount with a smaller ₹ symbol aligned to bottom
+  /// The ₹ symbol uses a smaller text style than the amount number
+  ///
+  /// Usage:
+  /// ```dart
+  /// AppText.amountRow(
+  ///   amount: 214351009.65,
+  ///   color: AppColors.red500,
+  /// )
+  /// ```
+  ///
+  /// With custom styles:
+  /// ```dart
+  /// AppText.amountRow(
+  ///   amount: 50000,
+  ///   color: AppColors.primeryamount,
+  ///   symbolSize: AmountSymbolSize.headlineLarge1,
+  ///   amountSize: AmountTextSize.searchbar2,
+  /// )
+  /// ```
+  static Widget amountRow({
+    required double amount,
+    required Color color,
+    FontWeight symbolFontWeight = FontWeight.w500,
+    FontWeight amountFontWeight = FontWeight.w600,
+    int decimalPlaces = 2,
+    double minFontSize = 9,
+    double symbolBottomPadding = 0.1,
+    double spacing = 2.0,
+    AmountSymbolSize symbolSize = AmountSymbolSize.headlineLarge1,
+    AmountTextSize amountSize = AmountTextSize.searchbar2,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(bottom: symbolBottomPadding),
+          child: _buildAmountSymbol(symbolSize, color, symbolFontWeight),
+        ),
+        SizedBox(width: spacing),
+        _buildAmountValue(amountSize, amount, decimalPlaces, color, amountFontWeight, minFontSize),
+      ],
+    );
+  }
+
+  /// Build ₹ symbol widget based on size
+  static Widget _buildAmountSymbol(AmountSymbolSize size, Color color, FontWeight fontWeight) {
+    switch (size) {
+      case AmountSymbolSize.headlineLarge:
+        return headlineLarge('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.headlineLarge1:
+        return headlineLarge1('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.searchbar1:
+        return searchbar1('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.searchbar2:
+        return searchbar2('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.headlineSmall:
+        return headlineSmall('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.bodyLarge:
+        return bodyLarge('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.headlineMedium:
+        return headlineMedium('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.bodyMedium:
+        return bodyMedium('₹', color: color, fontWeight: fontWeight);
+      case AmountSymbolSize.displayMedium:
+        return displayMedium('₹', color: color, fontWeight: fontWeight);
+    }
+  }
+
+  /// Build amount value widget based on size
+  static Widget _buildAmountValue(AmountTextSize size, double amount, int decimalPlaces, Color color, FontWeight fontWeight, double minFontSize) {
+    switch (size) {
+      case AmountTextSize.searchbar1:
+        return searchbar1(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.searchbar2:
+        return searchbar2(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.headlineLarge:
+        return headlineLarge(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.headlineLarge1:
+        return headlineLarge1(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.headlineSmall:
+        return headlineSmall(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.headlineMedium:
+        return headlineMedium(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.bodyLarge:
+        return bodyLarge(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.bodyMedium:
+        return bodyMedium(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.displaySmall:
+        return displaySmall(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+      case AmountTextSize.displayMedium:
+        return displayMedium(null, amount: amount, decimalPlaces: decimalPlaces, color: color, fontWeight: fontWeight, minFontSize: minFontSize);
+    }
+  }
+
   /// Rich text builder with auto sizing
   /// Use when you need different styles in same text
   static Widget rich({
@@ -1775,4 +1868,31 @@ class AppText {
       group: group,
     );
   }
+}
+
+/// ₹ symbol size options for AppText.amountRow
+enum AmountSymbolSize {
+  headlineLarge,
+  headlineLarge1,
+  headlineMedium,
+  headlineSmall,
+  searchbar1,
+  searchbar2,
+  bodyLarge,
+  bodyMedium,
+  displayMedium,
+}
+
+/// Amount number size options for AppText.amountRow
+enum AmountTextSize {
+  searchbar1,
+  searchbar2,
+  headlineLarge,
+  headlineLarge1,
+  headlineMedium,
+  headlineSmall,
+  bodyLarge,
+  bodyMedium,
+  displaySmall,
+  displayMedium,
 }

@@ -730,6 +730,40 @@ class CustomerFormController extends GetxController {
           debugPrint('📡 Online - Creating ledger via API...');
           final response = await _ledgerApi.createLedger(ledger);
           successMessage = response.message;
+
+          // POST create doesn't save address fields - follow up with PUT
+          final hasAddressFields = ledger.area.isNotEmpty ||
+              ledger.pinCode.isNotEmpty ||
+              ledger.address.isNotEmpty;
+
+          if (hasAddressFields) {
+            // POST response doesn't return ledger ID,
+            // so fetch the newly created ledger by mobile number to get its ID
+            try {
+              debugPrint('🔍 Fetching new ledger ID by mobile number...');
+              final ledgers = await ledgerRepository.getLedgersByPartyType(
+                merchantId,
+                partyTypeUpperCase,
+                forceRefresh: true,
+              );
+              final newLedger = ledgers.firstWhereOrNull(
+                (l) => l.mobileNumber.replaceAll(RegExp(r'[^0-9]'), '') == phone,
+              );
+
+              if (newLedger?.id != null) {
+                debugPrint('📝 Updating address fields for new ledger ${newLedger!.id}...');
+                await _ledgerApi.updateLedger(
+                  ledgerId: newLedger.id!,
+                  ledger: ledger,
+                );
+                debugPrint('✅ Address fields updated successfully');
+              } else {
+                debugPrint('⚠️ Could not find newly created ledger by mobile number');
+              }
+            } catch (e) {
+              debugPrint('⚠️ Could not update address fields: $e');
+            }
+          }
         } else {
           // Offline - save to local database
           debugPrint('📴 Offline - Saving ledger locally...');

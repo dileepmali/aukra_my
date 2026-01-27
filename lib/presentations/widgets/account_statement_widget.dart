@@ -12,7 +12,6 @@ import '../../controllers/account_statement_controller.dart';
 import '../../core/responsive_layout/device_category.dart';
 import '../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../core/responsive_layout/helper_class_2.dart';
-import '../../core/utils/formatters.dart';
 import '../../models/grouped_transaction_model.dart';
 
 /// Account Statement Widget - UI Only (Logic in Controller)
@@ -361,17 +360,21 @@ class AccountStatementWidget extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 2),
-                        child: AppText.headlineLarge1(
-                          dailyGroup.inAmount > 0
-                              ? '₹${Formatters.formatAmountWithCommas(dailyGroup.inAmount.toString())}'
-                              : '-',
-                          color: dailyGroup.inAmount > 0
-                              ? AppColors.successPrimary
-                              : AppColors.white,
-                          fontWeight: FontWeight.w600,
-                          maxLines: 1,
-                          minFontSize: 8,
-                        ),
+                        child: dailyGroup.inAmount > 0
+                            ? AppText.amountRow(
+                                amount: dailyGroup.inAmount,
+                                color: AppColors.successPrimary,
+                                symbolSize: AmountSymbolSize.headlineMedium,
+                                amountSize: AmountTextSize.headlineLarge1,
+                                amountFontWeight: FontWeight.w600,
+                                minFontSize: 8,
+                                spacing: 1,
+                              )
+                            : AppText.headlineLarge1(
+                                '-',
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
                       ),
                     ),
                     // OUT Cell (Total OUT for the day) - RED color
@@ -386,17 +389,21 @@ class AccountStatementWidget extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 2),
-                        child: AppText.headlineLarge1(
-                          dailyGroup.outAmount > 0
-                              ? '₹${Formatters.formatAmountWithCommas(dailyGroup.outAmount.toString())}'
-                              : '-',
-                          color: dailyGroup.outAmount > 0
-                              ? AppColors.red500
-                              : AppColors.white,
-                          fontWeight: FontWeight.w600,
-                          maxLines: 1,
-                          minFontSize: 8,
-                        ),
+                        child: dailyGroup.outAmount > 0
+                            ? AppText.amountRow(
+                                amount: dailyGroup.outAmount,
+                                color: AppColors.red500,
+                                symbolSize: AmountSymbolSize.headlineMedium,
+                                amountSize: AmountTextSize.headlineLarge1,
+                                amountFontWeight: FontWeight.w600,
+                                minFontSize: 8,
+                                spacing: 1,
+                              )
+                            : AppText.headlineLarge1(
+                                '-',
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
                       ),
                     ),
                     // BAL Cell (Final balance at end of day) - KHATABOOK LOGIC
@@ -411,8 +418,8 @@ class AccountStatementWidget extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 2),
-                        child: AppText.headlineLarge1(
-                          '₹${Formatters.formatAmountWithCommas(dailyGroup.balance.abs().toString())}',
+                        child: AppText.amountRow(
+                          amount: dailyGroup.balance.abs(),
                           // ✅ KHATABOOK LOGIC:
                           // Positive (> 0) = RED (Customer owes you - You will RECEIVE)
                           // Negative (< 0) = GREEN (You owe customer - You will GIVE)
@@ -421,9 +428,11 @@ class AccountStatementWidget extends StatelessWidget {
                               : dailyGroup.balance < 0
                                   ? AppColors.successPrimary  // GREEN - Payable
                                   : AppColors.white,          // Neutral for zero
-                          fontWeight: FontWeight.w700,
-                          maxLines: 1,
+                          symbolSize: AmountSymbolSize.headlineMedium,
+                          amountSize: AmountTextSize.headlineLarge1,
+                          amountFontWeight: FontWeight.w700,
                           minFontSize: 8,
+                          spacing: 1,
                         ),
                       ),
                     ),

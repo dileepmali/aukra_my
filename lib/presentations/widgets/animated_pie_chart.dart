@@ -16,6 +16,7 @@ class AnimatedPieChart extends StatefulWidget {
   final Color? remainingColor;
   final String centerText;
   final String centerSubText;
+  final Widget? centerWidget;
   final double? chartSize;
   final double? centerSpaceRadius;
   final double? usedRadius;
@@ -28,6 +29,7 @@ class AnimatedPieChart extends StatefulWidget {
     required this.remainingValue,
     required this.centerText,
     this.centerSubText = '',
+    this.centerWidget,
     this.usedColor,
     this.remainingColor,
     this.chartSize,
@@ -143,6 +145,10 @@ class _AnimatedPieChartState extends State<AnimatedPieChart>
                   AnimatedBuilder(
                     animation: _animation,
                     builder: (context, child) {
+                      // If centerWidget is provided, use it directly
+                      if (widget.centerWidget != null) {
+                        return widget.centerWidget!;
+                      }
                       // If centerText contains %, show animated percentage
                       if (widget.centerText.contains('%')) {
                         int animatedPercentage = (widget.usedValue * _animation.value).toInt();

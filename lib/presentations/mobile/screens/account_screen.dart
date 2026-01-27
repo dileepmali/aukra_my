@@ -109,8 +109,8 @@ class _AccountScreenState extends State<AccountScreen> {
         backgroundColor: isDark ? AppColors.containerDark : AppColorsLight.white,
         onRefresh: () => _accountController.refreshDashboard(),
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(responsive.wp(0)),
+          physics: AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(bottom: responsive.wp(50)),
           child: Column(
             children: [
               // Header Card - Always visible (shows cached/default data)
@@ -159,38 +159,117 @@ class _AccountScreenState extends State<AccountScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                   Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        AppText.headlineLarge1(
-                          '₹',
-                          color: isPositive
-                              ? AppColors.primeryamount
-                              : AppColors.red500,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: responsive.wp(1)),
-                        AppText.searchbar2(
-                          Formatters.formatAmountWithCommas(netBalance.abs().toString()),
-                          color: isPositive
-                              ? AppColors.primeryamount
-                              : AppColors.red500,
-                          fontWeight: FontWeight.w600,
-                          minFontSize: 9,
-                        ),
-                      ],
+                    child: AppText.amountRow(
+                      amount: netBalance.abs(),
+                      color: isPositive ? AppColors.primeryamount : AppColors.red500,
+                      symbolSize: AmountSymbolSize.headlineLarge1,
+                      amountSize: AmountTextSize.searchbar2,
+                      symbolBottomPadding: responsive.hp(0.2),
+                      spacing: responsive.wp(1),
                     ),
                   ),
                 ],
               ),
+
               SizedBox(height: responsive.hp(0.5)),
               AppText.headlineLarge1(
                 '$totalCustomers customers, $totalSuppliers suppliers, $totalEmployees employees',
                 color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
                 fontWeight: FontWeight.w400,
               ),
+              SizedBox(height: responsive.hp(0.5)),
+
+              // Divider line
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: responsive.hp(0.5)),
+                child: Divider(
+                  color: isDark ? AppColors.driver : AppColorsLight.containerLight,
+                  thickness: 1,
+                  height: 1,
+                ),
+              ),
+              SizedBox(height: responsive.hp(1.5)),
+              // Amount OUT row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        AppIcons.arrowOutIc,
+                        width: responsive.iconSizeLarge,
+                        height: responsive.iconSizeLarge,
+                      ),
+                      SizedBox(width: responsive.spacing(8)),
+                      AppText.headlineLarge(
+                        'Amount OUT',
+                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
+                        minFontSize: 9,
+
+                      ),
+                    ],
+                  ),
+                  AppText.amountRow(
+                    amount: _accountController.todayOut.abs(),
+                    color: AppColors.red500,
+                    symbolSize: AmountSymbolSize.headlineLarge1,
+                    amountSize: AmountTextSize.headlineLarge,
+                    amountFontWeight: FontWeight.w500,
+                    minFontSize: 8,
+                    symbolBottomPadding: responsive.hp(0.2),
+                    spacing: responsive.wp(1),
+                  ),
+                ],
+              ),
+
+              // Divider line
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: responsive.hp(1.5)),
+                child: Divider(
+                  color: isDark ? AppColors.driver : AppColorsLight.containerLight,
+                  thickness: 1,
+                  height: 1,
+                ),
+              ),
+
+              // Amount IN row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        AppIcons.arrowInIc,
+                        width: responsive.iconSizeLarge,
+                        height: responsive.iconSizeLarge,
+                      ),
+                      SizedBox(width: responsive.spacing(8)),
+                      AppText.headlineLarge(
+                        'Amount IN',
+                        color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w400,
+                        minFontSize: 9,
+                      ),
+                    ],
+                  ),
+                  AppText.amountRow(
+                    amount: _accountController.todayIn.abs(),
+                    color: AppColors.primeryamount,
+                    symbolSize: AmountSymbolSize.headlineLarge1,
+                    amountSize: AmountTextSize.headlineLarge,
+                    amountFontWeight: FontWeight.w500,
+                    minFontSize: 8,
+                    symbolBottomPadding: responsive.hp(0.2),
+                    spacing: responsive.wp(1),
+                  ),
+
+                ],
+              ),
+              // Amount OUT row
+              SizedBox(height: responsive.hp(0.5)),
+
+
             ],
           ),
         ),
@@ -212,6 +291,8 @@ class _AccountScreenState extends State<AccountScreen> {
           countLabel: 'Customers',
           balance: _accountController.customerNetBalance,
           balanceType: _accountController.customerBalanceType,
+          amountOut: _accountController.customerOverallGiven,
+          amountIn: _accountController.customerOverallReceived,
           onViewAll: () => _navigateToLedger(0),
         ),
         SizedBox(height: responsive.hp(1)),
@@ -226,6 +307,8 @@ class _AccountScreenState extends State<AccountScreen> {
           countLabel: 'Suppliers',
           balance: _accountController.supplierNetBalance,
           balanceType: _accountController.supplierBalanceType,
+          amountOut: _accountController.supplierOverallGiven,
+          amountIn: _accountController.supplierOverallReceived,
           onViewAll: () => _navigateToLedger(1),
         ),
         SizedBox(height: responsive.hp(1)),
@@ -240,6 +323,8 @@ class _AccountScreenState extends State<AccountScreen> {
           countLabel: 'Employees',
           balance: _accountController.employeeNetBalance,
           balanceType: _accountController.employeeBalanceType,
+          amountOut: _accountController.employeeOverallGiven,
+          amountIn: _accountController.employeeOverallReceived,
           onViewAll: () => _navigateToLedger(2),
         ),
       ],
@@ -272,27 +357,13 @@ class _AccountScreenState extends State<AccountScreen> {
                   fontWeight: FontWeight.w500,
                 ),
                 Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      AppText.headlineLarge1(
-                        '₹',
-                        color: isPositive
-                            ? AppColors.primeryamount
-                            : AppColors.red500,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      SizedBox(width: responsive.wp(1)),
-                      AppText.searchbar2(
-                        Formatters.formatAmountWithCommas(_accountController.totalNetBalance.abs().toString()),
-                        color: isPositive
-                            ? AppColors.primeryamount
-                            : AppColors.red500,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ],
+                  child: AppText.amountRow(
+                    amount: _accountController.totalNetBalance.abs(),
+                    color: isPositive ? AppColors.primeryamount : AppColors.red500,
+                    symbolSize: AmountSymbolSize.headlineLarge1,
+                    amountSize: AmountTextSize.searchbar2,
+                    symbolBottomPadding: responsive.hp(0.2),
+                    spacing: responsive.wp(1),
                   ),
                 ),
               ],
@@ -318,28 +389,28 @@ class _AccountScreenState extends State<AccountScreen> {
     required String countLabel,
     required double balance,
     required String balanceType,
+    required double amountOut,
+    required double amountIn,
     required VoidCallback onViewAll,
   }) {
     // ✅ Use balanceType from Dashboard API (not balance sign)
     final isPositive = balanceType == 'IN';
 
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
-      padding: EdgeInsets.symmetric(horizontal: responsive.wp(4),vertical: responsive.hp(1.5)),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.containerLight : AppColorsLight.white,
-        borderRadius: BorderRadius.circular(responsive.borderRadiusSmall),
-        border: Border.all(
-          color: isDark ? AppColors.containerLight : AppColorsLight.containerLight,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with icon, title and "View all"
-          Row(
+    return Column(
+      children: [
+        // Header row - outside the card
+        Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
+          padding: EdgeInsets.symmetric(horizontal: responsive.wp(4), vertical: responsive.hp(1.5)),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.containerDark : AppColorsLight.scaffoldBackground,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(responsive.borderRadiusSmall),
+              topRight: Radius.circular(responsive.borderRadiusSmall),
+            ),
+          ),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
@@ -355,9 +426,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   SizedBox(width: responsive.spacing(8)),
                   AppText.searchbar2(
-                    title,
+                    '$title ($count)',
                     color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                 ],
               ),
@@ -371,17 +442,29 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
             ],
           ),
-          SizedBox(height: responsive.hp(1)),
-          // Divider line
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: responsive.hp(1.5)),
-            child: Divider(
-              color: isDark ? AppColors.containerDark : AppColorsLight.containerLight,
-              thickness: 1,
-              height: 1,
+        ),
+        // Card body
+        Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(horizontal: responsive.wp(4)),
+          padding: EdgeInsets.symmetric(horizontal: responsive.wp(4), vertical: responsive.hp(0)),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.containerLight : AppColorsLight.white,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(responsive.borderRadiusSmall),
+              bottomRight: Radius.circular(responsive.borderRadiusSmall),
+            ),
+            border: Border.all(
+              color: isDark ? AppColors.containerLight : AppColorsLight.containerLight,
+              width: 1,
             ),
           ),
-          // Net balance and count
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Balance row
+          SizedBox(height: responsive.hp(1.5)),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -393,43 +476,116 @@ class _AccountScreenState extends State<AccountScreen> {
                     color: isDark ? AppColors.white : AppColorsLight.textSecondary,
                     fontWeight: FontWeight.w400,
                   ),
-                  SizedBox(height: responsive.hp(0.1)),
-                  AppText.headlineLarge1(
-                    '$count $countLabel',
-                    color: isDark ? AppColors.textDisabled : AppColorsLight.textSecondary,
-                    fontWeight: FontWeight.w400,
-                  ),
                 ],
               ),
               Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    AppText.headlineLarge1(
-                      '₹',
-                      color: isPositive
-                          ? AppColors.primeryamount
-                          : AppColors.red500,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    SizedBox(width: responsive.wp(1)),
-                    AppText.searchbar1(
-                      Formatters.formatAmountWithCommas(balance.abs().toString()),
-                      color: isPositive
-                          ? AppColors.primeryamount
-                          : AppColors.red500,
-                      fontWeight: FontWeight.w500,
-                      minFontSize: 9,
-                    ),
-                  ],
+                child: AppText.amountRow(
+                  amount: balance.abs(),
+                  color: isPositive ? AppColors.primeryamount : AppColors.red500,
+                  symbolSize: AmountSymbolSize.headlineLarge1,
+                  amountSize: AmountTextSize.searchbar1,
+                  amountFontWeight: FontWeight.w500,
+                  symbolBottomPadding: responsive.hp(0.0),
+                  spacing: responsive.wp(1),
                 ),
               ),
             ],
           ),
+          SizedBox(height: responsive.hp(1.0)),
+
+          // Divider line
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: responsive.hp(1)),
+            child: Divider(
+              color: isDark ? AppColors.driver : AppColorsLight.containerLight,
+              thickness: 1,
+              height: 1,
+            ),
+          ),
+              SizedBox(height: responsive.hp(0.5)),
+
+          // Amount OUT row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    AppIcons.arrowOutIc,
+                    width: responsive.iconSizeLarge,
+                    height: responsive.iconSizeLarge,
+                  ),
+                  SizedBox(width: responsive.spacing(8)),
+                  AppText.headlineLarge(
+                    'Amount OUT',
+                    color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w400,
+                    minFontSize: 9,
+                  ),
+                ],
+              ),
+              AppText.amountRow(
+                amount: amountOut.abs(),
+                color: AppColors.red500,
+                symbolSize: AmountSymbolSize.headlineLarge1,
+                amountSize: AmountTextSize.headlineLarge,
+                amountFontWeight: FontWeight.w500,
+                minFontSize: 8,
+                symbolBottomPadding: responsive.hp(0.0),
+                spacing: responsive.wp(1),
+              ),
+            ],
+          ),
+              SizedBox(height: responsive.hp(0.5)),
+
+          // Divider line
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: responsive.hp(1)),
+            child: Divider(
+              color: isDark ? AppColors.driver : AppColorsLight.containerLight,
+              thickness: 1,
+              height: 1,
+            ),
+          ),
+              SizedBox(height: responsive.hp(0.5)),
+
+          // Amount IN row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    AppIcons.arrowInIc,
+                    width: responsive.iconSizeLarge,
+                    height: responsive.iconSizeLarge,
+                  ),
+                  SizedBox(width: responsive.spacing(8)),
+                  AppText.headlineLarge(
+                    'Amount IN',
+                    color: isDark ? AppColors.white : AppColorsLight.textSecondary,
+                    fontWeight: FontWeight.w400,
+                    minFontSize: 9,
+                  ),
+                ],
+              ),
+              AppText.amountRow(
+                amount: amountIn.abs(),
+                color: AppColors.primeryamount,
+                symbolSize: AmountSymbolSize.headlineLarge1,
+                amountSize: AmountTextSize.headlineLarge,
+                amountFontWeight: FontWeight.w500,
+                minFontSize: 8,
+                symbolBottomPadding: responsive.hp(0.0),
+                spacing: responsive.wp(1),
+              ),
+            ],
+          ),
+          SizedBox(height: responsive.hp(1.5)),
         ],
       ),
+    ),
+    ],
     );
   }
 

@@ -388,52 +388,20 @@ class LedgerDetailScreen extends GetView<LedgerDetailController> {
                     minFontSize: 10,
                   ),
                   SizedBox(height: responsive.hp(1)),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(top: responsive.hp(0.7)), // Fine-tune vertical position
-                        child: Builder(
-                          builder: (context) {
-                            // ✅ KHATABOOK LOGIC: Use balance value for color
-                            // Positive = RED (Customer owes you - You will RECEIVE)
-                            // Negative = GREEN (You owe customer - You will GIVE)
-                            // Zero = GREEN (Settled/Clear)
-                            return SvgPicture.asset(
-                              AppIcons.vectoeIc3,
-                              width: responsive.iconSizeSmall + 2,
-                              height: responsive.iconSizeSmall + 2,
-                              colorFilter: ColorFilter.mode(
-                                isZeroBalance
-                                    ? AppColors.primeryamount  // GREEN for zero balance
-                                    : BalanceHelper.getBalanceColorFromValue(balance),
-                                BlendMode.srcIn,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(width: responsive.wp(1),),
-                      Flexible(
-                        child: Builder(
-                          builder: (context) {
-                            // ✅ KHATABOOK LOGIC: Use balance value for color
-                            // Positive = RED (Customer owes you - You will RECEIVE)
-                            // Negative = GREEN (You owe customer - You will GIVE)
-                            // Zero = GREEN (Settled/Clear)
-                            return AppText.searchbar2(
-                              isZeroBalance
-                                  ? '0.00'
-                                  : '${NumberFormat('#,##,##0.00', 'en_IN').format(balance.abs())}',
-                              color: isZeroBalance
-                                  ? AppColors.primeryamount  // GREEN for zero balance
-                                  : BalanceHelper.getBalanceColorFromValue(balance),
-                              fontWeight: FontWeight.w500,
-                              minFontSize: 10,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                  AppText.amountRow(
+                    amount: balance.abs(),
+                    // ✅ KHATABOOK LOGIC: Use balance value for color
+                    // Positive = RED (Customer owes you - You will RECEIVE)
+                    // Negative = GREEN (You owe customer - You will GIVE)
+                    // Zero = GREEN (Settled/Clear)
+                    color: isZeroBalance
+                        ? AppColors.primeryamount
+                        : BalanceHelper.getBalanceColorFromValue(balance),
+                    symbolSize: AmountSymbolSize.searchbar1,
+                    amountSize: AmountTextSize.searchbar2,
+                    amountFontWeight: FontWeight.w500,
+                    minFontSize: 10,
+                    spacing: responsive.wp(1),
                   ),
                 ],
               ),

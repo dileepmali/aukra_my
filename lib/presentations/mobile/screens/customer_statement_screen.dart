@@ -13,7 +13,7 @@ import '../../../core/responsive_layout/font_size_hepler_class.dart';
 import '../../../core/responsive_layout/helper_class_2.dart';
 import '../../../core/responsive_layout/padding_navigation.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../models/customer_statement_model.dart';
+import '../../../models/ledger_transaction_dashboard_model.dart';
 import '../../widgets/custom_app_bar/custom_app_bar.dart';
 import '../../widgets/custom_app_bar/model/app_bar_config.dart';
 import '../../widgets/custom_single_border_color.dart';
@@ -67,12 +67,12 @@ class CustomerStatementScreen extends StatelessWidget {
               // Filter callback - opens filter bottom sheet
             onFiltersApplied: (filters) => controller.handleFiltersApplied(filters),
             // 🔥 Pass current filter values to restore previous selections (same as search_screen.dart)
-            currentSortBy: controller.sortBy.value,
+            currentSortBy: controller.sortByForUI,
             currentSortOrder: controller.sortOrder.value,
             currentDateFilter: controller.dateFilter.value,
             currentTransactionFilter: controller.transactionFilter.value,
-            currentReminderFilter: controller.reminderFilter.value,
-            currentUserFilter: controller.userFilter.value,
+            currentReminderFilter: 'all',
+            currentUserFilter: controller.partyTypeFilter.value,
             currentCustomDateFrom: controller.customDateFrom.value,
             currentCustomDateTo: controller.customDateTo.value,
             // 🔥 Hide Reminder and User filters for customer statement
@@ -125,7 +125,7 @@ class CustomerStatementScreen extends StatelessWidget {
       ),
       bottomNavigationBar: SafeArea(
         child: Obx(() {
-          if (controller.isLoading.value || controller.statementData.value == null) {
+          if (controller.isLoading.value || controller.transactionData.value == null) {
             return const SizedBox.shrink();
           }
           return _buildDownloadButton(responsive, isDark, controller);
@@ -167,31 +167,12 @@ class CustomerStatementScreen extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                   ),
                   Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        AppText.searchbar1(
-                          '₹',
-                          color: isPositive
-                              ? AppColors.primeryamount
-                              : AppColors.red500,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        SizedBox(width: responsive.wp(1)),
-                        Flexible(
-                          child: AppText.searchbar2(
-                            Formatters.formatAmountWithCommas(netBalance.abs().toString()),
-                            color: isPositive
-                                ? AppColors.primeryamount
-                                : AppColors.red500,
-                            fontWeight: FontWeight.w600,
-                            maxLines: 1,
-                            minFontSize: 9,
-                          ),
-                        ),
-                      ],
+                    child: AppText.amountRow(
+                      amount: netBalance.abs(),
+                      color: isPositive ? AppColors.primeryamount : AppColors.red500,
+                      symbolSize: AmountSymbolSize.searchbar1,
+                      amountSize: AmountTextSize.searchbar2,
+                      spacing: responsive.wp(1),
                     ),
                   ),
                 ],
@@ -280,26 +261,14 @@ class CustomerStatementScreen extends StatelessWidget {
                       SizedBox(height: responsive.hp(0.5)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 8.0),
-                            child: SvgPicture.asset(
-                              AppIcons.vectoeIc3,
-                              width: responsive.iconSizeSmall,
-                              height: responsive.iconSizeSmall,
-                              color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                            ),
-                          ),
-                          SizedBox(width: responsive.wp(0.8)),
                           Flexible(
-                            child: AppText.searchbar2(
-                              Formatters.formatAmountWithCommas(todayIn.toString()),
+                            child: AppText.amountRow(
+                              amount: todayIn,
                               color: AppColors.primeryamount,
-                              fontWeight: FontWeight.w600,
-                              maxLines: 1,
-                              minFontSize: 9,
+                              symbolSize: AmountSymbolSize.headlineLarge1,
+                              amountSize: AmountTextSize.searchbar2,
+                              spacing: responsive.wp(1),
                             ),
                           ),
                         ],
@@ -363,26 +332,14 @@ class CustomerStatementScreen extends StatelessWidget {
                       SizedBox(height: responsive.hp(0.5)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 8.0),
-                            child: SvgPicture.asset(
-                              AppIcons.vectoeIc3,
-                              width: responsive.iconSizeSmall,
-                              height: responsive.iconSizeSmall,
-                              color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-                            ),
-                          ),
-                          SizedBox(width: responsive.wp(0.9)),
                           Flexible(
-                            child: AppText.searchbar2(
-                              Formatters.formatAmountWithCommas(todayOut.toString()),
+                            child: AppText.amountRow(
+                              amount: todayOut,
                               color: AppColors.red500,
-                              fontWeight: FontWeight.w600,
-                              maxLines: 1,
-                              minFontSize: 9,
+                              symbolSize: AmountSymbolSize.headlineLarge1,
+                              amountSize: AmountTextSize.searchbar2,
+                              spacing: responsive.wp(1),
                             ),
                           ),
                         ],
@@ -401,7 +358,7 @@ class CustomerStatementScreen extends StatelessWidget {
   Widget _buildHeaderCard(
     AdvancedResponsiveHelper responsive,
     bool isDark,
-    CustomerStatementModel statement,
+    LedgerTransactionDashboardModel statement,
     CustomerStatementController controller,
   ) {
     // ✅ Use Dashboard API data: partyNetBalance and partyNetBalanceType
@@ -433,31 +390,12 @@ class CustomerStatementScreen extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                     ),
                     Flexible(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          AppText.searchbar1(
-                            '₹',
-                            color: isPositive
-                                ? AppColors.primeryamount
-                                : AppColors.red500,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          SizedBox(width: responsive.wp(1)),
-                          Flexible(
-                            child: AppText.displayMedium(
-                              Formatters.formatAmountWithCommas(netBalance.abs().toString()),
-                              color: isPositive
-                                  ? AppColors.primeryamount
-                                  : AppColors.red500,
-                              fontWeight: FontWeight.w600,
-                              maxLines: 1,
-                              minFontSize: 12,
-                            ),
-                          ),
-                        ],
+                      child: AppText.amountRow(
+                        amount: netBalance.abs(),
+                        color: isPositive ? AppColors.primeryamount : AppColors.red500,
+                        symbolSize: AmountSymbolSize.searchbar1,
+                        amountSize: AmountTextSize.searchbar2,
+                        spacing: responsive.wp(1),
                       ),
                     ),
                   ],
@@ -477,7 +415,7 @@ class CustomerStatementScreen extends StatelessWidget {
   Widget _buildSummarySection(
     AdvancedResponsiveHelper responsive,
     bool isDark,
-    CustomerStatementModel statement,
+    LedgerTransactionDashboardModel statement,
     CustomerStatementController controller,
     String? baseIconIn,
     String? topRightIconIn,
@@ -551,26 +489,15 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: 6.0),
-                          child: SvgPicture.asset(
-                            AppIcons.vectoeIc3,
-                            width: responsive.iconSizeSmall,
-                            height: responsive.iconSizeSmall,
-                            color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-
-                          ),
-                        ),
-                        SizedBox(width: responsive.wp(0.8)),
                         Flexible(
-                          child: AppText.displayMedium(
-                            Formatters.formatAmountWithCommas(todayIn.toString()),
+                          child: AppText.amountRow(
+                            amount: todayIn,
                             color: AppColors.primeryamount,
-                            fontWeight: FontWeight.w600,
-                            maxLines: 1,
-                            minFontSize: 10,
+                            symbolSize: AmountSymbolSize.headlineLarge1,
+                            amountSize: AmountTextSize.searchbar2,
+                            spacing: responsive.wp(1),
                           ),
                         ),
                       ],
@@ -635,26 +562,15 @@ class CustomerStatementScreen extends StatelessWidget {
                     ),
                     SizedBox(height: responsive.hp(0.5)),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Padding(
-                          padding:  EdgeInsets.only(top: 6.0),
-                          child: SvgPicture.asset(
-                            AppIcons.vectoeIc3,
-                            width: responsive.iconSizeSmall,
-                            height: responsive.iconSizeSmall,
-                            color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-
-                          ),
-                        ),
-                        SizedBox(width: responsive.wp(0.9)),
                         Flexible(
-                          child: AppText.displayMedium(
-                            Formatters.formatAmountWithCommas(todayOut.toString()),
+                          child: AppText.amountRow(
+                            amount: todayOut,
                             color: AppColors.red500,
-                            fontWeight: FontWeight.w600,
-                            maxLines: 1,
-                            minFontSize: 10,
+                            symbolSize: AmountSymbolSize.headlineLarge1,
+                            amountSize: AmountTextSize.searchbar2,
+                            spacing: responsive.wp(1),
                           ),
                         ),
                       ],
@@ -754,41 +670,36 @@ class CustomerStatementScreen extends StatelessWidget {
     });
   }
 
-  /// Individual Customer Item using ListItemWidget
+  /// Individual Transaction Item using ListItemWidget
   Widget _buildCustomerItem(
     AdvancedResponsiveHelper responsive,
     bool isDark,
-    CustomerStatementItem customer,
+    LedgerTransactionItem item,
     CustomerStatementController controller,
   ) {
-    // 🧪 DEBUG: Check balance values
-    debugPrint('💰 Statement: ${customer.name} - balance: ${customer.balance}, signedBalance: ${customer.signedBalance}, balanceType: ${customer.balanceType}');
-
-    // ✅ FIX: Use signedBalance (calculated from abs balance + balanceType)
-    // Handle zero balance - show GREEN (settled/clear)
-    final bool? isPositive = customer.signedBalance == 0
+    // Use signedBalance for color determination
+    final bool? isPositive = item.currentBalance == 0
         ? true  // GREEN for zero balance (settled)
         : BalanceHelper.isPositive(
-            currentBalance: customer.signedBalance,
-            itemName: 'Statement Item: ${customer.name}',
+            currentBalance: item.signedBalance,
+            itemName: 'Statement Item: ${item.partyName}',
           );
 
     return ListItemWidget(
-      title: customer.name,
-      subtitle: _formatDateTime(customer.lastTransactionDate),
-      amount: Formatters.formatAmountWithCommas(customer.balance.toString()),
+      title: item.partyName,
+      subtitle: _formatDateTime(item.transactionDate),
+      amount: Formatters.formatAmountWithCommas(item.currentBalance.abs().toString()),
       isPositiveAmount: isPositive,
       subtitleColor: isDark ? AppColors.textDisabled : AppColorsLight.black,
       titlePrefixIcon: SvgPicture.asset(
-        isPositive == true ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
+        item.isInTransaction ? AppIcons.arrowInIc : AppIcons.arrowOutIc,
         width: responsive.iconSizeMedium,
         height: responsive.iconSizeMedium,
         color: isDark ? AppColors.white : AppColorsLight.textSecondary,
-
       ),
       showBorder: true,
       onTap: () {
-        debugPrint('Tapped on ${customer.name}');
+        debugPrint('Tapped on ${item.partyName}');
       },
     );
   }

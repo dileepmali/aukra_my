@@ -11,6 +11,9 @@ class LedgerModel {
   final String mobileNumber;
   final String area;
   final String address;
+  final String city;
+  final String state;
+  final String country;
   final int merchantId;
   final String pinCode;
   final String partyType; // CUSTOMER, SUPPLIER
@@ -28,10 +31,13 @@ class LedgerModel {
     required this.transactionType,
     required this.interestRate,
     required this.mobileNumber,
-    required this.area,
-    required this.address,
+    this.area = '',
+    this.address = '',
+    this.city = '',
+    this.state = '',
+    this.country = '',
     required this.merchantId,
-    required this.pinCode,
+    this.pinCode = '',
     required this.partyType,
     this.createdAt,
     this.updatedAt,
@@ -51,10 +57,13 @@ class LedgerModel {
       'transactionType': transactionType,
       'interestRate': interestRate,
       'mobileNumber': mobileNumber,
-      'area': area,
-      'address': address,
+      'area': area.isNotEmpty ? area : null,
+      'address': address.isNotEmpty ? address : null,
+      'city': city.isNotEmpty ? city : null,
+      'state': state.isNotEmpty ? state : null,
+      'country': country.isNotEmpty ? country : null,
       'merchantId': merchantId,
-      'pinCode': pinCode,
+      'pinCode': pinCode.isNotEmpty ? pinCode : null,
       'partyType': partyType,
     };
   }
@@ -69,9 +78,12 @@ class LedgerModel {
       'creditDay': creditDay,
       'interestType': interestType,
       'interestRate': interestRate,
-      'area': area,
-      'address': address,
-      'pinCode': pinCode,
+      'area': area.isNotEmpty ? area : null,
+      'address': address.isNotEmpty ? address : null,
+      'city': city.isNotEmpty ? city : null,
+      'state': state.isNotEmpty ? state : null,
+      'country': country.isNotEmpty ? country : null,
+      'pinCode': pinCode.isNotEmpty ? pinCode : null,
     };
   }
 
@@ -90,6 +102,9 @@ class LedgerModel {
       mobileNumber: json['mobileNumber'] ?? '',
       area: json['area'] ?? '',
       address: json['address'] ?? '',
+      city: json['city'] ?? '',
+      state: json['state'] ?? '',
+      country: json['country'] ?? '',
       merchantId: json['merchantId'] ?? 0,
       pinCode: json['pinCode'] ?? '',
       partyType: json['partyType'] ?? 'CUSTOMER',
@@ -116,6 +131,9 @@ class LedgerModel {
     String? mobileNumber,
     String? area,
     String? address,
+    String? city,
+    String? state,
+    String? country,
     int? merchantId,
     String? pinCode,
     String? partyType,
@@ -135,6 +153,9 @@ class LedgerModel {
       mobileNumber: mobileNumber ?? this.mobileNumber,
       area: area ?? this.area,
       address: address ?? this.address,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      country: country ?? this.country,
       merchantId: merchantId ?? this.merchantId,
       pinCode: pinCode ?? this.pinCode,
       partyType: partyType ?? this.partyType,
@@ -147,12 +168,25 @@ class LedgerModel {
 // API Response Models
 class LedgerCreateResponse {
   final String message;
+  final int? ledgerId;
 
-  LedgerCreateResponse({required this.message});
+  LedgerCreateResponse({required this.message, this.ledgerId});
 
   factory LedgerCreateResponse.fromJson(Map<String, dynamic> json) {
+    // Try to extract ledger ID from response
+    // Could be in: json['id'], json['data']['id'], json['ledgerId']
+    int? id;
+    if (json['id'] != null) {
+      id = json['id'] as int?;
+    } else if (json['data'] is Map) {
+      id = (json['data'] as Map)['id'] as int?;
+    } else if (json['ledgerId'] != null) {
+      id = json['ledgerId'] as int?;
+    }
+
     return LedgerCreateResponse(
       message: json['message'] ?? 'Created successfully',
+      ledgerId: id,
     );
   }
 }

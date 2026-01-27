@@ -299,6 +299,8 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
               ),
               isSecondaryLoading: isLoadingState,
               onSecondaryPressed: isLoadingState ? null : () async {
+                debugPrint('🟢 APPLY BUTTON PRESSED in FiltersBottomSheet');
+                debugPrint('   onFiltersApplied is null: ${widget.onFiltersApplied == null}');
                 HapticFeedback.lightImpact();
 
                 setState(() => isLoadingState = true);
@@ -349,7 +351,10 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                     if (customDateTo != null) 'customDateTo': customDateTo,
                   };
 
+                  debugPrint('🟢 Filter result map: $result');
+                  debugPrint('🟢 Calling onFiltersApplied callback...');
                   widget.onFiltersApplied?.call(result);
+                  debugPrint('🟢 ✅ onFiltersApplied callback COMPLETED');
 
                   // Small delay for smooth animation
                   await Future.delayed(const Duration(milliseconds: 300));

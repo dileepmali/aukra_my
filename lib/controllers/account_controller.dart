@@ -56,6 +56,22 @@ class AccountController extends GetxController {
   double get supplierNetBalance => dashboardData.value?.party.supplier.netBalance ?? 0.0;
   double get employeeNetBalance => dashboardData.value?.party.employee.netBalance ?? 0.0;
 
+  // Overall IN/OUT from Dashboard API
+  double get overallReceived => dashboardData.value?.overallReceived ?? 0.0;
+  double get overallGiven => dashboardData.value?.overallGiven ?? 0.0;
+
+  // Today's IN/OUT from Dashboard API
+  double get todayIn => dashboardData.value?.todayIn ?? 0.0;
+  double get todayOut => dashboardData.value?.todayOut ?? 0.0;
+
+  // Per-party overallGiven (OUT) and overallReceived (IN)
+  double get customerOverallGiven => dashboardData.value?.party.customer.overallGiven ?? 0.0;
+  double get customerOverallReceived => dashboardData.value?.party.customer.overallReceived ?? 0.0;
+  double get supplierOverallGiven => dashboardData.value?.party.supplier.overallGiven ?? 0.0;
+  double get supplierOverallReceived => dashboardData.value?.party.supplier.overallReceived ?? 0.0;
+  double get employeeOverallGiven => dashboardData.value?.party.employee.overallGiven ?? 0.0;
+  double get employeeOverallReceived => dashboardData.value?.party.employee.overallReceived ?? 0.0;
+
   // Balance type from Dashboard API (directly from API response)
   String get totalBalanceType => dashboardData.value?.netBalanceType ?? 'OUT';
   String get customerBalanceType => dashboardData.value?.party.customer.netBalanceType ?? 'OUT';

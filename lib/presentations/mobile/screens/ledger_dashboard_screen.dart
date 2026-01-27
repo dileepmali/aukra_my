@@ -487,12 +487,14 @@ class LedgerDashboardScreen extends StatelessWidget {
                 ),
                 SizedBox(width: responsive.wp(2)),
                 Flexible(
-                  child: AppText.displayMedium(
-                    '₹ ${Formatters.formatAmountWithCommas(monthlyOut.toStringAsFixed(2))}',
+                  child: AppText.amountRow(
+                    amount: monthlyOut,
                     color: isDark ? AppColors.white : AppColorsLight.black,
-                    fontWeight: FontWeight.w700,
-                    maxLines: 1,
-                    minFontSize: 10,
+                    symbolSize: AmountSymbolSize.displayMedium,
+                    amountSize: AmountTextSize.displayMedium,
+                    symbolFontWeight: FontWeight.w500,
+                    amountFontWeight: FontWeight.w700,
+                    spacing: responsive.wp(1),
                   ),
                 ),
               ],
@@ -514,12 +516,14 @@ class LedgerDashboardScreen extends StatelessWidget {
                 ),
                 SizedBox(width: responsive.wp(2)),
                 Flexible(
-                  child: AppText.displayMedium(
-                    '₹ ${Formatters.formatAmountWithCommas(monthlyIn.toStringAsFixed(2))}',
+                  child: AppText.amountRow(
+                    amount: monthlyIn,
                     color: isDark ? AppColors.white : AppColorsLight.black,
-                    fontWeight: FontWeight.w700,
-                    maxLines: 1,
-                    minFontSize: 10,
+                    symbolSize: AmountSymbolSize.displayMedium,
+                    amountSize: AmountTextSize.displayMedium,
+                    symbolFontWeight: FontWeight.w500,
+                    amountFontWeight: FontWeight.w700,
+                    spacing: responsive.wp(1),
                   ),
                 ),
               ],
@@ -703,26 +707,19 @@ class LedgerDashboardScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: responsive.hp(0.5)),
-          // Use Row for smaller rupee symbol and amount - right aligned together
+          // Amount with smaller ₹ symbol - right aligned
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
             children: [
-              // Smaller rupee symbol
-              AppText.headlineLarge(
-                '₹ ',
-                color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-              // Amount with AppText - flexible to shrink if needed
               Flexible(
-                child: AppText.searchbar2(
-                  Formatters.formatAmountWithCommas(amount.toStringAsFixed(2)),
+                child: AppText.amountRow(
+                  amount: amount,
                   color: isDark ? AppColors.white : AppColorsLight.textPrimary,
-                  fontWeight: FontWeight.w500,
-                  maxLines: 1,
-                  minFontSize: 9,
+                  symbolSize: AmountSymbolSize.headlineLarge,
+                  amountSize: AmountTextSize.searchbar2,
+                  symbolFontWeight: FontWeight.w500,
+                  amountFontWeight: FontWeight.w500,
+                  spacing: responsive.wp(1),
                 ),
               ),
             ],
@@ -894,7 +891,16 @@ class LedgerDashboardScreen extends StatelessWidget {
       usedValue: displayUsed,
       remainingValue: displayRemaining,
       centerSubText: 'Closing Bal.',
-      centerText: '₹${closingBalance.toStringAsFixed(0)}',
+      centerText: '',
+      centerWidget: AppText.amountRow(
+        amount: closingBalance,
+        color: isDark ? AppColors.white : AppColorsLight.textPrimary,
+        symbolSize: AmountSymbolSize.headlineMedium,
+        amountSize: AmountTextSize.headlineLarge1,
+        amountFontWeight: FontWeight.w600,
+        minFontSize: 7,
+        spacing: 1,
+      ),
       usedColor: AppColors.primeryamount, // Orange/Yellow for used credit
       remainingColor: AppColors.red500, // Dark for remaining credit
       chartSize: 92,
